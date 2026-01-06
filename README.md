@@ -18,4 +18,12 @@ javascript library for coffee manager 2nd
   ```
   + create tsconfig.json : `npx tsc --init`
 
+
+# build
+- debug : `npm run build`  
+  + CommonJS directory : `./dist/cjs/`
+  + ECMASCript Module : `./dist/esm/`
   
+- release : `npm run release`
+  + CommonJS directory : `./release/cjs/`
+  + ECMASCript Module : `./release/esm/`
