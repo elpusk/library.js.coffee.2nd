@@ -1,0 +1,146 @@
+// Fix for line 22: Import React to provide the React namespace for Dispatch and SetStateAction types
+import React from 'react';
+import { AppState, ConnectionStatus, DeviceType, DeviceConfig } from './types';
+
+/**
+ * INTEGRATION NOTE:
+ * To use your local library, import classes from '@lib'.
+ * Example: import { LpuDevice } from '@lib/device';
+ */
+
+/**
+ * GLOBAL SYSTEM HOOKS
+ */
+(window as any).cf2_initialize = () => {
+  // Entry point for library initialization if needed
+};
+
+(window as any).cf2_uninitialize = () => {
+  // Cleanup
+};
+
+export const createHandlers = (
+  state: AppState,
+  setState: React.Dispatch<React.SetStateAction<AppState>>,
+  addLog: (msg: string) => void
+) => {
+  const updateSetting = (key: keyof DeviceConfig, value: any, label?: string) => {
+    setState(prev => ({
+      ...prev,
+      config: { ...prev.config, [key]: value },
+      logs: [...prev.logs, `Update: ${label || key} set to ${value}`]
+    }));
+  };
+
+  const clamp = (val: number, min: number, max: number) => Math.max(min, Math.min(max, val));
+
+  return {
+    initializeSystem: () => {
+      if (typeof (window as any).cf2_initialize === 'function') {
+        (window as any).cf2_initialize();
+      }
+      addLog('System components initialized.');
+    },
+
+    uninitializeSystem: () => {
+      if (typeof (window as any).cf2_uninitialize === 'function') {
+        (window as any).cf2_uninitialize();
+      }
+    },
+
+    onConnect: (type: DeviceType) => {
+      addLog(`Requesting ${type} device access...`);
+      
+      // REAL INTEGRATION POINT:
+      // In your library version, call navigator.hid.requestDevice() 
+      // or use your @lib DeviceManager to establish a real connection.
+      
+      const fakePath = `\\\\?\\HID#VID_04D9&PID_1400&MI_00#7&${Math.random().toString(16).slice(2, 10)}&0&0000`;
+      setState(prev => ({
+        ...prev,
+        status: ConnectionStatus.CONNECTED,
+        devicePath: fakePath,
+        deviceType: type,
+        logs: [...prev.logs, `Device connected via library: ${fakePath}`]
+      }));
+    },
+
+    onDisconnect: () => {
+      addLog('Closing device connection...');
+      setState(prev => ({
+        ...prev,
+        status: ConnectionStatus.DISCONNECTED,
+        devicePath: '',
+        activeTab: 'device',
+        logs: [...prev.logs, 'Device session ended.']
+      }));
+    },
+
+    onApply: () => {
+      addLog('Syncing configuration with hardware...');
+      // REAL INTEGRATION POINT:
+      // Use your library to send HID Feature Reports or Output Reports 
+      // based on the state.config object.
+      addLog('Apply Success: Hardware registers updated.');
+    },
+
+    onClearLogs: () => {
+      setState(prev => ({ ...prev, logs: [] }));
+    },
+
+    config: {
+      onInterfaceChange: (val: string) => updateSetting('interface', val, 'Interface Mode'),
+      onBuzzerChange: (val: boolean) => updateSetting('buzzer', val, 'Buzzer State'),
+      onLanguageChange: (val: string) => updateSetting('language', val, 'Keyboard Language'),
+      onIButtonModeChange: (val: string) => updateSetting('ibuttonMode', val, 'i-Button Mode'),
+      onIButtonRangeStartChange: (val: number) => {
+        const clampedStart = clamp(val, 0, 15);
+        setState(prev => {
+          const currentEnd = prev.config.ibuttonRangeEnd;
+          const newEnd = Math.max(clampedStart, currentEnd);
+          const logs = [...prev.logs, `Update: i-Button Range Start set to ${clampedStart}`];
+          if (newEnd !== currentEnd) logs.push(`Update: i-Button Range End auto-adjusted to ${newEnd}`);
+          return { ...prev, config: { ...prev.config, ibuttonRangeStart: clampedStart, ibuttonRangeEnd: newEnd }, logs };
+        });
+      },
+      onIButtonRangeEndChange: (val: number) => {
+        const clampedEnd = clamp(val, 0, 15);
+        setState(prev => {
+          const currentStart = prev.config.ibuttonRangeStart;
+          const newStart = Math.min(clampedEnd, currentStart);
+          const logs = [...prev.logs, `Update: i-Button Range End set to ${clampedEnd}`];
+          if (newStart !== currentStart) logs.push(`Update: i-Button Range Start auto-adjusted to ${newStart}`);
+          return { ...prev, config: { ...prev.config, ibuttonRangeStart: newStart, ibuttonRangeEnd: clampedEnd }, logs };
+        });
+      },
+      onMsrDirectionChange: (val: string) => updateSetting('msrDirection', val, 'MSR Direction'),
+      onMsrTrackOrderChange: (val: string) => updateSetting('msrTrackOrder', val, 'MSR Track Order'),
+      onMsrResetIntervalChange: (val: string) => updateSetting('msrResetInterval', val, 'MSR Reset Interval'),
+      onMsrISO1Toggle: (val: boolean) => updateSetting('msrEnableISO1', val, 'ISO Track 1'),
+      onMsrISO2Toggle: (val: boolean) => updateSetting('msrEnableISO2', val, 'ISO Track 2'),
+      onMsrISO3Toggle: (val: boolean) => updateSetting('msrEnableISO3', val, 'ISO Track 3'),
+      onMsrGlobalSendConditionChange: (val: string) => updateSetting('msrGlobalSendCondition', val, 'Global Sending Condition'),
+      onMsrSuccessIndConditionChange: (val: string) => updateSetting('msrSuccessIndCondition', val, 'Success Indication Condition'),
+    },
+
+    onLoadSettings: (fileName: string) => {
+      addLog(`Importing settings from ${fileName}...`);
+    },
+
+    onLoadFirmware: (fileName: string) => {
+      addLog(`Firmware binary ready: ${fileName}`);
+    },
+
+    onDownloadSettings: () => {
+      addLog('Exporting current configuration...');
+      const data = { config: state.config, deviceType: state.deviceType, timestamp: new Date().toISOString() };
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `elpusk_config_${new Date().getTime()}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+  };
+};

@@ -1,0 +1,5 @@
+{
+  "name": "Elpusk Web Tools",
+  "description": "Web-based configuration tool for Elpusk card readers (LPU237, LPU-207, LPU208).",
+  "requestFramePermissions": []
+}
