@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { ConnectionStatus, DeviceType, AppState, KeyMapEntry, DEFAULT_CONFIG } from './types';
 import { createHandlers } from './handlers';
@@ -11,6 +12,7 @@ import KeyMapTab from './components/KeyMapTab';
 const App: React.FC = () => {
   const [state, setState] = useState<AppState>({
     status: ConnectionStatus.DISCONNECTED,
+    serverStatus: ConnectionStatus.DISCONNECTED,
     devicePath: '',
     deviceType: DeviceType.MSR_IBUTTON,
     activeTab: 'device',
@@ -112,7 +114,18 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col font-sans text-gray-800">
-      <Header status={state.status} devicePath={state.devicePath} />
+      <Header 
+        status={state.status} 
+        serverStatus={state.serverStatus}
+        devicePath={state.devicePath} 
+        onToggleServer={() => {
+          if (state.serverStatus === ConnectionStatus.CONNECTED) {
+            handlers.onDisconnectServer();
+          } else {
+            handlers.onConnectServer("ws://localhost:8080");
+          }
+        }}
+      />
       
       <div className="flex flex-1 overflow-hidden">
         <Sidebar 

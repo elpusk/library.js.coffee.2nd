@@ -1,3 +1,4 @@
+
 export enum ConnectionStatus {
   DISCONNECTED = 'not connect',
   CONNECTED = 'connected',
@@ -36,6 +37,7 @@ export interface DeviceConfig {
 
 export interface AppState {
   status: ConnectionStatus;
+  serverStatus: ConnectionStatus;
   devicePath: string;
   deviceType: DeviceType;
   activeTab: string;

@@ -1,3 +1,4 @@
+
 // Fix for line 22: Import React to provide the React namespace for Dispatch and SetStateAction types
 import React from 'react';
 import { AppState, ConnectionStatus, DeviceType, DeviceConfig } from './types';
@@ -73,6 +74,27 @@ export const createHandlers = (
         devicePath: '',
         activeTab: 'device',
         logs: [...prev.logs, 'Device session ended.']
+      }));
+    },
+
+    onConnectServer: (url: string) => {
+      addLog(`Connecting to global server: ${url}`);
+      // Simulate asynchronous server handshake
+      setTimeout(() => {
+        setState(prev => ({
+          ...prev,
+          serverStatus: ConnectionStatus.CONNECTED,
+          logs: [...prev.logs, `Successfully established link with ${url}`]
+        }));
+      }, 600);
+    },
+
+    onDisconnectServer: () => {
+      addLog('Terminating global server connection...');
+      setState(prev => ({
+        ...prev,
+        serverStatus: ConnectionStatus.DISCONNECTED,
+        logs: [...prev.logs, 'Server link closed.']
       }));
     },
 
