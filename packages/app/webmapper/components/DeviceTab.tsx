@@ -118,14 +118,6 @@ const DeviceTab: React.FC<DeviceTabProps> = ({
               >
                 {isConnected ? 'Disconnect' : 'Connect'}
               </button>
-              {isConnected && (
-                <button 
-                  onClick={onApply}
-                  className="px-6 py-2 bg-blue-50 text-blue-700 rounded border border-blue-200 hover:bg-blue-100 font-semibold text-sm flex items-center gap-2"
-                >
-                  <Save size={16} /> Apply
-                </button>
-              )}
             </div>
           </div>
 
@@ -143,12 +135,24 @@ const DeviceTab: React.FC<DeviceTabProps> = ({
                   {configFileName}
                 </div>
              </div>
-             <button 
-               onClick={onDownloadSettings}
-               className="flex items-center gap-1 mt-2 text-blue-600 text-sm font-medium hover:underline"
-             >
-               <Download size={14} /> Download current settings
-             </button>
+             
+             <div className="flex items-center justify-between pt-2 border-t border-gray-100 mt-2">
+               <button 
+                 onClick={onDownloadSettings}
+                 className="flex items-center gap-1 text-blue-600 text-sm font-medium hover:underline"
+               >
+                 <Download size={14} /> Download current settings
+               </button>
+
+               {isConnected && (
+                  <button 
+                    onClick={onApply}
+                    className="px-6 py-2 bg-blue-600 text-white rounded shadow-sm hover:bg-blue-700 font-semibold text-sm flex items-center gap-2 transition-colors"
+                  >
+                    <Save size={16} /> Apply Settings
+                  </button>
+                )}
+             </div>
           </div>
 
           <div className={`bg-white p-5 rounded-lg border border-gray-200 shadow-sm space-y-3 ${(!isConnected || !isServerConnected) ? 'opacity-60 pointer-events-none' : ''}`}>
