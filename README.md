@@ -4,26 +4,16 @@ javascript library for coffee manager 2nd
 # tools
 - [node.js](https://nodejs.org/)
 
-- tsc
-  + all project installation : 
-  ```
-  npm install -g typescript
-  tsc -v
-  ```
+- pnpm
+  + `corepack enable`
+  + `corepack prepare pnpm@latest --activate`
 
-  + local project installation : 
-  ```
-  npm install --save-dev typescript
-  npx tsc -v
-  ```
-  + create tsconfig.json : `npx tsc --init`
++ installation dependecy: 
+  + `pnpm install`
 
 
 # build
-- debug : `npm run build`  
-  + CommonJS directory : `./dist/cjs/`
-  + ECMASCript Module : `./dist/esm/`
-  
-- release : `npm run release`
-  + CommonJS directory : `./release/cjs/`
-  + ECMASCript Module : `./release/esm/`
+- build all : `pnpm run build`
+- build library : `pnpm run build:lib`
+- build webmapper : `pnpm run build:web`
+- debug(webmapper) : `pnpm run dev`
