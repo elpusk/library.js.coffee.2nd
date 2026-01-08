@@ -1,9 +1,11 @@
+
 import React, { useRef, useState } from 'react';
 import { ConnectionStatus, DeviceType } from '../types';
-import { Upload, RefreshCw, Power, Save, Download, Trash2 } from 'lucide-react';
+import { Upload, RefreshCw, Power, Save, Download, Trash2, ShieldAlert } from 'lucide-react';
 
 interface DeviceTabProps {
   status: ConnectionStatus;
+  serverStatus: ConnectionStatus;
   deviceType: DeviceType;
   onConnect: (type: DeviceType) => void;
   onDisconnect: () => void;
@@ -18,6 +20,7 @@ interface DeviceTabProps {
 
 const DeviceTab: React.FC<DeviceTabProps> = ({ 
   status, 
+  serverStatus,
   deviceType, 
   onConnect, 
   onDisconnect, 
@@ -30,16 +33,13 @@ const DeviceTab: React.FC<DeviceTabProps> = ({
   onDownloadSettings
 }) => {
   const isConnected = status === ConnectionStatus.CONNECTED;
+  const isServerConnected = serverStatus === ConnectionStatus.CONNECTED;
+  
   const [configFileName, setConfigFileName] = useState<string>('No setting file loaded...');
   const [firmwareFileName, setFirmwareFileName] = useState<string>('Select firmware (.rom)...');
 
   const configFileInputRef = useRef<HTMLInputElement>(null);
   const firmwareFileInputRef = useRef<HTMLInputElement>(null);
-
-  /**
-   * INTERFACE ACTIONS
-   * These methods bridge the DOM events to the centralized handlers.
-   */
 
   const handleConfigFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -69,15 +69,23 @@ const DeviceTab: React.FC<DeviceTabProps> = ({
       <div className="p-8 grid grid-cols-1 lg:grid-cols-2 gap-8 h-full">
         <div className="space-y-6">
           <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm space-y-4">
-            <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wide mb-2">Connection Settings</h3>
+            <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wide mb-2 flex justify-between items-center">
+              Connection Settings
+              {!isServerConnected && (
+                <span className="flex items-center gap-1 text-[10px] text-amber-600 normal-case font-medium bg-amber-50 px-2 py-0.5 rounded border border-amber-100">
+                  <ShieldAlert size={10} /> Requires Server Link
+                </span>
+              )}
+            </h3>
             
             {!isConnected && (
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700 mb-1">Connected device</label>
                 <select 
-                  className="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm py-2 px-3 border"
+                  className={`w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm py-2 px-3 border transition-opacity ${!isServerConnected ? 'opacity-50 cursor-not-allowed bg-gray-50' : ''}`}
                   value={deviceType}
                   onChange={(e) => setDeviceType(e.target.value as DeviceType)}
+                  disabled={!isServerConnected}
                 >
                   <option value={DeviceType.IBUTTON}>i-Button Only</option>
                   <option value={DeviceType.MSR}>MSR Only</option>
@@ -90,7 +98,7 @@ const DeviceTab: React.FC<DeviceTabProps> = ({
               <input 
                 type="text" 
                 value={isConnected ? "HID\\VID_04D9&PID_1400" : ""} 
-                placeholder="Device Path (auto-detected)"
+                placeholder={isServerConnected ? "Device Path (auto-detected)" : "Waiting for Server Connection..."}
                 disabled 
                 className="flex-1 bg-transparent text-sm text-gray-600 outline-none"
               />
@@ -98,11 +106,14 @@ const DeviceTab: React.FC<DeviceTabProps> = ({
             
             <div className="flex gap-3">
               <button
+                disabled={!isServerConnected && !isConnected}
                 onClick={() => !isConnected ? onConnect(deviceType) : onDisconnect()}
                 className={`flex-1 py-2.5 px-4 rounded font-semibold text-sm shadow-sm transition-all flex justify-center items-center gap-2 ${
                   isConnected 
                     ? 'bg-red-50 text-red-600 border border-red-200 hover:bg-red-100' 
-                    : 'bg-blue-600 text-white hover:bg-blue-700 hover:shadow-md'
+                    : isServerConnected 
+                      ? 'bg-blue-600 text-white hover:bg-blue-700 hover:shadow-md' 
+                      : 'bg-gray-200 text-gray-400 border border-gray-300 cursor-not-allowed'
                 }`}
               >
                 {isConnected ? 'Disconnect' : 'Connect'}
@@ -118,7 +129,7 @@ const DeviceTab: React.FC<DeviceTabProps> = ({
             </div>
           </div>
 
-          <div className={`bg-white p-5 rounded-lg border border-gray-200 shadow-sm space-y-3 ${!isConnected ? 'opacity-60 pointer-events-none' : ''}`}>
+          <div className={`bg-white p-5 rounded-lg border border-gray-200 shadow-sm space-y-3 ${(!isConnected || !isServerConnected) ? 'opacity-60 pointer-events-none' : ''}`}>
              <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wide">Configuration File</h3>
              <div className="flex gap-2">
                 <input type="file" ref={configFileInputRef} className="hidden" accept=".json,.xml,.txt" onChange={handleConfigFileChange} />
@@ -140,7 +151,7 @@ const DeviceTab: React.FC<DeviceTabProps> = ({
              </button>
           </div>
 
-          <div className={`bg-white p-5 rounded-lg border border-gray-200 shadow-sm space-y-3 ${!isConnected ? 'opacity-60 pointer-events-none' : ''}`}>
+          <div className={`bg-white p-5 rounded-lg border border-gray-200 shadow-sm space-y-3 ${(!isConnected || !isServerConnected) ? 'opacity-60 pointer-events-none' : ''}`}>
              <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wide">Firmware Update</h3>
              <div className="flex gap-2">
                 <input type="file" ref={firmwareFileInputRef} className="hidden" accept=".rom,.bin" onChange={handleFirmwareFileChange} />

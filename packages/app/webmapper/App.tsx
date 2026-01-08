@@ -31,6 +31,7 @@ const App: React.FC = () => {
   };
 
   // Initialize the central handlers
+  // Note: handlers are memoized but reconstructed when state changes to ensure fresh closures
   const handlers = useMemo(() => createHandlers(state, setState, addLog), [state]);
 
   // Call the initialization function on startup and cleanup on termination
@@ -40,6 +41,15 @@ const App: React.FC = () => {
       handlers.uninitializeSystem();
     };
   }, []);
+
+  // Requirement: If the server connection is lost while the device is already connected, 
+  // automatically disconnect the device connection as well.
+  useEffect(() => {
+    if (state.serverStatus === ConnectionStatus.DISCONNECTED && state.status === ConnectionStatus.CONNECTED) {
+      addLog('Server link lost: Automatically disconnecting device...');
+      handlers.onDisconnect();
+    }
+  }, [state.serverStatus, state.status]);
 
   const handleKeyMapChange = (tabId: string, newKeys: KeyMapEntry[]) => {
     setKeyMaps(prev => ({
@@ -54,6 +64,7 @@ const App: React.FC = () => {
       return (
         <DeviceTab 
           status={state.status}
+          serverStatus={state.serverStatus}
           deviceType={state.deviceType}
           onConnect={handlers.onConnect}
           onDisconnect={handlers.onDisconnect}
