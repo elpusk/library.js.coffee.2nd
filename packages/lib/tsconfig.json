@@ -9,5 +9,6 @@
     "strict": true,
     "esModuleInterop": true
   },
-  "include": ["lib"]
+  "include": ["elpusk"],
+  "exclude": ["node_modules", "dist"]
 }

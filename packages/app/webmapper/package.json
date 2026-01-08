@@ -1,9 +1,8 @@
 {
-  "name": "elpusk-web-tools",
+  "name": "webmapper",
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "homepage": "https://elpusk006.github.io",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
@@ -12,6 +11,7 @@
     "deploy": "gh-pages -d dist"
   },
   "dependencies": {
+    "@elpusk/lib": "workspace:*",
     "lucide-react": "^0.561.0",
     "react": "^19.2.3",
     "react-dom": "^19.2.3"
