@@ -2,16 +2,19 @@
 // Fix for line 22: Import React to provide the React namespace for Dispatch and SetStateAction types
 import React from 'react';
 import { AppState, ConnectionStatus, DeviceType, DeviceConfig } from './types';
+import { coffee } from '@lib/elpusk.framework.coffee';
+import { lpu237 } from '@lib/elpusk.device.usb.hid.lpu237';
+import { ctl_lpu237 } from '@lib/elpusk.framework.coffee.ctl_lpu237';
 
 /**
- * INTEGRATION NOTE:
- * To use your local library, import classes from '@lib'.
- * Example: import { LpuDevice } from '@lib/device';
+ * GLOBAL SYSTEM HANDLERS
  */
 
-/**
- * GLOBAL SYSTEM HOOKS
- */
+// Global instances for library management
+let g_coffee = coffee.get_instance();
+let g_lpu_device: lpu237 | null = null;
+let g_ctl: ctl_lpu237 | null = null;
+
 (window as any).cf2_initialize = () => {
   // Entry point for library initialization if needed
 };
