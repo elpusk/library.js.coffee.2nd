@@ -146,12 +146,29 @@ export const createHandlers = (
         const port = urlObj.port;
         
         const sessionId = await g_coffee.connect(protocol, port);
-        
+        let dev_list : string[];
+        let filtered_list : string[];
+        try {
+            dev_list = await g_coffee.get_device_list("hid#vid_134b&pid_0206&mi_01");
+
+            filtered_list = dev_list.filter(str => {
+                // 끝이 &ibutton 또는 &msr 로 끝나는 경우
+                // 또는 &scr 또는 &switch 뒤에 숫자가 1개 이상 오는 경우
+                return !/&(ibutton|msr|(scr|switch)\d+)$/.test(str);
+            });            
+        }
+        catch (error: any) {
+          addLog(`get device list failure: ${error.message}`);
+        }
+
         setState(prev => ({
           ...prev,
           serverStatus: ConnectionStatus.CONNECTED,
+          devicePaths: filtered_list, // Clear paths on initial connect
           logs: [...prev.logs, `Successfully established link with ${url}, session id ${sessionId}`]
         }));
+
+
       } catch (error: any) {
         addLog(`Server link failure: ${error.message}`);
       }
@@ -165,6 +182,7 @@ export const createHandlers = (
         setState(prev => ({
           ...prev,
           serverStatus: ConnectionStatus.DISCONNECTED,
+          devicePaths: [], // Clear paths on disconnect
           logs: [...prev.logs, 'Server link closed.']
         }));
       } catch (e) {

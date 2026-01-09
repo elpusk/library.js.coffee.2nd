@@ -40,6 +40,7 @@ export interface AppState {
   serverStatus: ConnectionStatus;
   devicePath: string;
   deviceType: DeviceType;
+  devicePaths: string[]; // List of available device paths from server
   activeTab: string;
   logs: string[];
   config: DeviceConfig;

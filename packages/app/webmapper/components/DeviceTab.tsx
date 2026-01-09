@@ -7,6 +7,7 @@ interface DeviceTabProps {
   status: ConnectionStatus;
   serverStatus: ConnectionStatus;
   deviceType: DeviceType;
+  devicePaths: string[]; // Added prop
   onConnect: (type: DeviceType) => void;
   onDisconnect: () => void;
   logs: string[];
@@ -22,6 +23,7 @@ const DeviceTab: React.FC<DeviceTabProps> = ({
   status, 
   serverStatus,
   deviceType, 
+  devicePaths,
   onConnect, 
   onDisconnect, 
   logs,
@@ -83,15 +85,20 @@ const DeviceTab: React.FC<DeviceTabProps> = ({
                 <label className="block text-sm font-medium text-gray-700 mb-1">Connected device</label>
                 <select 
                   className={`w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm py-2 px-3 border transition-opacity ${!isServerConnected ? 'opacity-50 cursor-not-allowed bg-gray-50' : ''}`}
-                  value={deviceType}
+                  value={isServerConnected ? deviceType : ""}
                   onChange={(e) => setDeviceType(e.target.value as DeviceType)}
                   disabled={!isServerConnected}
                 >
-                  <option value={DeviceType.IBUTTON}>i-Button Only</option>
-                  <option value={DeviceType.MSR}>MSR Only</option>
-                  <option value={DeviceType.MSR_IBUTTON}>MSR + i-Button</option>
-                </select>
-              </div>
+                  {!isServerConnected || devicePaths.length === 0 ? (
+                    <option value=""></option>
+                  ) : (
+                    <>
+                      {devicePaths.map((path, idx) => (
+                        <option key={idx} value={path}>{path}</option>
+                      ))}
+                    </>
+                  )}
+                </select>              </div>
             )}
 
             <div className="flex items-center gap-2 bg-gray-50 p-3 rounded border border-gray-200">
