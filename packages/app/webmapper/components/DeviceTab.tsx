@@ -8,7 +8,8 @@ interface DeviceTabProps {
   serverStatus: ConnectionStatus;
   deviceType: DeviceType;
   devicePaths: string[]; // Added prop
-  onConnect: (type: DeviceType) => void;
+  selectedPath: string; // Added prop
+  onConnect: (sel_path: string) => void;
   onDisconnect: () => void;
   logs: string[];
   onClearLogs: () => void;
@@ -24,6 +25,7 @@ const DeviceTab: React.FC<DeviceTabProps> = ({
   serverStatus,
   deviceType, 
   devicePaths,
+  selectedPath,
   onConnect, 
   onDisconnect, 
   logs,
@@ -114,7 +116,7 @@ const DeviceTab: React.FC<DeviceTabProps> = ({
             <div className="flex gap-3">
               <button
                 disabled={!isServerConnected && !isConnected}
-                onClick={() => !isConnected ? onConnect(deviceType) : onDisconnect()}
+                onClick={() => !isConnected ? onConnect(selectedPath) : onDisconnect()}
                 className={`flex-1 py-2.5 px-4 rounded font-semibold text-sm shadow-sm transition-all flex justify-center items-center gap-2 ${
                   isConnected 
                     ? 'bg-red-50 text-red-600 border border-red-200 hover:bg-red-100' 

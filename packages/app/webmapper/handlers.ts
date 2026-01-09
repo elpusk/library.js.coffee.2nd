@@ -109,20 +109,20 @@ export const createHandlers = (
       }
     },
 
-    onConnect: (type: DeviceType) => {
-      addLog(`Requesting ${type} device access...`);
+    onConnect: (sel_path: string) => {
+      addLog(`Requesting [${sel_path}] device access...`);
       
       // REAL INTEGRATION POINT:
       // In your library version, call navigator.hid.requestDevice() 
       // or use your @lib DeviceManager to establish a real connection.
-      
-      const fakePath = `\\\\?\\HID#VID_04D9&PID_1400&MI_00#7&${Math.random().toString(16).slice(2, 10)}&0&0000`;
+      let type :  DeviceType = DeviceType.MSR_IBUTTON;
+
       setState(prev => ({
         ...prev,
         status: ConnectionStatus.CONNECTED,
-        devicePath: fakePath,
+        devicePath: sel_path,
         deviceType: type,
-        logs: [...prev.logs, `Device connected via library: ${fakePath}`]
+        logs: [...prev.logs, `Device connected via library: ${sel_path}`]
       }));
     },
 

@@ -41,6 +41,7 @@ export interface AppState {
   devicePath: string;
   deviceType: DeviceType;
   devicePaths: string[]; // List of available device paths from server
+  selectedPath:string;
   activeTab: string;
   logs: string[];
   config: DeviceConfig;

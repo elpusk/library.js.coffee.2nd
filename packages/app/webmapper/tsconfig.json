@@ -12,7 +12,9 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
+    "noEmitOnError": true,
     "jsx": "react-jsx",
+    "sourceMap": true, /* browser source will know understand .ts files too! for debugging */
 
     /* Path Aliasing */
     "baseUrl": ".",

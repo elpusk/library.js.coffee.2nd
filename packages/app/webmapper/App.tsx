@@ -16,6 +16,7 @@ const App: React.FC = () => {
     devicePath: '',
     deviceType: DeviceType.MSR_IBUTTON,
     devicePaths: [], // Initially empty
+    selectedPath: '',
     activeTab: 'device',
     logs: ['Welcome to Web Tools 1.0'],
     config: { ...DEFAULT_CONFIG },
@@ -68,6 +69,7 @@ const App: React.FC = () => {
           serverStatus={state.serverStatus}
           deviceType={state.deviceType}
           devicePaths={state.devicePaths} // Pass the list to the dropdown
+          selectedPath={state.selectedPath}
           onConnect={handlers.onConnect}
           onDisconnect={handlers.onDisconnect}
           logs={state.logs}
