@@ -6,17 +6,74 @@ import { coffee } from '@lib/elpusk.framework.coffee';
 import { lpu237 } from '@lib/elpusk.device.usb.hid.lpu237';
 import { ctl_lpu237 } from '@lib/elpusk.framework.coffee.ctl_lpu237';
 
-/**
- * GLOBAL SYSTEM HANDLERS
- */
 
 // Global instances for library management
 let g_coffee = coffee.get_instance();
 let g_lpu_device: lpu237 | null = null;
 let g_ctl: ctl_lpu237 | null = null;
 
+/**
+ * GLOBAL SYSTEM HANDLERS
+ */
+let g_n_system_event = 0;
+let g_n_opened_device_index = 0;
+
+function _cb_system_event( s_action_code:any,s_data_field:any ){
+    do{
+        if( typeof s_action_code === 'undefined'){
+            continue;
+        }
+
+        if( s_action_code === "c"){
+            //removed event
+            ++g_n_system_event;
+            
+            do{
+                if( s_data_field.length <= 0 ){
+                    continue;
+                }
+                if( !g_ctl ){
+                    continue;
+                }
+                if( !g_ctl.get_device() ){
+                    continue;
+                }
+
+                for( var i = 0; i<s_data_field.length; i++  ){
+                    if( g_ctl.get_device().get_path() === s_data_field[i] ){
+                        //remove object
+                        g_ctl = null;
+                        g_n_opened_device_index = 0;
+                        /*
+                        tools_dom_remove_connected_device_page();
+                        // don't call promise function here while upates firmware.
+                        // promise function will change a callback function.
+                        // this will be problemed.
+                        if( !g_b_updating )
+                            tools_dom_update_device_list_with_promise( g_array_device_list );
+                        */
+                        break;//exit for
+                    }
+                }//end for
+                
+            }while(false);
+            
+        }
+        if( s_action_code === "P"){
+            //plugged in event
+            ++g_n_system_event;
+            //printMessage_pre("system event [" + g_n_system_event.toString() + "] : plugged in : " + s_data_field );
+            //tools_dom_update_device_list_with_promise( g_array_device_list );
+            continue;
+        }
+        //
+
+    }while(false);
+}
+
 (window as any).cf2_initialize = () => {
   // Entry point for library initialization if needed
+  coffee.set_system_event_handler(_cb_system_event);
 };
 
 (window as any).cf2_uninitialize = () => {
@@ -80,25 +137,40 @@ export const createHandlers = (
       }));
     },
 
-    onConnectServer: (url: string) => {
+    onConnectServer: async (url: string) => {
       addLog(`Connecting to global server: ${url}`);
-      // Simulate asynchronous server handshake
-      setTimeout(() => {
+      try {
+        // Parse URL for coffee.connect (Expects ws/wss and port separately)
+        const urlObj = new URL(url);
+        const protocol = urlObj.protocol.replace(':', '');
+        const port = urlObj.port;
+        
+        const sessionId = await g_coffee.connect(protocol, port);
+        
         setState(prev => ({
           ...prev,
           serverStatus: ConnectionStatus.CONNECTED,
-          logs: [...prev.logs, `Successfully established link with ${url}`]
+          logs: [...prev.logs, `Successfully established link with ${url}, session id ${sessionId}`]
         }));
-      }, 600);
+      } catch (error: any) {
+        addLog(`Server link failure: ${error.message}`);
+      }
     },
 
-    onDisconnectServer: () => {
+    onDisconnectServer: async () => {
       addLog('Terminating global server connection...');
-      setState(prev => ({
-        ...prev,
-        serverStatus: ConnectionStatus.DISCONNECTED,
-        logs: [...prev.logs, 'Server link closed.']
-      }));
+      try {
+        const sessionId = await g_coffee.disconnect();
+        addLog(`disconnected OK, session id ${sessionId}`);
+        setState(prev => ({
+          ...prev,
+          serverStatus: ConnectionStatus.DISCONNECTED,
+          logs: [...prev.logs, 'Server link closed.']
+        }));
+      } catch (e) {
+        console.error("Error during server disconnect:", e);
+      }
+     
     },
 
     onApply: () => {

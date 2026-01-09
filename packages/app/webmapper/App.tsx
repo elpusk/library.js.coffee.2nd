@@ -133,7 +133,7 @@ const App: React.FC = () => {
           if (state.serverStatus === ConnectionStatus.CONNECTED) {
             handlers.onDisconnectServer();
           } else {
-            handlers.onConnectServer("ws://localhost:8080");
+            handlers.onConnectServer("wss://localhost:443");
           }
         }}
       />
