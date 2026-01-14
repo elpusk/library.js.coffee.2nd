@@ -7,7 +7,8 @@
     "inlineSourceMap": false,
     "inlineSources": false,
     "strict": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "rootDir": "./elpusk"
   },
   "include": ["elpusk"],
   "exclude": ["node_modules", "dist"]

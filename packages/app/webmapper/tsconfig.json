@@ -17,7 +17,7 @@
     /* Path Aliasing */
     "baseUrl": ".",
     "paths": {
-      "@lib/*": ["../../lib/elpusk/*"]
+      "@lib/*": ["../../lib/dist/esm/*"]
     },
 
     /* Linting */
