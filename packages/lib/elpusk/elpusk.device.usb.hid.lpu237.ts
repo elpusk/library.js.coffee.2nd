@@ -1305,7 +1305,7 @@ export class lpu237 extends hid {
         switch (type) {
             case _type_manufacturer.mf_elpusk:
                 return "Elpusk";
-            case _type_manufacturer.mf_elpusk:
+            case _type_manufacturer.mf_btc:
                 return "BTC";
             default:
                 return "unknown";

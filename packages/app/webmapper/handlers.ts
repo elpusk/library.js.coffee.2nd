@@ -109,21 +109,60 @@ export const createHandlers = (
       }
     },
 
-    onConnect: (type: DeviceType) => {
-      addLog(`Requesting ${type} device access...`);
+    onConnect: async (path: string) => {
+      addLog(`Connecting to device at path: ${path}`);
       
       // REAL INTEGRATION POINT:
       // In your library version, call navigator.hid.requestDevice() 
       // or use your @lib DeviceManager to establish a real connection.
-      
-      const fakePath = `\\\\?\\HID#VID_04D9&PID_1400&MI_00#7&${Math.random().toString(16).slice(2, 10)}&0&0000`;
-      setState(prev => ({
-        ...prev,
-        status: ConnectionStatus.CONNECTED,
-        devicePath: fakePath,
-        deviceType: type,
-        logs: [...prev.logs, `Device connected via library: ${fakePath}`]
-      }));
+      try{
+        let s_result : string = "";
+
+        if (!path) {
+          addLog("Connection Aborted: No device path selected.");
+          return;
+        }
+        // Create the LPU device instance using the selected path string
+        g_lpu_device = new lpu237(path);
+        // Create the controller instance
+        g_ctl = new ctl_lpu237(g_coffee, g_lpu_device);      
+        
+        // Requirement: Open the equipment corresponding to the selected device path
+        addLog("Opening communication channel...");
+        s_result = await g_ctl.open_with_promise();
+        addLog(`the result of open_with_promise ${s_result}`);
+
+        // Requirement: Read basic information from the opened equipment
+        addLog("Retrieving basic hardware information...");
+        s_result = await g_ctl.load_min_parameter_from_device_with_promise();
+        addLog(`Identity Verified: ${g_lpu_device.get_name() || 'LPU Device'}`);
+
+        // Requirement: Read all information from the equipment again
+        //addLog("Syncing full configuration registry...");
+        //await g_ctl.load_all_parameter_from_device_with_promise();
+        //addLog("Hardware parameters synchronized.");
+
+        // Determine DeviceType for UI Logic based on the path string
+        let type = DeviceType.MSR_IBUTTON;
+        if (path === 'i-Button Only') type = DeviceType.IBUTTON;
+        if (path === 'MSR Only') type = DeviceType.MSR;
+
+        setState(prev => ({
+          ...prev,
+          status: ConnectionStatus.CONNECTED,
+          devicePath: path,
+          deviceType: type,
+          logs: [...prev.logs, `Device connected via library: ${path}`]
+        }));
+      } catch (error: any) {
+        const errorMsg = error instanceof Error ? error.message : String(error);
+        addLog(`Connection Failure: ${errorMsg}`);
+        console.error("Connect sequence error:", error);
+        
+        g_ctl = null;
+        g_lpu_device = null;
+      }
+
     },
 
     onDisconnect: () => {

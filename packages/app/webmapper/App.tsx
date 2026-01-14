@@ -21,6 +21,8 @@ const App: React.FC = () => {
     config: { ...DEFAULT_CONFIG },
   });
 
+  // Track the string currently selected in the dropdown
+  const [selectedPath, setSelectedPath] = useState<string>('');
   const [keyMaps, setKeyMaps] = useState<Record<string, KeyMapEntry[]>>({});
 
   // Helper to add logs to state
@@ -35,7 +37,14 @@ const App: React.FC = () => {
   // Note: handlers are memoized but reconstructed when state changes to ensure fresh closures
   const handlers = useMemo(() => createHandlers(state, setState, addLog), [state]);
 
-  // Call the initialization function on startup and cleanup on termination
+  // Sync selectedPath when devicePaths is first populated
+  useEffect(() => {
+    if (state.devicePaths.length > 0 && !selectedPath) {
+      setSelectedPath(state.devicePaths[0]);
+    }
+  }, [state.devicePaths]);
+
+  // Requirement: Call the initialization function on startup and cleanup on termination
   useEffect(() => {
     handlers.initializeSystem();
     return () => {
@@ -50,6 +59,9 @@ const App: React.FC = () => {
       addLog('Server link lost: Automatically disconnecting device...');
       handlers.onDisconnect();
     }
+    if (state.serverStatus === ConnectionStatus.DISCONNECTED) {
+      setSelectedPath('');
+    }    
   }, [state.serverStatus, state.status]);
 
   const handleKeyMapChange = (tabId: string, newKeys: KeyMapEntry[]) => {
@@ -68,7 +80,9 @@ const App: React.FC = () => {
           serverStatus={state.serverStatus}
           deviceType={state.deviceType}
           devicePaths={state.devicePaths} // Pass the list to the dropdown
-          onConnect={handlers.onConnect}
+          selectedPath={selectedPath}
+          setSelectedPath={setSelectedPath}          
+          onConnect={() => handlers.onConnect(selectedPath)} // Pass selected string path
           onDisconnect={handlers.onDisconnect}
           logs={state.logs}
           onClearLogs={handlers.onClearLogs}

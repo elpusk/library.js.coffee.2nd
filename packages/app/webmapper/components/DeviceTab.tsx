@@ -1,4 +1,3 @@
-
 import React, { useRef, useState } from 'react';
 import { ConnectionStatus, DeviceType } from '../types';
 import { Upload, RefreshCw, Power, Save, Download, Trash2, ShieldAlert } from 'lucide-react';
@@ -8,7 +7,9 @@ interface DeviceTabProps {
   serverStatus: ConnectionStatus;
   deviceType: DeviceType;
   devicePaths: string[]; // Added prop
-  onConnect: (type: DeviceType) => void;
+  selectedPath: string; // Added prop
+  setSelectedPath: (path: string) => void; // Added prop
+  onConnect: () => void; // Changed signature
   onDisconnect: () => void;
   logs: string[];
   onClearLogs: () => void;
@@ -22,13 +23,13 @@ interface DeviceTabProps {
 const DeviceTab: React.FC<DeviceTabProps> = ({ 
   status, 
   serverStatus,
-  deviceType, 
   devicePaths,
+  selectedPath,
+  setSelectedPath,
   onConnect, 
   onDisconnect, 
   logs,
   onClearLogs,
-  setDeviceType,
   onApply,
   onLoadSettings,
   onLoadFirmware,
@@ -85,8 +86,8 @@ const DeviceTab: React.FC<DeviceTabProps> = ({
                 <label className="block text-sm font-medium text-gray-700 mb-1">Connected device</label>
                 <select 
                   className={`w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm py-2 px-3 border transition-opacity ${!isServerConnected ? 'opacity-50 cursor-not-allowed bg-gray-50' : ''}`}
-                  value={isServerConnected ? deviceType : ""}
-                  onChange={(e) => setDeviceType(e.target.value as DeviceType)}
+                  value={selectedPath}
+                  onChange={(e) => setSelectedPath(e.target.value)}
                   disabled={!isServerConnected}
                 >
                   {!isServerConnected || devicePaths.length === 0 ? (
@@ -104,7 +105,7 @@ const DeviceTab: React.FC<DeviceTabProps> = ({
             <div className="flex items-center gap-2 bg-gray-50 p-3 rounded border border-gray-200">
               <input 
                 type="text" 
-                value={isConnected ? "HID\\VID_04D9&PID_1400" : ""} 
+                value={isConnected ? selectedPath : ""}
                 placeholder={isServerConnected ? "Device Path (auto-detected)" : "Waiting for Server Connection..."}
                 disabled 
                 className="flex-1 bg-transparent text-sm text-gray-600 outline-none"
@@ -114,7 +115,7 @@ const DeviceTab: React.FC<DeviceTabProps> = ({
             <div className="flex gap-3">
               <button
                 disabled={!isServerConnected && !isConnected}
-                onClick={() => !isConnected ? onConnect(deviceType) : onDisconnect()}
+                onClick={() => !isConnected ? onConnect() : onDisconnect()}
                 className={`flex-1 py-2.5 px-4 rounded font-semibold text-sm shadow-sm transition-all flex justify-center items-center gap-2 ${
                   isConnected 
                     ? 'bg-red-50 text-red-600 border border-red-200 hover:bg-red-100' 

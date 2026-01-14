@@ -659,7 +659,16 @@ export class coffee extends framework {
                 break;
             case "device_open":
                 if (json_obj.action_code === _type_action_code.DEVICE_OPEN) {
-                    if (json_obj.data_field === "success") {
+                    if (Array.isArray(json_obj.data_field)) {
+                        if( json_obj.data_field.length > 0 && json_obj.data_field[0] === "success" ){
+                            this._delete_promise_parameter(json_obj.device_index);
+                            parameter.resolve!(json_obj.device_index);
+                        }
+                        else{
+                            parameter.reject!(this._get_error_object('en_e_server_mismatch_action'));
+                        }
+                    }
+                    else if (json_obj.data_field === "success") {
                         this._delete_promise_parameter(json_obj.device_index);
                         parameter.resolve!(json_obj.device_index);
                     } else {
