@@ -18,6 +18,12 @@ export interface KeyMapEntry {
   keyValue: string;
 }
 
+export interface LoadingState {
+  current: number;
+  total: number;
+  message: string;
+}
+
 export interface DeviceConfig {
   interface: string;
   buzzer: boolean;
@@ -44,6 +50,7 @@ export interface AppState {
   activeTab: string;
   logs: string[];
   config: DeviceConfig;
+  loading: LoadingState | null; // Added loading state
 }
 
 export const KEYBOARD_LAYOUT = [

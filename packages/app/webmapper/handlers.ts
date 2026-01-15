@@ -112,6 +112,11 @@ export const createHandlers = (
     onConnect: async (path: string) => {
       addLog(`Connecting to device at path: ${path}`);
       
+      setState(prev => ({ 
+        ...prev, 
+        loading: { current: 0, total: 100, message: 'Scanning for devices...' } 
+      }));
+
       // REAL INTEGRATION POINT:
       // In your library version, call navigator.hid.requestDevice() 
       // or use your @lib DeviceManager to establish a real connection.
@@ -120,6 +125,7 @@ export const createHandlers = (
 
         if (!path) {
           addLog("Connection Aborted: No device path selected.");
+          setState(prev => ({ ...prev, loading: null }));
           return;
         }
         // Create the LPU device instance using the selected path string
@@ -128,19 +134,32 @@ export const createHandlers = (
         g_ctl = new ctl_lpu237(g_coffee, g_lpu_device);      
         
         // Requirement: Open the equipment corresponding to the selected device path
+        setState(prev => ({ ...prev, loading: { ...prev.loading!, message: 'Opening communication channel...' } }));
         addLog("Opening communication channel...");
         s_result = await g_ctl.open_with_promise();
         addLog(`the result of open_with_promise ${s_result}`);
 
         // Requirement: Read basic information from the opened equipment
+        setState(prev => ({ ...prev, loading: { ...prev.loading!, message: 'Retrieving hardware identity...' } }));        
         addLog("Retrieving basic hardware information...");
         s_result = await g_ctl.load_min_parameter_from_device_with_promise();
         addLog(`Identity Verified: ${g_lpu_device.get_name() || 'LPU Device'}`);
 
-        // Requirement: Read all information from the equipment again
-        //addLog("Syncing full configuration registry...");
-        //await g_ctl.load_all_parameter_from_device_with_promise();
-        //addLog("Hardware parameters synchronized.");
+        // Requirement: Read all information with progress tracking
+        addLog("Syncing full configuration registry...");
+        await g_ctl.load_all_parameter_from_device_with_promise(
+          (n_idx, n_total, n_current) => {
+            setState(prev => ({
+              ...prev,
+              loading: {
+                current: n_current,
+                total: n_total,
+                message: `Retrieving system parameters...`
+              }
+            }));
+          }
+        );
+        addLog("Hardware parameters synchronized.");
 
         // Determine DeviceType for UI Logic based on the path string
         let type = DeviceType.MSR_IBUTTON;
@@ -164,6 +183,7 @@ export const createHandlers = (
           status: ConnectionStatus.CONNECTED,
           devicePath: path,
           deviceType: type,
+          loading: null,
           logs: [...prev.logs, `Device connected via library: ${path}`]
         }));
       } catch (error: any) {
@@ -173,6 +193,7 @@ export const createHandlers = (
         
         g_ctl = null;
         g_lpu_device = null;
+        setState(prev => ({ ...prev, loading: null }));
       }
 
     },

@@ -8,6 +8,7 @@ import Sidebar from './components/Sidebar';
 import DeviceTab from './components/DeviceTab';
 import CommonTab from './components/CommonTab';
 import KeyMapTab from './components/KeyMapTab';
+import LoadingOverlay from './components/LoadingOverlay';
 
 const App: React.FC = () => {
   const [state, setState] = useState<AppState>({
@@ -19,6 +20,7 @@ const App: React.FC = () => {
     activeTab: 'device',
     logs: ['Welcome to Web Tools 1.0'],
     config: { ...DEFAULT_CONFIG },
+    loading: null, // Initialize loading as null
   });
 
   // Track the string currently selected in the dropdown
@@ -141,6 +143,8 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col font-sans text-gray-800">
+      {state.loading && <LoadingOverlay loading={state.loading} />}
+      
       <Header 
         status={state.status} 
         serverStatus={state.serverStatus}

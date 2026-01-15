@@ -1917,7 +1917,7 @@ export class lpu237 extends hid {
         const s_data = s_response.substring(n_offset * 2, (n_offset + n_length) * 2);
 
         // 외부 유틸리티 호출 (elpusk 라이브러리 가정)
-        return (window as any).util.get_number_from_little_endian_hex_string(s_data);
+        return util.get_number_from_little_endian_hex_string(s_data);
     }
 
     /**
