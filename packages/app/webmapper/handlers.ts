@@ -177,8 +177,20 @@ export const createHandlers = (
 
     },
 
-    onDisconnect: () => {
+    onDisconnect: async () => {
       addLog('Closing device connection...');
+      try{
+        if( !g_ctl ){
+          addLog('None device control object.');
+          return;
+        }
+
+        const s_result = await g_ctl.close_with_promise();
+        addLog(`Closing result: ${s_result}`);
+
+      } catch (error: any) {
+
+      }
       setState(prev => ({
         ...prev,
         status: ConnectionStatus.DISCONNECTED,
