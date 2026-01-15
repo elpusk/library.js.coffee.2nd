@@ -1,6 +1,9 @@
 {
   "compilerOptions": {
     "target": "ES2020",
+    "sourceMap": true,
+    "inlineSources": true,
+
     "useDefineForClassFields": true,
     "lib": ["ES2020", "DOM", "DOM.Iterable"],
     "module": "ESNext",
@@ -17,7 +20,8 @@
     /* Path Aliasing */
     "baseUrl": ".",
     "paths": {
-      "@lib/*": ["../../lib/dist/esm/*"]
+      "@lib": ["../../lib/elpusk/index.ts"],
+      "@lib/*": ["../../lib/elpusk/*"]
     },
 
     /* Linting */
