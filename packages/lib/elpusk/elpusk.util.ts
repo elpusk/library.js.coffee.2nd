@@ -442,6 +442,41 @@ export class util extends elpusk {
 
     /** 
      * @public 
+     * @function elpusk.util.map_of_queue_rear
+     * @param target_map The Map instance.
+     * @param key The key of the map.
+     * @returns The last value from the queue, or null if the queue is empty or the key doesn't exist.
+     * @description Retrieves and removes the last value from the queue associated with the given key.
+     */                
+    public static map_of_queue_rear<K, V>(
+        target_map: Map<K, V[]> | undefined,
+        key: K
+    ): V | null {
+        let value: V | null = null;
+
+        do {
+            if (!(target_map instanceof Map)) {
+                continue;
+            }
+            if (!target_map.has(key)) {
+                continue;
+            }
+            const q = target_map.get(key);
+            if (!q || q.length <= 0) {
+                continue;
+            }
+
+            value = q.pop() ?? null;
+            if (q.length <= 0) {
+                target_map.delete(key);
+            }
+        } while (false);
+
+        return value;
+    }
+
+    /** 
+     * @public 
      * @function elpusk.util.map_of_queue_get
      * @param target_map The Map instance.
      * @param key The key of the map.

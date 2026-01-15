@@ -668,7 +668,7 @@ export class ctl_lpu237{
     /**
      * Callback complete response
      */
-    private _cb_complete_rsp(n_device_index: number, s_rx: Array<string> | string): void {
+    private _cb_complete_rsp = (n_device_index: number, s_rx: Array<string> | string) => {
         do {
             const para = util.map_of_queue_get(this._map_q_para, n_device_index);
             if (!para) {
@@ -698,7 +698,7 @@ export class ctl_lpu237{
     /**
      * Callback error frame
      */
-    private _cb_error_frame(n_device_index: number, event_error: Event | Error): void {
+    private _cb_error_frame = (n_device_index: number, event_error: Event | Error) => {
         if( event_error instanceof Error){
             console.log("_cb_error_frame : " + n_device_index.toString() + event_error.message);
             this._notifiy_error_map(event_error);
@@ -712,7 +712,7 @@ export class ctl_lpu237{
     /**
      * Callback error common
      */
-    private _cb_error_common(n_device_index: number, event_error: Event | Error): void {
+    private _cb_error_common = (n_device_index: number, event_error: Event | Error) => {
         const parameter = util.map_of_queue_front(this._map_q_para, n_device_index);
         if (parameter) {
             if( event_error instanceof Error ){
@@ -724,7 +724,7 @@ export class ctl_lpu237{
     /**
      * Callback complete get parameter
      */
-    private _cb_complete_get_parameter(n_device_index: number, s_rx: Array<string> | string): void {
+    private _cb_complete_get_parameter = (n_device_index: number, s_rx: Array<string> | string) => {
         let b_result = false;
         let parameter = util.map_of_queue_front(this._map_q_para, n_device_index);
         do {
@@ -781,7 +781,7 @@ export class ctl_lpu237{
     /**
      * Callback complete system info
      */
-    private _cb_complete_sys_info(n_device_index: number, s_rx: Array<string> | string): void {
+    private _cb_complete_sys_info = (n_device_index: number, s_rx: Array<string> | string) => {
         let b_result = false;
         let n_request = 0;
         let parameter = util.map_of_queue_front(this._map_q_para, n_device_index);
@@ -844,20 +844,25 @@ export class ctl_lpu237{
     /**
      * Callback complete system info only
      */
-    private _cb_complete_sys_info_only(n_device_index: number, s_rx: Array<string> | string): void {
+    private _cb_complete_sys_info_only = (n_device_index: number, s_rx: Array<string> | string) => {
+        console.info("_cb_complete_sys_info_only : ",this);
         let b_result = false;
         let parameter = util.map_of_queue_front(this._map_q_para, n_device_index);
         do {
             if (parameter === null) {
+                console.info("_cb_complete_sys_info_only : parameter is null");
                 continue;
             }
             if (typeof s_rx !== 'string') {
+                console.info("_cb_complete_sys_info_only : s_rx isn't string");
                 continue;
             }
             if (!parameter.device.set_rx_transaction(s_rx)) {
+                console.info("_cb_complete_sys_info_only : set_rx_transaction : error");
                 continue;
             }
             if (!parameter.device.set_from_rx()) {
+                console.info("_cb_complete_sys_info_only : set_from_rx : error");
                 continue;
             }
 
@@ -904,7 +909,7 @@ export class ctl_lpu237{
      * @param {Array<string>|string} s_rx - 수신된 데이터 필드.
      * @description 파라미터 설정 요청이 완료될 때마다 호출되며, 남은 요청이 있다면 연속해서 실행합니다.
      */
-    private _cb_complete_set_parameter(n_device_index: number, s_rx: string[] | string): void {
+    private _cb_complete_set_parameter = (n_device_index: number, s_rx: string[] | string) => {
         let b_result = false;
         
         // 1. 현재 대기 중인 파라미터 정보 가져오기
@@ -989,7 +994,7 @@ export class ctl_lpu237{
      * @param {Array<string>|string} s_rx - 부트로더 실행 중 수신된 데이터.
      * @description 부트로더 실행 요청의 각 단계가 완료될 때 호출되며, 남은 부트로더 명령 시퀀스를 이어갑니다.
      */
-    private _cb_complete_run_bootloader(n_device_index: number, s_rx: string[] | string): void {
+    private _cb_complete_run_bootloader = (n_device_index: number, s_rx: string[] | string) => {
         let b_result = false;
         
         // 큐에서 현재 처리 중인 파라미터 컨텍스트 추출
@@ -1346,6 +1351,7 @@ export class ctl_lpu237{
             };
 
             util.map_of_queue_push(this._map_q_para, device.get_device_index(), parameter);
+            console.info("pushed:", this);
         });
     }
 
