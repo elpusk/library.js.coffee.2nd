@@ -3,7 +3,7 @@
 import React from 'react';
 import { AppState, ConnectionStatus, DeviceType, DeviceConfig } from './types';
 import { coffee } from '@lib/elpusk.framework.coffee';
-import { lpu237 } from '@lib/elpusk.device.usb.hid.lpu237';
+import { lpu237, type_function } from '@lib/elpusk.device.usb.hid.lpu237';
 import { ctl_lpu237 } from '@lib/elpusk.framework.coffee.ctl_lpu237';
 
 
@@ -144,8 +144,20 @@ export const createHandlers = (
 
         // Determine DeviceType for UI Logic based on the path string
         let type = DeviceType.MSR_IBUTTON;
-        if (path === 'i-Button Only') type = DeviceType.IBUTTON;
-        if (path === 'MSR Only') type = DeviceType.MSR;
+
+        const dt = g_lpu_device.get_device_function();
+        switch(dt){
+          case type_function.fun_msr_ibutton:
+            break;
+          case type_function.fun_msr:
+            type = DeviceType.MSR;
+            break;
+          case type_function.fun_ibutton:
+            type = DeviceType.IBUTTON;
+            break;
+          default:
+            throw new Error("unknown device type");
+        }//end switch
 
         setState(prev => ({
           ...prev,

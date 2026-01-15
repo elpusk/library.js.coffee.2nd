@@ -809,7 +809,7 @@ const _error_name_message: readonly ErrorDetail[] = [
 /**
  * @description 장치 기능(Functionality)의 정의
  */
-enum _type_function {
+export enum type_function {
     fun_none = 0,
     fun_msr = 1,
     fun_msr_ibutton = 2,
@@ -941,7 +941,7 @@ export class lpu237 extends hid {
     private _b_global_pre_postfix_send_condition: boolean = true;
     private _n_manufacture: number = _type_manufacturer.mf_elpusk;
     private _s_uid: string | null = null;
-    private _n_device_function: number = _type_function.fun_none;
+    private _n_device_function: number = type_function.fun_none;
     private _version: number[] = [0, 0, 0, 0];
     private _version_structure: number[] = [0, 0, 0, 0];
     private _b_is_hid_boot: boolean = false;
@@ -1326,13 +1326,13 @@ export class lpu237 extends hid {
 
         // 2. 기능 타입별 판별
         switch (typeFunction) {
-            case _type_function.fun_none:
+            case type_function.fun_none:
                 return "None";
 
-            case _type_function.fun_msr:
+            case type_function.fun_msr:
                 return "MSR only";
 
-            case _type_function.fun_msr_ibutton:
+            case type_function.fun_msr_ibutton:
                 /** * 특정 버전 조건에 따라 iButton 기능이 SCR로 변경됨 
                  * _is_version_ten 함수가 별도로 정의되어 있어야 합니다.
                  */
@@ -1341,7 +1341,7 @@ export class lpu237 extends hid {
                 }
                 return "MSR and i-button";
 
-            case _type_function.fun_ibutton:
+            case type_function.fun_ibutton:
                 return "i-button only";
 
             default:
@@ -5138,6 +5138,7 @@ export class lpu237 extends hid {
     /**
      * @public
      * @description 장치의 시스템 정보를 가져오기 위한 일련의 요청 패킷들을 생성합니다.
+     *  enter_config, get_system_version, get_structure_version, get_device_type, get_system_name, leave_config 명령 패킷 생성. 
      * @returns {number} 생성된 요청의 개수 (실패 시 0)
      */
     public generate_get_system_information = (): number => {
@@ -5160,6 +5161,10 @@ export class lpu237 extends hid {
             // 4. 장치 타입 요청
             if (!this._generate_get_device_type(this._dequeu_s_tx)) break;
             this._deque_generated_tx.push(_type_generated_tx_type.gt_type_device);
+
+            //
+            if (!this._generate_get_device_ibutton_type(this._dequeu_s_tx)) break;
+            this._deque_generated_tx.push(_type_generated_tx_type.gt_type_ibutton);
 
             // 5. 장치 이름 요청
             if (!this._generate_get_name(this._dequeu_s_tx)) break;
@@ -7100,16 +7105,16 @@ export class lpu237 extends hid {
                 case _type_generated_tx_type.gt_type_device:
                     this._b_device_is_standard = this._get_type_from_response(s_response);
                     if (!this._b_device_is_standard) {
-                        this._n_device_function = _type_function.fun_msr;//compact model
+                        this._n_device_function = type_function.fun_msr;//compact model
                     } else {
-                        this._n_device_function = _type_function.fun_msr_ibutton;//standard model
+                        this._n_device_function = type_function.fun_msr_ibutton;//standard model
                     }
                     b_result = true;
                     break;
                 case _type_generated_tx_type.gt_type_ibutton:
                     this._b_device_is_ibutton_only = this._get_ibutton_type_from_response(s_response);
                     if (this._b_device_is_ibutton_only) {
-                        this._n_device_function = _type_function.fun_ibutton;//ibutton only model
+                        this._n_device_function = type_function.fun_ibutton;//ibutton only model
                     }
                     b_result = true;
                     break;

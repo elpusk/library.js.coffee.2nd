@@ -129,7 +129,9 @@ export class ctl_lpu237{
     
 
     /**
-     * Generate get system info start IO
+     * Generate get system info start IO.
+     * 
+     * enter_config, get_system_version, get_structure_version, get_device_type, get_system_name, leave_config 명령 실행 시작.
      */
     private _gen_get_sysinfo_start_io(
         server: coffee,
@@ -1309,6 +1311,8 @@ export class ctl_lpu237{
      * @param {Function} [cb_progress] - 시스템 정보 획득 단계별 콜백.
      * @returns {Promise<string>} 성공 시 "success" 반환.
      * @description MSR/iButton 데이터 읽기 전 장치 기본 정보를 신속하게 로드할 때 사용합니다.
+     * 
+     * enter_config, get_system_version, get_structure_version, get_device_type, get_system_name, leave_config 명령 실행. 
      */
     public async load_min_parameter_from_device_with_promise(
         cb_progress?: (n_device_index: number, n_total: number, n_current: number) => void
