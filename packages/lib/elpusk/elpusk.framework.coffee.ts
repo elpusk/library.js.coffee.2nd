@@ -154,7 +154,7 @@ export class coffee extends framework {
         coffee._system_handler = handler;
     }
 
-    private _push_promise_parameter(n_device_index: number, parameter: PromiseParameter): void {
+    private _push_promise_parameter = (n_device_index: number, parameter: PromiseParameter): void => {
         if (!this._map_of_queue_promise_parameter.has(n_device_index)) {
             const queue: PromiseParameter[] = [];
             queue.push(parameter);
@@ -165,7 +165,7 @@ export class coffee extends framework {
         }
     }
 
-    private _front_promise_parameter(n_device_index: number): PromiseParameter | null {
+    private _front_promise_parameter = (n_device_index: number): PromiseParameter | null => {
         if (!this._map_of_queue_promise_parameter.has(n_device_index)) {
             return null;
         }
@@ -180,7 +180,7 @@ export class coffee extends framework {
         return parameter;
     }
 
-    private _is_empty_promise_parameter(n_device_index: number): boolean {
+    private _is_empty_promise_parameter = (n_device_index: number): boolean => {
         if (!this._map_of_queue_promise_parameter.has(n_device_index)) {
             return true;
         }
@@ -188,13 +188,13 @@ export class coffee extends framework {
         return q.length <= 0;
     }
 
-    private _delete_promise_parameter(n_device_index: number): void {
+    private _delete_promise_parameter = (n_device_index: number): void => {
         if (this._map_of_queue_promise_parameter.has(n_device_index)) {
             this._map_of_queue_promise_parameter.delete(n_device_index);
         }
     }
 
-    private _clear_promise_parameter(): void {
+    private _clear_promise_parameter = (): void => {
         this._map_of_queue_promise_parameter.clear();
     }
 
@@ -204,7 +204,7 @@ export class coffee extends framework {
      * @param {ErrorName} error name(string)
      * @returns {string} error description message
      */
-    private _get_error_message(s_error_name: ErrorName): string {
+    private _get_error_message = (s_error_name: ErrorName): string => {
         for (let i = 0; i < this._error_name_message.length; i++) {
             if (this._error_name_message[i].name === s_error_name) {
                 return this._error_name_message[i].message;
@@ -219,7 +219,7 @@ export class coffee extends framework {
      * @param {ErrorName} error name(string)
      * @returns {Error} Error object
      */
-    private _get_error_object(s_name: ErrorName): Error {
+    private _get_error_object = (s_name: ErrorName): Error => {
         const s_message = this._get_error_message(s_name);
         const e = new Error(s_message);
         e.name = s_name;
@@ -236,7 +236,7 @@ export class coffee extends framework {
         return false;
     }
 
-    private _get_server_url(s_protocol?: string, s_port?: string): string {
+    private _get_server_url = (s_protocol?: string, s_port?: string): string => {
         let s_used_port = "443";
         let s_used_protocol = "wss";
         let s_used_domain = "127.0.0.1";
@@ -277,7 +277,7 @@ export class coffee extends framework {
                s_data_field_type === _type_data_field_type.STRING_OR_STRING_ARRAY;
     }
 
-    private _is_valid_session_number(session_number: string | number): boolean {
+    private _is_valid_session_number = (session_number: string | number): boolean => {
         let n_session = 0;
         if (typeof session_number === 'string') {
             n_session = parseInt(session_number);
@@ -290,7 +290,7 @@ export class coffee extends framework {
         return n_session !== this.const_n_undefined_session_number;
     }
 
-    private _is_valid_device_index(device_index: string | number): boolean {
+    private _is_valid_device_index = (device_index: string | number): boolean => {
         let n_device_index = 0;
         if (typeof device_index === 'string') {
             n_device_index = parseInt(device_index);
@@ -316,7 +316,7 @@ export class coffee extends framework {
         return n_device_id >= 0 && n_device_id <= 255;
     }
 
-    private _generate_request_packet(
+    private _generate_request_packet = (
         s_packet_owner: string,
         n_device_index: number,
         s_action_code: string,
@@ -324,7 +324,7 @@ export class coffee extends framework {
         n_out_id: number,
         s_data_field_type: string,
         data_field?: string | string[]
-    ): JsonPacket | undefined {
+    ): JsonPacket | undefined => {
         if (!this._is_valid_packet_owner(s_packet_owner)) return undefined;
         if (!this._is_valid_session_number(this._s_session)) return undefined;
         if (!this._is_valid_device_index(n_device_index)) {
@@ -352,7 +352,7 @@ export class coffee extends framework {
         return json_packet;
     }
 
-    private _promise_echo(s_data_type: string, s_data?: string): Promise<string> {
+    private async _promise_echo(s_data_type: string, s_data?: string): Promise<string> {
         return new Promise((resolve, reject) => {
             if (!coffee._b_connet) {
                 reject(this._get_error_object('en_e_server_connect'));
@@ -408,7 +408,7 @@ export class coffee extends framework {
         });
     }
 
-    private _promise_load_file(file_loaded: File): Promise<ArrayBuffer> {
+    private async _promise_load_file(file_loaded: File): Promise<ArrayBuffer> {
         return new Promise((resolve, reject) => {
             if (!coffee._b_connet) {
                 reject(this._get_error_object('en_e_server_connect'));
@@ -534,11 +534,11 @@ export class coffee extends framework {
         _read_chunk_();
     }
 
-    private _on_def_open(evt: Event): void {
+    private _on_def_open = (evt: Event): void => {
         // console.log('_on_def_open');
     }
 
-    private _on_def_close(evt: Event): void {
+    private _on_def_close = (evt: Event): void => {
         console.log('_on_def_close');
         coffee._b_connet = false;
 
@@ -559,7 +559,7 @@ export class coffee extends framework {
         this._s_session = "";
     }
 
-    private _on_def_message_json_format(n_device_index: number, evt: MessageEvent): void {
+    private _on_def_message_json_format = (n_device_index: number, evt: MessageEvent): void => {
         const json_obj = JSON.parse(evt.data);
 
         if (json_obj.request_type === _type_request_type.SYSTEM_EVENT) {
@@ -583,7 +583,7 @@ export class coffee extends framework {
         }
     }
 
-    private _handle_manager_response(parameter: PromiseParameter, json_obj: any): void {
+    private _handle_manager_response = (parameter: PromiseParameter, json_obj: any): void => {
         switch (parameter.method) {
             case "connect":
                 if (!coffee._b_connet) {
@@ -681,7 +681,7 @@ export class coffee extends framework {
         }
     }
 
-    private _handle_callback_response(parameter: PromiseParameter, json_obj: any, n_device_index: number): void {
+    private _handle_callback_response = (parameter: PromiseParameter, json_obj: any, n_device_index: number): void => {
         switch (parameter.method) {
             case "device_receive":
                 if (json_obj.action_code == _type_action_code.DEVICE_RECEIVE) {
@@ -799,7 +799,7 @@ export class coffee extends framework {
         }//end switch
     }
 
-    private _handle_device_response(parameter: PromiseParameter, json_obj: any, n_device_index: number): void {
+    private _handle_device_response = (parameter: PromiseParameter, json_obj: any, n_device_index: number): void => {
         switch (parameter.method) {
             case "device_close":
                 if (json_obj.action_code === _type_action_code.DEVICE_CLOSE) {
@@ -904,7 +904,7 @@ export class coffee extends framework {
      * @param {number} n_device_index - 장치 인덱스
      * @param {Event} evt - 에러 이벤트 객체
      */
-    private _on_def_error(n_device_index: number, evt: Event): void {
+    private _on_def_error = (n_device_index: number, evt: Event): void => {
         // 1. 대기 중인 파라미터가 없으면 즉시 종료
         if (this._is_empty_promise_parameter(n_device_index)) {
             return;
@@ -964,7 +964,7 @@ export class coffee extends framework {
      * @returns {string} The current session number.
      * @description Gets the session number of the current connection.
      */
-    public get_session_number() : string {
+    public get_session_number = () : string => {
         return this._s_session;
     }
 
@@ -975,7 +975,7 @@ export class coffee extends framework {
      * @returns {string} The error description message.
      * @description Gets the error message from an Error object.
     */                
-    public get_error_message(error_object:Error) : string{
+    public get_error_message = (error_object:Error) : string => {
         let s_name : ErrorName = error_object.name as ErrorName;
         return this._get_error_message(s_name);
     }
@@ -987,7 +987,7 @@ export class coffee extends framework {
      * @param {string} [s_port] - 포트 번호
      * @returns {Promise<string>} 세션 번호를 반환하는 Promise
      */
-    public connect(s_protocol: string = "wss", s_port?: string): Promise<string> {
+    public async connect(s_protocol: string = "wss", s_port?: string): Promise<string>{
         return new Promise((resolve, reject) => {
             const s_url = this._get_server_url(s_protocol, s_port);
 
@@ -1032,7 +1032,7 @@ export class coffee extends framework {
      * @returns {Promise<string>} A promise that resolves with the session number string on success, or rejects with an Error.
      * @description Disconnects from the server.
     */                
-    public disconnect() : Promise<string> {
+    public async disconnect() : Promise<string> {
         return new Promise((resolve, reject) => {
 
             if (!coffee._b_connet) {
@@ -1065,7 +1065,7 @@ export class coffee extends framework {
      * 
      * @description run echo action to server by promise.
     */                
-    public echo_string(s_data:string) : Promise<string> {
+    public async echo_string(s_data:string) : Promise<string> {
         return this._promise_echo(_type_data_field_type.STRING_OR_STRING_ARRAY, s_data);
     }
 
@@ -1081,7 +1081,7 @@ export class coffee extends framework {
      * 
      * @description run echo action to server by promise.
     */                
-    public echo_hex(s_data:string) : Promise<string> {
+    public async echo_hex(s_data:string) : Promise<string> {
         return this._promise_echo(_type_data_field_type.HEX_STRING, s_data);
     }
 
@@ -1092,7 +1092,7 @@ export class coffee extends framework {
      * @param {string} s_target - 서비스 DLL 경로
      * @returns {Promise<string[]>} 성공 시 ["success", ...] 형태의 배열 반환
      */
-    public kernel_load(s_category: string, s_target: string): Promise<string[]> {
+    public async kernel_load(s_category: string, s_target: string): Promise<string[]> {
         return new Promise((resolve, reject) => {
             // 1. 사전 체크
             if (!coffee._b_connet) {
@@ -1141,7 +1141,7 @@ export class coffee extends framework {
      * @param {string} s_target - 해제할 서비스 DLL 경로
      * @returns {Promise<string[]>} 성공 시 ["success", ...] 반환
      */
-    kernel_unload(s_category: string, s_target: string): Promise<string[]> {
+    public async kernel_unload(s_category: string, s_target: string): Promise<string[]> {
         return new Promise((resolve, reject) => {
             if (!coffee._b_connet) {
                 return reject(this._get_error_object('en_e_server_connect'));
@@ -1188,7 +1188,7 @@ export class coffee extends framework {
      * @param {string[]} sa_data - 실행 함수에 전달할 파라미터 배열
      * @returns {Promise<string[]>} ["success", "응답데이터"...] 형태의 결과
      */
-    kernel_execute(
+    public async kernel_execute(
         n_device_index: number, 
         n_in_id: number, 
         n_out_id: number, 
@@ -1253,7 +1253,7 @@ export class coffee extends framework {
      * @param {string} s_target - 대상 DLL 경로
      * @returns {Promise<string[]>} 성공 시 ["success"] 반환
      */
-    kernel_cancel(
+    public async kernel_cancel(
         n_device_index: number,
         n_in_id: number,
         n_out_id: number,
@@ -1308,7 +1308,7 @@ export class coffee extends framework {
      * @param {string} [s_filter="hid"] - 필터 (예: "hid#vid_134b&pid_0001")
      * @returns {Promise<string[]>} 연결된 장치 경로 배열
      */
-    kernel_list(s_category: string, s_filter?: string): Promise<string[]> {
+    public async kernel_list(s_category: string, s_filter?: string): Promise<string[]> {
         return new Promise((resolve, reject) => {
             if (!coffee._b_connet) {
                 return reject(this._get_error_object('en_e_server_connect'));
@@ -1357,7 +1357,7 @@ export class coffee extends framework {
      * @param {string} s_path - kernel_list를 통해 얻은 장치 경로
      * @returns {Promise<number>} 할당된 장치 인덱스 (1 이상의 숫자)
      */
-    kernel_open(s_category: string, s_path: string): Promise<number> {
+    public async kernel_open(s_category: string, s_path: string): Promise<number> {
         return new Promise((resolve, reject) => {
             // 1. 서버 연결 상태 확인
             if (!coffee._b_connet) {
@@ -1410,7 +1410,7 @@ export class coffee extends framework {
      * @param {string} s_category - 카테고리 (보통 "device")
      * @returns {Promise<string[]>} 성공 시 ["success"] 반환
      */
-    kernel_close(n_device_index: number, s_category: string): Promise<string[]> {
+    public async kernel_close(n_device_index: number, s_category: string): Promise<string[]> {
         return new Promise((resolve, reject) => {
             // 1. 서버 연결 및 파라미터 유효성 검사
             if (!coffee._b_connet) 
@@ -1454,7 +1454,7 @@ export class coffee extends framework {
      * @public
      * @description 서버에 펌웨어 업로드를 위한 임시 파일을 생성합니다.
      */
-    async file_firmware_create(): Promise<any> {
+    public async file_firmware_create(): Promise<any> {
         return this._execute_file_op(["firmware", "create"], "file_create");
     }
 
@@ -1462,7 +1462,7 @@ export class coffee extends framework {
      * @public
      * @description 서버의 임시 펌웨어 파일을 삭제합니다.
      */
-    async file_firmware_delete(): Promise<any> {
+    public async file_firmware_delete(): Promise<any> {
         return this._execute_file_op(["firmware", "delete"], "file_delete");
     }
 
@@ -1470,7 +1470,7 @@ export class coffee extends framework {
      * @private
      * @description 공통 파일 오퍼레이션 로직
      */
-    private _execute_file_op(data_payload: string[], method_name: string): Promise<any> {
+    private async _execute_file_op(data_payload: string[], method_name: string): Promise<any> {
         return new Promise((resolve, reject) => {
             if (!coffee._b_connet) 
                 return reject(this._get_error_object('en_e_server_connect'));
@@ -1651,12 +1651,12 @@ export class coffee extends framework {
      * @param {Function} cb_progress - 진행 상황을 알리는 콜백 함수.
      * @returns {boolean} 프로세스 시작 성공 여부.
      */
-    public file_Copy_callback(
+    public file_Copy_callback = (
         file_src: File, 
         s_virtual_file_path_dst: string, 
         n_packet_size: number, 
         cb_progress: (b_result: boolean, n_progress: number, n_file_size: number, s_message: string) => void
-    ): boolean {
+    ): boolean => {
         
         // 1. 목적지 경로 유효성 검사
         if (typeof s_virtual_file_path_dst !== 'string') {
@@ -1781,11 +1781,11 @@ export class coffee extends framework {
      * @returns {boolean} 전송 프로세스 시작 여부.
      * * @description 펌웨어 파일을 서버의 임시 가상 드라이브 영역으로 복사합니다.
      */
-    public file_Copy_firmware_callback(
+    public file_Copy_firmware_callback = (
         file_src: File, 
         n_packet_size: number, 
         cb_progress: (b_result: boolean, n_progress: number, n_file_size: number, s_message: string) => void
-    ): boolean {
+    ): boolean => {
         const this_obj = this;
 
         // 1. 펌웨어 전용 임시 파일 생성 요청
@@ -1822,7 +1822,7 @@ export class coffee extends framework {
      * @returns {Promise<any>} 성공 시 서버의 응답 데이터와 함께 resolve, 실패 시 Error 객체와 함께 reject.
      * @description 현재 연결된 세션의 이름을 설정합니다.
      */
-    public advance_set_session_name(s_session_name: string): Promise<any> {
+    public async advance_set_session_name(s_session_name: string): Promise<any> {
         return new Promise((resolve, reject) => {
             // 1. 서버 연결 확인
             if (!coffee._b_connet) {
@@ -1878,7 +1878,7 @@ export class coffee extends framework {
      * @returns {Promise<any>} 성공 시 현재 세션 이름을 resolve, 실패 시 Error 객체를 reject.
      * @description 현재 연결된 세션의 이름을 조회합니다.
      */
-    public advance_get_session_name(): Promise<any> {
+    public async advance_get_session_name(): Promise<any> {
         return new Promise((resolve, reject) => {
             // 1. WebSocket 연결 상태 확인
             if (!coffee._b_connet) {
@@ -1936,7 +1936,7 @@ export class coffee extends framework {
      * @returns {Promise<any>} 성공 시 서버의 에코 데이터를 resolve, 실패 시 Error 객체를 reject.
      * @description 대상 세션으로 데이터를 전송합니다.
      */
-    public advance_send_data_to_session(s_target_session_name: string, sa_data: string[]): Promise<any> {
+    public async advance_send_data_to_session(s_target_session_name: string, sa_data: string[]): Promise<any> {
         return new Promise((resolve, reject) => {
             // 1. 연결 상태 확인
             if (!coffee._b_connet) {
@@ -1995,7 +1995,7 @@ export class coffee extends framework {
      * @returns {Promise<any>} 성공 시 서버의 응답 데이터를 resolve, 실패 시 Error 객체를 reject.
      * @description 현재 세션을 제외한 모든 세션에 데이터를 브로드캐스트합니다.
      */
-    public advance_send_data_to_all(sa_data: string | string[]): Promise<any> {
+    public async advance_send_data_to_all(sa_data: string | string[]): Promise<any> {
         return new Promise((resolve, reject) => {
             // 1. 연결 상태 확인
             if (!coffee._b_connet) {
@@ -2060,7 +2060,7 @@ export class coffee extends framework {
      * @returns {Promise<string[]>} 성공 시 장치 경로(Device Path) 배열을 반환.
      * @description 서버에서 관리 중인 연결된 장치 리스트를 가져옵니다.
      */
-    public get_device_list(s_filter : string | undefined): Promise<string[]> {
+    public async get_device_list(s_filter : string | undefined): Promise<string[]> {
         return new Promise((resolve, reject) => {
             // 1. 서버 연결 상태 확인
             if (!coffee._b_connet) {
@@ -2121,7 +2121,7 @@ export class coffee extends framework {
      * @returns {Promise<number>} 성공 시 0이 아닌 장치 인덱스(n_device_index)를 resolve.
      * @description 서버에 해당 장치의 오픈을 요청합니다. 반환된 인덱스가 0이면 에러로 간주해야 합니다.
      */
-    public device_open(s_path: string, b_shared: boolean): Promise<number> {
+    public async device_open(s_path: string, b_shared: boolean): Promise<number> {
         return new Promise((resolve, reject) => {
             // 1. 서버 연결 및 유효성 확인
             if (!coffee._b_connet) {
@@ -2193,7 +2193,7 @@ export class coffee extends framework {
      * @returns {Promise<string>} 성공 시 "success" 문자열을 resolve.
      * @description 서버에 특정 장치의 클로즈를 요청합니다.
      */
-    public device_close(n_device_index: number): Promise<string> {
+    public async device_close(n_device_index: number): Promise<string> {
         return new Promise((resolve, reject) => {
             // 1. 서버 연결 및 파라미터 유효성 검사
             if (!coffee._b_connet) {
@@ -2253,7 +2253,7 @@ export class coffee extends framework {
      * @returns {Promise<string>} 성공 시 "success"를 resolve, 실패 시 Error 객체 또는 "error"/"cancel"을 reject/resolve.
      * @description 16진수 문자열 데이터를 장치로 전송합니다.
      */
-    public device_send(n_device_index: number, n_out_id: number, s_hex_string: string): Promise<string> {
+    public async device_send(n_device_index: number, n_out_id: number, s_hex_string: string): Promise<string> {
         return new Promise((resolve, reject) => {
             // 1. WebSocket 연결 확인
             if (!coffee._b_connet) {
@@ -2322,7 +2322,7 @@ export class coffee extends framework {
      * @returns {Promise<string>} 성공 시 구분자 없는 16진수 문자열(hex string)을 resolve.
      * @description 장치로부터 데이터를 수신합니다. 결과는 16진수 문자열 형태로 반환됩니다.
      */
-    public device_receive(n_device_index: number, n_in_id: number): Promise<string> {
+    public async device_receive(n_device_index: number, n_in_id: number): Promise<string> {
         return new Promise((resolve, reject) => {
             // 1. 서버 연결 확인
             if (!coffee._b_connet) {
@@ -2394,13 +2394,13 @@ export class coffee extends framework {
      * @description 콜백 방식을 통해 지속적으로 장치 데이터를 수신합니다. 
      * 단, 송수신이 한 쌍으로 이루어지는 프로토콜(Pair type)에서는 사용을 권장하지 않습니다.
      */
-    public device_receive_with_callback(
+    public device_receive_with_callback = (
         n_device_index: number, 
         n_in_id: number, 
         cb_received: type_cb_received, 
         cb_error: type_cb_error, 
         b_need_device_index?: boolean
-    ): boolean {
+    ): boolean => {
         let b_result = false;
         let b_device_index = false;
 
@@ -2480,7 +2480,7 @@ export class coffee extends framework {
      * @description 데이터를 전송한 후 즉시 응답을 수신합니다. 
      * 송수신 쌍(Send-Receive pair) 타입의 프로토콜일 경우 반드시 이 메소드를 사용해야 합니다.
      */
-    public device_transmit(
+    public async device_transmit(
         n_device_index: number, 
         n_in_id: number, 
         n_out_id: number, 
@@ -2561,7 +2561,7 @@ export class coffee extends framework {
      * @returns {boolean} 프로세스 시작 성공 시 true, 실패 시 false.
      * @description 전송 후 수신(Transmit) 동작을 콜백 방식으로 수행합니다.
      */
-    public device_transmit_with_callback(
+    public device_transmit_with_callback = (
         n_device_index: number,
         n_in_id: number,
         n_out_id: number,
@@ -2569,7 +2569,7 @@ export class coffee extends framework {
         fun_cb_received: type_cb_received,
         fun_cb_error: type_cb_error,
         b_need_device_index?: boolean
-    ): boolean {
+    ): boolean => {
         let b_result = false;
         let b_device_index = false;
 
@@ -2656,7 +2656,7 @@ export class coffee extends framework {
      * @returns {Promise<string>} 성공 시 "success", 실패 시 "error" 또는 Error 객체 반환.
      * @description 서버에서 대기 중인 현재 장치 작업을 취소합니다.
      */
-    public device_cancel(n_device_index: number, n_in_id: number, n_out_id: number): Promise<string> {
+    public async device_cancel(n_device_index: number, n_in_id: number, n_out_id: number): Promise<string> {
         return new Promise((resolve, reject) => {
             // 1. 서버 연결 상태 확인
             if (!coffee._b_connet) {
@@ -2725,14 +2725,14 @@ export class coffee extends framework {
      * @returns {boolean} 취소 프로세스 시작 성공 시 true, 실패 시 false.
      * @description 콜백 방식을 통해 현재 진행 중인 장치 작업을 중단합니다.
      */
-    public device_cancel_with_callback(
+    public device_cancel_with_callback = (
         n_device_index: number,
         n_in_id: number,
         n_out_id: number,
         cb_received: type_cb_received,
         cb_error: type_cb_error,
         b_need_device_index?: boolean
-    ): boolean {
+    ): boolean => {
         let b_result = false;
         let b_device_index = false;
 
@@ -2813,7 +2813,7 @@ export class coffee extends framework {
      * @returns {Promise<string>} 성공 시 "success", 실패 시 "error" 또는 Error 객체 반환.
      * @description 펌웨어 업데이트를 위한 부트로더 파라미터를 설정합니다.
      */
-    public device_update_set_parameter(
+    public async device_update_set_parameter(
         n_device_index: number, 
         s_key: string, 
         s_value: string
@@ -2880,12 +2880,12 @@ export class coffee extends framework {
      * @returns {boolean} 업데이트 프로세스 시작 성공 시 true, 실패 시 false.
      * @description 펌웨어 업데이트를 시작합니다. 이 작업은 취소할 수 없습니다.
      */
-    public device_update_start_with_callback(
+    public device_update_start_with_callback = (
         n_device_index: number,
         n_in_id: number,
         n_out_id: number,
         cb_progress: (b_result: boolean, n_current: number, n_total: number, s_msg: string) => void
-    ): boolean {
+    ): boolean => {
         let b_result = false;
 
         // 1. 서버 연결 확인

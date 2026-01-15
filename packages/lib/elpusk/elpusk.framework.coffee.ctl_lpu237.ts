@@ -77,7 +77,7 @@ export class ctl_lpu237{
     /**
      * Get status
      */
-    private _get_status(n_device_index: number): _type_status {
+    private _get_status = (n_device_index: number): _type_status => {
         let st = _type_status.ST_UNDEFINED;
 
         do {
@@ -101,7 +101,7 @@ export class ctl_lpu237{
     /**
      * Set status
      */
-    private _set_status(n_device_index: number, new_status: _type_status): void {
+    private _set_status = (n_device_index: number, new_status: _type_status): void => {
         do {
             if (typeof n_device_index !== 'number') {
                 continue;
@@ -392,7 +392,7 @@ export class ctl_lpu237{
     /**
      * Notify error
      */
-    private _notify_error(parameter: IQueueParameter, event_error?: Error): void {
+    private _notify_error = (parameter: IQueueParameter, event_error?: Error): void => {
         do {
             if (typeof parameter !== 'object') {
                 continue;
@@ -417,7 +417,7 @@ export class ctl_lpu237{
     /**
      * Notify error all
      */
-    private _notify_error_all(n_device_index: number, event_error?: Error): void {
+    private _notify_error_all = (n_device_index: number, event_error?: Error): void => {
         do {
             if (typeof n_device_index !== 'number') {
                 continue;
@@ -442,7 +442,7 @@ export class ctl_lpu237{
     /**
      * Notify error map
      */
-    private _notifiy_error_map(event_error?: Error): void {
+    private _notifiy_error_map = (event_error?: Error): void => {
         do {
             this._map_q_para.forEach((value, key) => {
                 this._notify_error_all(key, event_error);
@@ -454,7 +454,7 @@ export class ctl_lpu237{
     /**
      * Notify received
      */
-    private _notify_received(parameter: IQueueParameter): void {
+    private _notify_received = (parameter: IQueueParameter): void => {
         do {
             if (typeof parameter !== 'object') {
                 continue;
@@ -513,7 +513,7 @@ export class ctl_lpu237{
     /**
      * Process response event in idle
      */
-    private _process_rsp_event_in_idle(n_device_index: number): void {
+    private _process_rsp_event_in_idle = (n_device_index: number): void => {
         this._notify_error_all(n_device_index);
         util.map_of_queue_delete(this._map_q_para, n_device_index);
     }
@@ -521,7 +521,7 @@ export class ctl_lpu237{
     /**
      * Process response event in wait response
      */
-    private _process_rsp_event_in_wait_rsp(n_device_index: number, s_rx: Array<string> | string): void {
+    private _process_rsp_event_in_wait_rsp = (n_device_index: number, s_rx: Array<string> | string): void => {
         do {
             const para = util.map_of_queue_get(this._map_q_para, n_device_index);
             if (!para) {
@@ -558,7 +558,7 @@ export class ctl_lpu237{
     /**
      * Process response event in wait card
      */
-    private _process_rsp_event_in_wait_card(n_device_index: number, s_rx: Array<string> | string): void {
+    private _process_rsp_event_in_wait_card = (n_device_index: number, s_rx: Array<string> | string): void => {
         do {
             if (this._is_event_rsp_cancel(s_rx)) {
                 //event e_rsp_cancel
@@ -620,7 +620,7 @@ export class ctl_lpu237{
     /**
      * Process response event in wait cancel
      */
-    private _process_rsp_event_in_wait_cancel(n_device_index: number, s_rx: Array<string> | string): void {
+    private _process_rsp_event_in_wait_cancel = (n_device_index: number, s_rx: Array<string> | string): void => {
         do {
             const para = util.map_of_queue_get(this._map_q_para, n_device_index);
             if (!para) {
@@ -1119,7 +1119,7 @@ export class ctl_lpu237{
      * @function toString
      * @returns {string} 클래스명(서버 세션 번호, 장치 경로) 형식의 문자열.
      */
-    public toString(): string {
+    public toString = (): string => {
         let s_server = "none";
         let s_device = "none";
 
@@ -1139,7 +1139,7 @@ export class ctl_lpu237{
      * @function get_server
      * @returns {any} 연결된 서버 객체를 반환합니다.
      */
-    public get_server(): any {
+    public get_server = (): any => {
         return this._server;
     }
 
@@ -1148,7 +1148,7 @@ export class ctl_lpu237{
      * @function get_device
      * @returns {any} 연결된 LPU237 장치 객체를 반환합니다.
      */
-    public get_device(): any {
+    public get_device = (): any => {
         return this._device;
     }
 
@@ -1158,7 +1158,7 @@ export class ctl_lpu237{
      * @returns {Promise<string>} 성공 시 "success"를 반환하고, 실패 시 Error 객체를 던집니다.
      * @description 생성 시 전달된 서버와 LPU237 객체를 사용하여 실제 장치를 오픈합니다.
      */
-    public async open_with_promise(): Promise<string> {
+    public async open_with_promise(): Promise<string>{
         const _server = this._server;
         const _device = this._device;
 
@@ -1464,11 +1464,11 @@ export class ctl_lpu237{
      * @param {Function} cb_read_error - 에러 발생 시 호출되는 콜백 (n_idx, error(must be Error object)) => void.
      * @returns {boolean} 요청 처리 성공 여부.
      */
-    public read_card_from_device_with_callback(
+    public read_card_from_device_with_callback = (
         b_read: boolean,
         cb_read_done: (n_device_index: number, s_data: string) => void,
         cb_read_error: (n_device_index: number, error: Event | Error) => void
-    ): boolean {
+    ): boolean => {
         let b_result = false;
         const server = this._server;
         const device = this._device;
@@ -1532,11 +1532,11 @@ export class ctl_lpu237{
      * @param {Function} cb_read_error - 에러 발생 시 호출 (n_idx, error(Error object)) => void.
      * @returns {boolean} 요청 처리 성공 여부.
      */
-    public read_ibutton_from_device_with_callback(
+    public read_ibutton_from_device_with_callback = (
         b_read: boolean,
         cb_read_done: (n_device_index: number, s_id: string) => void,
         cb_read_error: (n_device_index: number, error: Event | Error) => void
-    ): boolean {
+    ): boolean => {
         let b_result = false;
         const server = this._server;
         const device = this._device;

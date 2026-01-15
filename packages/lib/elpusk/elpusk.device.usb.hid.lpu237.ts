@@ -1453,7 +1453,7 @@ export class lpu237 extends hid {
      * @param s_tag1 비교할 두 번째 16진수 태그 문자열
      * @returns 두 태그의 내용이 일치하면 true, 그렇지 않으면 false
      */
-    private _is_equal_tag(s_tag0: string, s_tag1: string): boolean {
+    private _is_equal_tag = (s_tag0: string, s_tag1: string): boolean => {
         // 1. 기본 유효성 및 타입 검사
         if (typeof s_tag0 !== 'string' || typeof s_tag1 !== 'string') return false;
 
@@ -1720,11 +1720,11 @@ export class lpu237 extends hid {
      * @param {number[] | number} second_version 비교할 두 번째 버전 (4개 숫자 배열 또는 단일 숫자)
      * @returns {boolean} first_version이 second_version보다 크면 true (b_equal이 true면 같을 때도 true)
      */
-    private _first_version_greater_then_second_version(
+    private _first_version_greater_then_second_version = (
         b_equal: boolean,
         first_version: number[] | number,
         second_version: number[] | number
-    ): boolean {
+    ): boolean => {
         // 1. 입력 유효성 검사 및 정규화 (배열로 통일)
         const ar1: number[] = this._normalize_version(first_version);
         const ar2: number[] = this._normalize_version(second_version);
@@ -1745,7 +1745,7 @@ export class lpu237 extends hid {
      * @function _is_success_response
      * @description 응답 패킷이 'Good(0xFF)' 또는 'Negative Good(0x80)'을 포함하는지 확인합니다.
      */
-    private _is_success_response(s_response: string): boolean {
+    private _is_success_response = (s_response: string): boolean => {
         if (typeof s_response !== 'string') return false;
 
         // 헤더 사이즈 체크 (16진수 문자열이므로 헤더 길이에 2를 곱함)
@@ -1767,7 +1767,7 @@ export class lpu237 extends hid {
      * @function _is_good_response
      * @description 응답 패킷이 'Good(0xFF)'만 포함하는지 확인합니다.
      */
-    private _is_good_response(s_response: string): boolean {
+    private _is_good_response = (s_response: string): boolean => {
         if (typeof s_response !== 'string') return false;
         if (s_response.length < (2 * this._const_min_size_response_header)) return false;
 
@@ -1781,7 +1781,7 @@ export class lpu237 extends hid {
      * @private
      * @function _is_success_enter_config_mode
      */
-    private _is_success_enter_config_mode(s_response: string): boolean {
+    private _is_success_enter_config_mode = (s_response: string): boolean => {
         return this._is_success_response(s_response);
     }
 
@@ -1789,7 +1789,7 @@ export class lpu237 extends hid {
      * @private
      * @function _is_success_leave_config_mode
      */
-    private _is_success_leave_config_mode(s_response: string): boolean {
+    private _is_success_leave_config_mode = (s_response: string): boolean => {
         return this._is_success_response(s_response);
     }
 
@@ -1797,7 +1797,7 @@ export class lpu237 extends hid {
      * @private
      * @function _is_success_apply_config_mode
      */
-    private _is_success_apply_config_mode(s_response: string): boolean {
+    private _is_success_apply_config_mode = (s_response: string): boolean => {
         return this._is_success_response(s_response);
     }
 
@@ -1807,7 +1807,7 @@ export class lpu237 extends hid {
      * @param {string} s_response - lpu237 프로토콜 패킷 (16진수 문자열)
      * @returns {number} 0 이상의 데이터 길이, 오류 시 음수(-1) 반환
      */
-    private _get_length_member_of_response(s_response: string): number {
+    private _get_length_member_of_response = (s_response: string): number => {
         let n_length = -1;
 
         // 1. 유효성 검사: 타입 확인 및 최소 헤더 길이 체크
@@ -1840,7 +1840,7 @@ export class lpu237 extends hid {
      * @function _get_data_field_member_of_response_by_number_array
      * @description Data 필드를 숫자 배열(byte array)로 반환합니다.
      */
-    private _get_data_field_member_of_response_by_number_array(s_response: string): number[] | null {
+    private _get_data_field_member_of_response_by_number_array = (s_response: string): number[] | null => {
         const n_length = this._get_valid_length(s_response);
         if (n_length <= 0) return null;
 
@@ -1859,7 +1859,7 @@ export class lpu237 extends hid {
      * @function _get_data_field_member_of_response_by_string
      * @description Data 필드를 ASCII 문자열로 반환합니다. (Null 종단 문자 확인)
      */
-    private _get_data_field_member_of_response_by_string(s_response: string): string | null {
+    private _get_data_field_member_of_response_by_string = (s_response: string): string | null => {
         const n_length = this._get_valid_length(s_response);
         if (n_length <= 0) return null;
 
@@ -1879,7 +1879,7 @@ export class lpu237 extends hid {
      * @function _get_data_field_member_of_response_by_hex_string
      * @description Data 필드를 16진수 문자열 그대로 반환합니다.
      */
-    private _get_data_field_member_of_response_by_hex_string(s_response: string): string | null {
+    private _get_data_field_member_of_response_by_hex_string = (s_response: string): string | null => {
         const n_length = this._get_valid_length(s_response);
         if (n_length <= 0) return null;
 
@@ -1892,7 +1892,7 @@ export class lpu237 extends hid {
      * @function _get_data_field_member_of_response_by_boolean
      * @description Data 필드 중 0이 아닌 값이 하나라도 있으면 true를 반환합니다.
      */
-    private _get_data_field_member_of_response_by_boolean(s_response: string): boolean | null {
+    private _get_data_field_member_of_response_by_boolean = (s_response: string): boolean | null => {
         const n_length = this._get_valid_length(s_response);
         if (n_length <= 0) return null;
 
@@ -1909,7 +1909,7 @@ export class lpu237 extends hid {
      * @function _get_data_field_member_of_response_by_number
      * @description Data 필드를 Little-Endian 방식의 숫자로 변환합니다.
      */
-    private _get_data_field_member_of_response_by_number(s_response: string): number {
+    private _get_data_field_member_of_response_by_number = (s_response: string): number => {
         const n_length = this._get_valid_length(s_response);
         if (n_length <= 0) return -1;
 
@@ -1923,7 +1923,7 @@ export class lpu237 extends hid {
     /**
      * @description 공통 유효성 검사 및 데이터 길이 추출 내부 메서드
      */
-    private _get_valid_length(s_response: string): number {
+    private _get_valid_length = (s_response: string): number => {
         if (typeof s_response !== 'string') return -1;
         if (s_response.length < (2 * this._const_min_size_response_header)) return -1;
 
@@ -1937,7 +1937,7 @@ export class lpu237 extends hid {
      * @param {string} s_response - lpu237 프로토콜 패킷 (WebSocket 데이터 필드)
      * @returns {number[] | null} 버전 정보를 담은 4개 숫자 배열, 실패 시 null
      */
-    private _get_version_from_response(s_response: string): number[] | null {
+    private _get_version_from_response = (s_response: string): number[] | null => {
         let version: number[] | null = null;
 
         // 1. 응답 성공 여부 확인
@@ -1966,7 +1966,7 @@ export class lpu237 extends hid {
      * @param {string} s_response - lpu237 프로토콜 패킷 (WebSocket 데이터 필드)
      * @returns {number[] | null} 구조 버전 정보를 담은 4개 숫자 배열, 실패 시 null
      */
-    private _get_version_structure_from_response(s_response: string): number[] | null {
+    private _get_version_structure_from_response = (s_response: string): number[] | null => {
         let version: number[] | null = null;
 
         // 1. 응답 성공 여부 확인 (R prefix 및 결과 코드 검증)
@@ -1995,7 +1995,7 @@ export class lpu237 extends hid {
      * @param {string} s_response - lpu237 프로토콜 패킷
      * @returns {string | null} 시스템 이름, 실패 시 null
      */
-    private _get_name_from_response(s_response: string): string | null {
+    private _get_name_from_response = (s_response: string): string | null => {
         if (!this._is_success_response(s_response)) {
             return null;
         }
@@ -2013,7 +2013,7 @@ export class lpu237 extends hid {
      * @function _get_support_mmd1000_from_response
      * @description MMD1000 디코더 사용 여부를 반환합니다. (Good Response면 true)
      */
-    private _get_support_mmd1000_from_response(s_response: string): boolean {
+    private _get_support_mmd1000_from_response = (s_response: string): boolean => {
         return this._is_good_response(s_response);
     }
 
@@ -2023,7 +2023,7 @@ export class lpu237 extends hid {
      * @param {string} s_response - lpu237 프로토콜 패킷
      * @returns {string | null} Hex 문자열 형식의 UID, 실패 시 null
      */
-    private _get_uid_from_response(s_response: string): string | null {
+    private _get_uid_from_response = (s_response: string): string | null => {
         if (!this._is_success_response(s_response)) {
             return null;
         }
@@ -2041,7 +2041,7 @@ export class lpu237 extends hid {
      * @function _get_ibutton_type_from_response
      * @description 하드웨어의 i-button 지원 여부를 반환합니다.
      */
-    private _get_ibutton_type_from_response(s_response: string): boolean {
+    private _get_ibutton_type_from_response = (s_response: string): boolean => {
         return this._is_good_response(s_response);
     }
 
@@ -2050,7 +2050,7 @@ export class lpu237 extends hid {
      * @function _get_type_from_response
      * @description 하드웨어가 표준(Standard) 타입인지 여부를 반환합니다.
      */
-    private _get_type_from_response(s_response: string): boolean {
+    private _get_type_from_response = (s_response: string): boolean => {
         return this._is_good_response(s_response);
     }
 
@@ -2060,7 +2060,7 @@ export class lpu237 extends hid {
      * @description 모든 트랙에 에러가 없을 때만 전역 Pre/Postfix를 보낼지 여부를 확인합니다.
      * @returns {boolean | null} true(조건부 송신), false(무조건 송신), null(오류)
      */
-    private _get_global_pre_postfix_send_condition_from_response(s_response: string): boolean | null {
+    private _get_global_pre_postfix_send_condition_from_response = (s_response: string): boolean | null => {
         if (!this._is_success_response(s_response)) {
             return null;
         }
@@ -2079,7 +2079,7 @@ export class lpu237 extends hid {
      * @description 카드 트랙(Track 1, 2, 3)의 출력 순서 설정을 가져옵니다.
      * @returns {number[] | null} 3개의 요소를 가진 숫자 배열 (예: [1, 2, 3]), 실패 시 null
      */
-    private _get_track_order_from_response(s_response: string): number[] | null {
+    private _get_track_order_from_response = (s_response: string): number[] | null => {
         if (!this._is_success_response(s_response)) {
             return null;
         }
@@ -2098,7 +2098,7 @@ export class lpu237 extends hid {
      * @description 장치 응답에서 예약된 4바이트 공백 필드 데이터를 가져옵니다.
      * @returns {number[] | null} 4바이트 숫자 배열, 실패 시 null
      */
-    private _get_blank_4bytes_from_response(s_response: string): number[] | null {
+    private _get_blank_4bytes_from_response = (s_response: string): number[] | null => {
         if (!this._is_success_response(s_response)) {
             return null;
         }
@@ -2117,7 +2117,7 @@ export class lpu237 extends hid {
      * @description 장치의 통신 인터페이스 번호(USB HID, 벤더 모드 등)를 가져옵니다.
      * @returns {number} 인터페이스 번호, 에러 시 음수(-1)
      */
-    private _get_interface_from_response(s_response: string): number {
+    private _get_interface_from_response = (s_response: string): number => {
         if (!this._is_success_response(s_response)) {
             return -1;
         }
@@ -2136,7 +2136,7 @@ export class lpu237 extends hid {
      * @description 장치에 설정된 키보드 언어 맵 인덱스를 가져옵니다.
      * @returns {number} 언어 번호, 에러 시 음수(-1)
      */
-    private _get_language_from_response(s_response: string): number {
+    private _get_language_from_response = (s_response: string): number => {
         if (!this._is_success_response(s_response)) {
             return -1;
         }
@@ -2155,7 +2155,7 @@ export class lpu237 extends hid {
      * @description 카드 읽기 성공/실패 시 발생하는 부저 횟수 설정을 가져옵니다.
      * @returns {number} 부저 횟수, 에러 시 음수(-1)
      */
-    private _get_buzzer_count_from_response(s_response: string): number {
+    private _get_buzzer_count_from_response = (s_response: string): number => {
         if (!this._is_success_response(s_response)) {
             return -1;
         }
@@ -2174,7 +2174,7 @@ export class lpu237 extends hid {
      * @description MSD 부트로더가 실행되는 시간(msec)을 가져옵니다.
      * @returns {number} 실행 시간(ms), 에러 시 음수(-1)
      */
-    private _get_boot_run_time_from_response(s_response: string): number {
+    private _get_boot_run_time_from_response = (s_response: string): number => {
         if (!this._is_success_response(s_response)) return -1;
 
         const n_size = _type_system_size.SYS_SIZE_BOOT_RUN_TIME;
@@ -2190,7 +2190,7 @@ export class lpu237 extends hid {
      * @param {number} n_track - ISO 트랙 번호 (0~2)
      * @returns {boolean | null} 트랙 읽기 활성화 여부, 에러 시 null
      */
-    private _get_enable_track_from_response(s_response: string, n_track: number): boolean | null {
+    private _get_enable_track_from_response = (s_response: string, n_track: number): boolean | null => {
         // 1. 트랙 번호 유효성 및 해당 트랙의 기대 데이터 크기 확인
         let n_size = 0;
         if (n_track >= _type_msr_track_Numer.iso1_track && n_track <= _type_msr_track_Numer.iso3_track) {
@@ -2213,7 +2213,7 @@ export class lpu237 extends hid {
      * @param {number} n_track - ISO 트랙 번호 (0~2)
      * @returns {number} 읽기 방향 값, 에러 시 음수(-1)
      */
-    private _get_direction_from_response(s_response: string, n_track: number): number {
+    private _get_direction_from_response = (s_response: string, n_track: number): number => {
         // 1. 트랙 번호 유효성 확인
         let n_size = 0;
         if (n_track >= _type_msr_track_Numer.iso1_track && n_track <= _type_msr_track_Numer.iso3_track) {
@@ -2235,7 +2235,7 @@ export class lpu237 extends hid {
      * @description 모든 데이터 송신 시작 시 붙는 전역 접두사를 가져옵니다.
      * @returns {string | null} Hex 문자열 형식의 Prefix, 실패 시 null
      */
-    private _get_global_prefix_from_response(s_response: string): string | null {
+    private _get_global_prefix_from_response = (s_response: string): string | null => {
         if (!this._is_success_response(s_response)) return null;
 
         const n_size = _type_system_size.SYS_SIZE_G_PRE;
@@ -2250,7 +2250,7 @@ export class lpu237 extends hid {
      * @description 모든 데이터 송신 종료 시 붙는 전역 접미사를 가져옵니다.
      * @returns {string | null} Hex 문자열 형식의 Postfix, 실패 시 null
      */
-    private _get_global_postfix_from_response(s_response: string): string | null {
+    private _get_global_postfix_from_response = (s_response: string): string | null => {
         if (!this._is_success_response(s_response)) return null;
 
         const n_size = _type_system_size.SYS_SIZE_G_POST;
@@ -2266,7 +2266,7 @@ export class lpu237 extends hid {
      * @param {number} n_track - ISO 트랙 번호 (0~2)
      * @returns {number} 해당 트랙에서 지원하는 포맷 조합의 수, 에러 시 음수(-1)
      */
-    private _get_number_combi_from_response(s_response: string, n_track: number): number {
+    private _get_number_combi_from_response = (s_response: string, n_track: number): number => {
         // 1. 트랙 번호에 따른 기대 사이즈 결정
         let n_size = 0;
         if (n_track >= _type_msr_track_Numer.iso1_track && n_track <= _type_msr_track_Numer.iso3_track) {
@@ -2290,7 +2290,7 @@ export class lpu237 extends hid {
      * @param {number} n_combi - 조합 인덱스 (0~2)
      * @returns {number} 트랙 조합별 최대 데이터 길이 (STX, ETX, LRC 제외), 에러 시 음수(-1)
      */
-    private _get_max_size_from_response(s_response: string, n_track: number, n_combi: number): number {
+    private _get_max_size_from_response = (s_response: string, n_track: number, n_combi: number): number => {
         // 1. 조합 인덱스 범위 유효성 검사
         if (n_combi < 0 || n_combi > 2) {
             return -1;
@@ -2324,7 +2324,7 @@ export class lpu237 extends hid {
      * @description 트랙 조합별 데이터 비트 수(단위: bit)를 가져옵니다.
      * @returns {number} 비트 수, 에러 시 -1
      */
-    private _get_bit_size_from_response(s_response: string, n_track: number, n_combi: number): number {
+    private _get_bit_size_from_response = (s_response: string, n_track: number, n_combi: number): number => {
         if (n_combi < 0 || n_combi > 2) return -1;
 
         let n_size = 0;
@@ -2346,7 +2346,7 @@ export class lpu237 extends hid {
      * @description 각 데이터의 마스크 패턴을 가져옵니다. (에러 체크 비트 포함, 좌측 정렬)
      * @returns {number} 마스크 패턴 값
      */
-    private _get_data_mask_from_response(s_response: string, n_track: number, n_combi: number): number {
+    private _get_data_mask_from_response = (s_response: string, n_track: number, n_combi: number): number => {
         if (n_combi < 0 || n_combi > 2) return 0;
 
         let n_size = 0;
@@ -2368,7 +2368,7 @@ export class lpu237 extends hid {
      * @description 패리티 비트 사용 여부를 가져옵니다.
      * @returns {boolean | null} 사용 여부, 에러 시 null
      */
-    private _get_use_parity_from_response(s_response: string, n_track: number, n_combi: number): boolean | null {
+    private _get_use_parity_from_response = (s_response: string, n_track: number, n_combi: number): boolean | null => {
         if (n_combi < 0 || n_combi > 2) return null;
 
         let n_size = 0;
@@ -2390,7 +2390,7 @@ export class lpu237 extends hid {
      * @description 패리티 타입을 가져옵니다. (0: Even, 1: Odd)
      * @returns {number} 패리티 타입 번호, 에러 시 -1
      */
-    private _get_parity_type_from_response(s_response: string, n_track: number, n_combi: number): number {
+    private _get_parity_type_from_response = (s_response: string, n_track: number, n_combi: number): number => {
         if (n_combi < 0 || n_combi > 2) return -1;
 
         let n_size = 0;
@@ -2414,7 +2414,7 @@ export class lpu237 extends hid {
      * @param {number} n_combi - 조합 인덱스 (0~2)
      * @returns {number} 각 트랙 조합의 Start Sentinel 패턴 (패리티 포함, 좌측 정렬)
      */
-    private _get_stxl_from_response(s_response: string, n_track: number, n_combi: number): number {
+    private _get_stxl_from_response = (s_response: string, n_track: number, n_combi: number): number => {
         if (n_combi < 0 || n_combi > 2) return 0;
 
         let n_size = 0;
@@ -2438,7 +2438,7 @@ export class lpu237 extends hid {
      * @param {number} n_combi - 조합 인덱스 (0~2)
      * @returns {number} 각 트랙 조합의 End Sentinel 패턴 (패리티 포함, 좌측 정렬)
      */
-    private _get_etxl_from_response(s_response: string, n_track: number, n_combi: number): number {
+    private _get_etxl_from_response = (s_response: string, n_track: number, n_combi: number): number => {
         if (n_combi < 0 || n_combi > 2) return 0;
 
         let n_size = 0;
@@ -2460,7 +2460,7 @@ export class lpu237 extends hid {
      * @description 특정 트랙 조합에서 에러 교정 사용 여부를 확인합니다.
      * @returns {boolean | null} true(사용), false(미사용), null(에러)
      */
-    private _get_use_error_correct_from_response(s_response: string, n_track: number, n_combi: number): boolean | null {
+    private _get_use_error_correct_from_response = (s_response: string, n_track: number, n_combi: number): boolean | null => {
         if (n_combi < 0 || n_combi > 2) return null;
 
         let n_size = 0;
@@ -2482,7 +2482,7 @@ export class lpu237 extends hid {
      * @description 에러 교정 모드(ECM)의 타입을 가져옵니다. (0: LRC, 1: Inverse LRC, 2: CRC)
      * @returns {number} ECM 타입 번호, 에러 시 음수(-1)
      */
-    private _get_ecm_type_from_response(s_response: string, n_track: number, n_combi: number): number {
+    private _get_ecm_type_from_response = (s_response: string, n_track: number, n_combi: number): number => {
         if (n_combi < 0 || n_combi > 2) return -1;
 
         let n_size = 0;
@@ -2504,7 +2504,7 @@ export class lpu237 extends hid {
      * @description 비트 데이터를 ASCII 코드로 변환하기 위해 더해지는 보정값을 가져옵니다.
      * @returns {number} 가산값(Add Value), 에러 시 음수(-1)
      */
-    private _get_add_value_from_response(s_response: string, n_track: number, n_combi: number): number {
+    private _get_add_value_from_response = (s_response: string, n_track: number, n_combi: number): number => {
         if (n_combi < 0 || n_combi > 2) return -1;
 
         let n_size = 0;
@@ -2529,7 +2529,7 @@ export class lpu237 extends hid {
      * @param {number} n_combi - 조합 인덱스 (0~2)
      * @returns {string | null} Hex 문자열 형식의 Prefix, 에러 시 null
      */
-    private _get_private_prefix_from_response(s_response: string, n_track: number, n_combi: number): string | null {
+    private _get_private_prefix_from_response = (s_response: string, n_track: number, n_combi: number): string | null => {
         // 1. 트랙 번호 유효성 및 해당 필드의 기대 사이즈 확인
         let n_size = 0;
         if (n_track >= _type_msr_track_Numer.iso1_track && n_track <= _type_msr_track_Numer.iso3_track) {
@@ -2555,7 +2555,7 @@ export class lpu237 extends hid {
      * @param {number} n_combi - 조합 인덱스 (0~2)
      * @returns {string | null} Hex 문자열 형식의 Postfix, 에러 시 null
      */
-    private _get_private_postfix_from_response(s_response: string, n_track: number, n_combi: number): string | null {
+    private _get_private_postfix_from_response = (s_response: string, n_track: number, n_combi: number): string | null => {
         // 1. 트랙 번호 유효성 및 해당 필드의 기대 사이즈 확인
         let n_size = 0;
         if (n_track >= _type_msr_track_Numer.iso1_track && n_track <= _type_msr_track_Numer.iso3_track) {
@@ -2578,7 +2578,7 @@ export class lpu237 extends hid {
      * @description iButton 제거 시 전송할 기본 데이터 설정을 가져옵니다.
      * @returns {string | null} Hex 문자열 형식, 에러 시 null
      */
-    private _get_ibutton_remove_from_response(s_response: string): string | null {
+    private _get_ibutton_remove_from_response = (s_response: string): string | null => {
         if (!this._is_success_response(s_response)) return null;
 
         const n_size = _type_system_size.SYS_SIZE_IBUTTON_REMOVE;
@@ -2593,7 +2593,7 @@ export class lpu237 extends hid {
      * @description iButton 접촉 시 데이터 앞에 붙는 전역 접두사를 가져옵니다.
      * @returns {string | null} Hex 문자열 형식, 에러 시 null
      */
-    private _get_ibutton_prefix_from_response(s_response: string): string | null {
+    private _get_ibutton_prefix_from_response = (s_response: string): string | null => {
         if (!this._is_success_response(s_response)) return null;
 
         const n_size = _type_system_size.SYS_SIZE_IBUTTON_G_PRE;
@@ -2608,7 +2608,7 @@ export class lpu237 extends hid {
      * @description iButton 제거 시 데이터 앞에 붙는 전역 접두사를 가져옵니다.
      * @returns {string | null} Hex 문자열 형식, 에러 시 null
      */
-    private _get_ibutton_prefix_remove_from_response(s_response: string): string | null {
+    private _get_ibutton_prefix_remove_from_response = (s_response: string): string | null => {
         if (!this._is_success_response(s_response)) return null;
 
         const n_size = _type_system_size.SYS_SIZE_IBUTTON_G_PRE_REMOVE;
@@ -2623,7 +2623,7 @@ export class lpu237 extends hid {
      * @description iButton 접촉 시 데이터 뒤에 붙는 전역 접미사를 가져옵니다.
      * @returns {string | null} Hex 문자열 형식, 에러 시 null
      */
-    private _get_ibutton_postfix_from_response(s_response: string): string | null {
+    private _get_ibutton_postfix_from_response = (s_response: string): string | null => {
         if (!this._is_success_response(s_response)) return null;
 
         const n_size = _type_system_size.SYS_SIZE_IBUTTON_G_POST;
@@ -2638,7 +2638,7 @@ export class lpu237 extends hid {
      * @description iButton 제거 시 데이터 뒤에 붙는 전역 접미사를 가져옵니다.
      * @returns {string | null} Hex 문자열 형식, 에러 시 null
      */
-    private _get_ibutton_postfix_remove_from_response(s_response: string): string | null {
+    private _get_ibutton_postfix_remove_from_response = (s_response: string): string | null => {
         if (!this._is_success_response(s_response)) return null;
 
         const n_size = _type_system_size.SYS_SIZE_IBUTTON_G_POST_REMOVE;
@@ -2654,7 +2654,7 @@ export class lpu237 extends hid {
      * @param {string} s_response - lpu237 프로토콜 패킷
      * @returns {string | null} Hex 문자열 형식, 에러 시 null
      */
-    private _get_uart_prefix_from_response(s_response: string): string | null {
+    private _get_uart_prefix_from_response = (s_response: string): string | null => {
         if (!this._is_success_response(s_response)) return null;
 
         const n_size = _type_system_size.SYS_SIZE_UART_G_PRE;
@@ -2670,7 +2670,7 @@ export class lpu237 extends hid {
      * @param {string} s_response - lpu237 프로토콜 패킷
      * @returns {string | null} Hex 문자열 형식, 에러 시 null
      */
-    private _get_uart_postfix_from_response(s_response: string): string | null {
+    private _get_uart_postfix_from_response = (s_response: string): string | null => {
         if (!this._is_success_response(s_response)) return null;
 
         const n_size = _type_system_size.SYS_SIZE_UART_G_POST;
@@ -2786,7 +2786,7 @@ export class lpu237 extends hid {
      * @param {string} s_string - "on", "off" 또는 숫자로 된 주파수 문자열
      * @returns {number | null} 주파수 카운터 값, 에러 시 null
      */
-    private _get_buzzer_count_from_string(s_string: string): number | null {
+    private _get_buzzer_count_from_string = (s_string: string): number | null => {
         if (s_string === "on") {
             return this._const_default_buzzer_count;
         }
@@ -2825,7 +2825,7 @@ export class lpu237 extends hid {
      * @function _get_use_parity_from_string
      * @description 패리티 비트 사용 여부를 결정합니다. (내부적으로 _get_enable_track_from_string 활용)
      */
-    private _get_use_parity_from_string(s_string: string): boolean | null {
+    private _get_use_parity_from_string = (s_string: string): boolean | null => {
         return this._get_enable_track_from_string(s_string);
     }
 
@@ -2834,7 +2834,7 @@ export class lpu237 extends hid {
      * @function _get_use_error_correct_from_string
      * @description 에러 교정 사용 여부를 결정합니다. (내부적으로 _get_enable_track_from_string 활용)
      */
-    private _get_use_error_correct_from_string(s_string: string): boolean | null {
+    private _get_use_error_correct_from_string = (s_string: string): boolean | null => {
         return this._get_enable_track_from_string(s_string);
     }
 
@@ -2867,7 +2867,7 @@ export class lpu237 extends hid {
      * @param {string} s_string - 파싱할 XML 태그 문자열
      * @returns {string | null} Hex 문자열 (앞에 길이 정보 포함), 에러 시 null
      */
-    private _get_hid_key_pair_hex_string_from_string(b_ibutton_remove: boolean, s_string: string): string | null {
+    private _get_hid_key_pair_hex_string_from_string = (b_ibutton_remove: boolean, s_string: string): string | null => {
         let s_hex_result: string | null = null;
         let b_all_zero = true;
 
@@ -3106,7 +3106,7 @@ export class lpu237 extends hid {
      * @param {number} n_size - 읽어올 데이터의 크기 (바이트 단위)
      * @returns {boolean} 생성 성공 여부
      */
-    private _generate_config_get(queue_s_tx: string[], n_offset: number, n_size: number): boolean {
+    private _generate_config_get = (queue_s_tx: string[], n_offset: number, n_size: number): boolean => {
         // 1. 입력값 유효성 검사
         if (typeof n_offset !== 'number' || n_offset < 0) return false;
         if (typeof n_size !== 'number' || n_size < 0) return false;
@@ -3137,7 +3137,7 @@ export class lpu237 extends hid {
      * @param {string[]} queue_s_tx - 요청이 저장될 큐
      * @returns {boolean} 성공 여부
      */
-    private _generate_get_version(queue_s_tx: string[]): boolean {
+    private _generate_get_version = (queue_s_tx: string[]): boolean => {
         const n_offset = _type_system_offset.SYS_OFFSET_VERSION;
         const n_size = _type_system_size.SYS_SIZE_VERSION;
         return this._generate_config_get(queue_s_tx, n_offset, n_size);
@@ -3150,7 +3150,7 @@ export class lpu237 extends hid {
      * @param {string[]} queue_s_tx - 요청이 저장될 큐
      * @returns {boolean} 성공 여부
      */
-    private _generate_get_version_structure(queue_s_tx: string[]): boolean {
+    private _generate_get_version_structure = (queue_s_tx: string[]): boolean => {
         const n_offset = _type_system_offset.SYS_OFFSET_VERSION_STRUCTURE;
         const n_size = _type_system_size.SYS_SIZE_VERSION_STRUCTURE;
         return this._generate_config_get(queue_s_tx, n_offset, n_size);
@@ -3163,7 +3163,7 @@ export class lpu237 extends hid {
      * @param {string[]} queue_s_tx - 요청이 저장될 큐
      * @returns {boolean} 성공 여부
      */
-    private _generate_get_name(queue_s_tx: string[]): boolean {
+    private _generate_get_name = (queue_s_tx: string[]): boolean => {
         const n_offset = _type_system_offset.SYS_OFFSET_NAME;
         const n_size = _type_system_size.SYS_SIZE_NAME;
         return this._generate_config_get(queue_s_tx, n_offset, n_size);
@@ -3176,7 +3176,7 @@ export class lpu237 extends hid {
      * @param {string[]} queue_s_tx - 요청이 저장될 큐
      * @returns {boolean} 성공 여부
      */
-    private _generate_get_device_support_mmd1000(queue_s_tx: string[]): boolean {
+    private _generate_get_device_support_mmd1000 = (queue_s_tx: string[]): boolean => {
         // 데이터 필드(s_hex_data_field)가 없는 경우 빈 문자열("")을 전달합니다.
         return this._generate_request(queue_s_tx, _type_cmd.REQ_IS_MMD1000, "00", "");
     }
@@ -3188,7 +3188,7 @@ export class lpu237 extends hid {
      * @param {string[]} queue_s_tx - 요청이 저장될 큐
      * @returns {boolean} 성공 여부
      */
-    private _generate_get_uid(queue_s_tx: string[]): boolean {
+    private _generate_get_uid = (queue_s_tx: string[]): boolean => {
         return this._generate_request(queue_s_tx, _type_cmd.REQ_GET_ID, "00", "");
     }
 
@@ -3199,7 +3199,7 @@ export class lpu237 extends hid {
      * @param {string[]} queue_s_tx - 요청이 저장될 큐
      * @returns {boolean} 성공 여부
      */
-    private _generate_get_device_ibutton_type(queue_s_tx: string[]): boolean {
+    private _generate_get_device_ibutton_type = (queue_s_tx: string[]): boolean => {
         return this._generate_request(queue_s_tx, _type_cmd.REQ_IS_ONLY_IBUTTON, "00", "");
     }
 
@@ -3210,7 +3210,7 @@ export class lpu237 extends hid {
      * @param {string[]} queue_s_tx - 요청이 저장될 큐
      * @returns {boolean} 성공 여부
      */
-    private _generate_get_device_type(queue_s_tx: string[]): boolean {
+    private _generate_get_device_type = (queue_s_tx: string[]): boolean => {
         return this._generate_request(queue_s_tx, _type_cmd.REQ_IS_STANDARD, "00", "");
     }
 
@@ -3219,7 +3219,7 @@ export class lpu237 extends hid {
      * @function _generate_get_global_pre_postfix_send_condition
      * @description 글로벌 Pre/Post-fix의 전송 조건 설정을 읽어오기 위한 요청을 생성합니다.
      */
-    private _generate_get_global_pre_postfix_send_condition(queue_s_tx: string[]): boolean {
+    private _generate_get_global_pre_postfix_send_condition = (queue_s_tx: string[]): boolean => {
         const n_offset = _type_system_offset.SYS_OFFSET_G_TAG_CONDITION;
         const n_size = _type_system_size.SYS_SIZE_G_TAG_CONDITION;
         return this._generate_config_get(queue_s_tx, n_offset, n_size);
@@ -3230,7 +3230,7 @@ export class lpu237 extends hid {
      * @function _generate_get_blank_4bytes
      * @description 예약된 4바이트 공백 영역을 읽어옵니다. (보통 장치 정렬이나 특정 더미 데이터 확인용)
      */
-    private _generate_get_blank_4bytes(queue_s_tx: string[]): boolean {
+    private _generate_get_blank_4bytes = (queue_s_tx: string[]): boolean => {
         const n_offset = _type_system_offset.SYS_OFFSET_BLANK_4BYTES;
         const n_size = _type_system_size.SYS_SIZE_BLANK_4BYTES;
         return this._generate_config_get(queue_s_tx, n_offset, n_size);
@@ -3241,7 +3241,7 @@ export class lpu237 extends hid {
      * @function _generate_get_interface
      * @description 현재 장치의 통신 인터페이스(USB HID, V-COM 등) 설정을 읽어옵니다.
      */
-    private _generate_get_interface(queue_s_tx: string[]): boolean {
+    private _generate_get_interface = (queue_s_tx: string[]): boolean => {
         const n_offset = _type_system_offset.SYS_OFFSET_INTERFACE;
         const n_size = _type_system_size.SYS_SIZE_INTERFACE;
         return this._generate_config_get(queue_s_tx, n_offset, n_size);
@@ -3252,7 +3252,7 @@ export class lpu237 extends hid {
      * @function _generate_get_language
      * @description 키보드 레이아웃/언어 설정(Keymap)을 읽어옵니다.
      */
-    private _generate_get_language(queue_s_tx: string[]): boolean {
+    private _generate_get_language = (queue_s_tx: string[]): boolean => {
         const n_offset = _type_system_offset.SYS_OFFSET_KEYMAP;
         const n_size = _type_system_size.SYS_SIZE_KEYMAP;
         return this._generate_config_get(queue_s_tx, n_offset, n_size);
@@ -3263,7 +3263,7 @@ export class lpu237 extends hid {
      * @function _generate_get_buzzer_count
      * @description 현재 설정된 버저의 주파수 카운터 값을 읽어옵니다.
      */
-    private _generate_get_buzzer_count(queue_s_tx: string[]): boolean {
+    private _generate_get_buzzer_count = (queue_s_tx: string[]): boolean => {
         const n_offset = _type_system_offset.SYS_OFFSET_BUZZER_FREQ;
         const n_size = _type_system_size.SYS_SIZE_BUZZER_FREQ;
         return this._generate_config_get(queue_s_tx, n_offset, n_size);
@@ -3274,7 +3274,7 @@ export class lpu237 extends hid {
      * @function _generate_get_boot_run_time
      * @description 부트 후 실행 시간 관련 설정을 읽어옵니다.
      */
-    private _generate_get_boot_run_time(queue_s_tx: string[]): boolean {
+    private _generate_get_boot_run_time = (queue_s_tx: string[]): boolean => {
         const n_offset = _type_system_offset.SYS_OFFSET_BOOT_RUN_TIME;
         const n_size = _type_system_size.SYS_SIZE_BOOT_RUN_TIME;
         return this._generate_config_get(queue_s_tx, n_offset, n_size);
@@ -3288,7 +3288,7 @@ export class lpu237 extends hid {
      * @param {number} n_track - 트랙 인덱스 (0: Track1, 1: Track2, 2: Track3)
      * @returns {boolean} 성공 여부
      */
-    private _generate_get_enable_track(queue_s_tx: string[], n_track: number): boolean {
+    private _generate_get_enable_track = (queue_s_tx: string[], n_track: number): boolean => {
         // 인덱스 범위 유효성 검사 (0~2)
         if (n_track < 0 || n_track > 2) return false;
 
@@ -3306,7 +3306,7 @@ export class lpu237 extends hid {
      * @param {number} n_track - 트랙 인덱스 (0~2)
      * @returns {boolean} 성공 여부
      */
-    private _generate_get_direction(queue_s_tx: string[], n_track: number): boolean {
+    private _generate_get_direction = (queue_s_tx: string[], n_track: number): boolean => {
         // 인덱스 범위 유효성 검사 (0~2)
         if (n_track < 0 || n_track > 2) return false;
 
@@ -3323,7 +3323,7 @@ export class lpu237 extends hid {
      * @param {string[]} queue_s_tx - 요청이 저장될 큐
      * @returns {boolean} 성공 여부
      */
-    private _generate_get_global_prefix(queue_s_tx: string[]): boolean {
+    private _generate_get_global_prefix = (queue_s_tx: string[]): boolean => {
         const n_offset = _type_system_offset.SYS_OFFSET_G_PRE;
         const n_size = _type_system_size.SYS_SIZE_G_PRE;
         return this._generate_config_get(queue_s_tx, n_offset, n_size);
@@ -3336,7 +3336,7 @@ export class lpu237 extends hid {
      * @param {string[]} queue_s_tx - 요청이 저장될 큐
      * @returns {boolean} 성공 여부
      */
-    private _generate_get_global_postfix(queue_s_tx: string[]): boolean {
+    private _generate_get_global_postfix = (queue_s_tx: string[]): boolean => {
         const n_offset = _type_system_offset.SYS_OFFSET_G_POST;
         const n_size = _type_system_size.SYS_SIZE_G_POST;
         return this._generate_config_get(queue_s_tx, n_offset, n_size);
@@ -3350,7 +3350,7 @@ export class lpu237 extends hid {
      * @param {number} n_track - 트랙 인덱스 (0: Track 1, 1: Track 2, 2: Track 3)
      * @returns {boolean} 생성 성공 여부
      */
-    private _generate_get_number_combi(queue_s_tx: string[], n_track: number): boolean {
+    private _generate_get_number_combi = (queue_s_tx: string[], n_track: number): boolean => {
         // 1. 인덱스 유효성 검사 (0, 1, 2만 허용)
         if (n_track < 0 || n_track > 2) {
             return false;
@@ -3372,7 +3372,7 @@ export class lpu237 extends hid {
      * @function _generate_get_max_size
      * @description 트랙 및 조합별 데이터의 최대 허용 크기 설정을 읽어옵니다.
      */
-    private _generate_get_max_size(queue_s_tx: string[], n_track: number, n_combi: number): boolean {
+    private _generate_get_max_size = (queue_s_tx: string[], n_track: number, n_combi: number): boolean => {
         if (n_track < 0 || n_track > 2 || n_combi < 0 || n_combi > 2) return false;
 
         const n_offset = _type_system_offset.SYS_OFFSET_MAX_SIZE[n_track][n_combi];
@@ -3386,7 +3386,7 @@ export class lpu237 extends hid {
      * @function _generate_get_bit_size
      * @description 트랙 및 조합별 비트 단위 데이터 크기 설정을 읽어옵니다.
      */
-    private _generate_get_bit_size(queue_s_tx: string[], n_track: number, n_combi: number): boolean {
+    private _generate_get_bit_size = (queue_s_tx: string[], n_track: number, n_combi: number): boolean => {
         if (n_track < 0 || n_track > 2 || n_combi < 0 || n_combi > 2) return false;
 
         const n_offset = _type_system_offset.SYS_OFFSET_BIT_SIZE[n_track][n_combi];
@@ -3400,7 +3400,7 @@ export class lpu237 extends hid {
      * @function _generate_get_data_mask
      * @description 특정 트랙 데이터 추출 시 적용할 마스크(추출 범위) 설정을 읽어옵니다.
      */
-    private _generate_get_data_mask(queue_s_tx: string[], n_track: number, n_combi: number): boolean {
+    private _generate_get_data_mask = (queue_s_tx: string[], n_track: number, n_combi: number): boolean => {
         if (n_track < 0 || n_track > 2 || n_combi < 0 || n_combi > 2) return false;
 
         const n_offset = _type_system_offset.SYS_OFFSET_DATA_MASK[n_track][n_combi];
@@ -3418,7 +3418,7 @@ export class lpu237 extends hid {
      * @param {number} n_combi - 조합 인덱스 (0~2)
      * @returns {boolean} 성공 여부
      */
-    private _generate_get_use_parity(queue_s_tx: string[], n_track: number, n_combi: number): boolean {
+    private _generate_get_use_parity = (queue_s_tx: string[], n_track: number, n_combi: number): boolean => {
         // 인덱스 범위 유효성 검사
         if (n_track < 0 || n_track > 2 || n_combi < 0 || n_combi > 2) {
             return false;
@@ -3440,7 +3440,7 @@ export class lpu237 extends hid {
      * @param {number} n_combi - 조합 인덱스 (0~2)
      * @returns {boolean} 성공 여부
      */
-    private _generate_get_parity_type(queue_s_tx: string[], n_track: number, n_combi: number): boolean {
+    private _generate_get_parity_type = (queue_s_tx: string[], n_track: number, n_combi: number): boolean => {
         // 인덱스 범위 유효성 검사 (Track: 0~2, Combination: 0~2)
         if (n_track < 0 || n_track > 2 || n_combi < 0 || n_combi > 2) {
             return false;
@@ -3465,7 +3465,7 @@ export class lpu237 extends hid {
      * @param {number} n_combi - 조합 인덱스 (0~2)
      * @returns {boolean} 성공 여부
      */
-    private _generate_get_stxl(queue_s_tx: string[], n_track: number, n_combi: number): boolean {
+    private _generate_get_stxl = (queue_s_tx: string[], n_track: number, n_combi: number): boolean => {
         // 인덱스 범위 유효성 검사
         if (n_track < 0 || n_track > 2 || n_combi < 0 || n_combi > 2) {
             return false;
@@ -3486,7 +3486,7 @@ export class lpu237 extends hid {
      * @param {number} n_combi - 조합 인덱스 (0~2)
      * @returns {boolean} 성공 여부
      */
-    private _generate_get_etxl(queue_s_tx: string[], n_track: number, n_combi: number): boolean {
+    private _generate_get_etxl = (queue_s_tx: string[], n_track: number, n_combi: number): boolean => {
         // 인덱스 범위 유효성 검사
         if (n_track < 0 || n_track > 2 || n_combi < 0 || n_combi > 2) {
             return false;
@@ -3503,7 +3503,7 @@ export class lpu237 extends hid {
      * @function _generate_get_use_error_correct
      * @description 특정 트랙 및 조합의 에러 교정 기능 사용 여부를 읽어옵니다.
      */
-    private _generate_get_use_error_correct(queue_s_tx: string[], n_track: number, n_combi: number): boolean {
+    private _generate_get_use_error_correct = (queue_s_tx: string[], n_track: number, n_combi: number): boolean => {
         if (n_track < 0 || n_track > 2 || n_combi < 0 || n_combi > 2) return false;
 
         const n_offset = _type_system_offset.SYS_OFFSET_USE_ERROR_CORRECT[n_track][n_combi];
@@ -3517,7 +3517,7 @@ export class lpu237 extends hid {
      * @function _generate_get_ecm_type
      * @description 에러 교정 모드(ECM)의 세부 유형 설정을 읽어옵니다.
      */
-    private _generate_get_ecm_type(queue_s_tx: string[], n_track: number, n_combi: number): boolean {
+    private _generate_get_ecm_type = (queue_s_tx: string[], n_track: number, n_combi: number): boolean => {
         if (n_track < 0 || n_track > 2 || n_combi < 0 || n_combi > 2) return false;
 
         const n_offset = _type_system_offset.SYS_OFFSET_ECM_TYPE[n_track][n_combi];
@@ -3531,7 +3531,7 @@ export class lpu237 extends hid {
      * @function _generate_get_add_value
      * @description 디코딩된 데이터 값에 특정 수치를 더하거나 변환할 때 사용하는 추가 값 설정을 읽어옵니다.
      */
-    private _generate_get_add_value(queue_s_tx: string[], n_track: number, n_combi: number): boolean {
+    private _generate_get_add_value = (queue_s_tx: string[], n_track: number, n_combi: number): boolean => {
         if (n_track < 0 || n_track > 2 || n_combi < 0 || n_combi > 2) return false;
 
         const n_offset = _type_system_offset.SYS_OFFSET_ADD_VALUE[n_track][n_combi];
@@ -3548,7 +3548,7 @@ export class lpu237 extends hid {
      * @param {number} n_track - 트랙 인덱스 (0~2)
      * @param {number} n_combi - 조합 인덱스 (0~2)
      */
-    private _generate_get_private_prefix(queue_s_tx: string[], n_track: number, n_combi: number): boolean {
+    private _generate_get_private_prefix = (queue_s_tx: string[], n_track: number, n_combi: number): boolean => {
         if (n_track < 0 || n_track > 2 || n_combi < 0 || n_combi > 2) return false;
 
         const n_offset = _type_system_offset.SYS_OFFSET_P_PRE[n_track][n_combi];
@@ -3565,7 +3565,7 @@ export class lpu237 extends hid {
      * @param {number} n_track - 트랙 인덱스 (0~2)
      * @param {number} n_combi - 조합 인덱스 (0~2)
      */
-    private _generate_get_private_postfix(queue_s_tx: string[], n_track: number, n_combi: number): boolean {
+    private _generate_get_private_postfix = (queue_s_tx: string[], n_track: number, n_combi: number): boolean => {
         if (n_track < 0 || n_track > 2 || n_combi < 0 || n_combi > 2) return false;
 
         const n_offset = _type_system_offset.SYS_OFFSET_P_POST[n_track][n_combi];
@@ -3577,14 +3577,14 @@ export class lpu237 extends hid {
     // === iButton 접촉(Attach) 관련 설정 ===
 
     /** @description iButton 접촉 시 데이터 앞에 붙는 Prefix 조회 */
-    private _generate_get_ibutton_prefix(queue_s_tx: string[]): boolean {
+    private _generate_get_ibutton_prefix = (queue_s_tx: string[]): boolean => {
         const n_offset = _type_system_offset.SYS_OFFSET_IBUTTON_G_PRE;
         const n_size = _type_system_size.SYS_SIZE_IBUTTON_G_PRE;
         return this._generate_config_get(queue_s_tx, n_offset, n_size);
     }
 
     /** @description iButton 접촉 시 데이터 뒤에 붙는 Postfix 조회 */
-    private _generate_get_ibutton_postfix(queue_s_tx: string[]): boolean {
+    private _generate_get_ibutton_postfix = (queue_s_tx: string[]): boolean => {
         const n_offset = _type_system_offset.SYS_OFFSET_IBUTTON_G_POST;
         const n_size = _type_system_size.SYS_SIZE_IBUTTON_G_POST;
         return this._generate_config_get(queue_s_tx, n_offset, n_size);
@@ -3593,21 +3593,21 @@ export class lpu237 extends hid {
     // === iButton 제거(Remove) 관련 설정 ===
 
     /** @description iButton 제거 시 알림 전송 여부 설정 조회 */
-    private _generate_get_ibutton_remove(queue_s_tx: string[]): boolean {
+    private _generate_get_ibutton_remove = (queue_s_tx: string[]): boolean => {
         const n_offset = _type_system_offset.SYS_OFFSET_IBUTTON_REMOVE;
         const n_size = _type_system_size.SYS_SIZE_IBUTTON_REMOVE;
         return this._generate_config_get(queue_s_tx, n_offset, n_size);
     }
 
     /** @description iButton 제거 알림 시 사용할 Prefix 조회 */
-    private _generate_get_ibutton_prefix_remove(queue_s_tx: string[]): boolean {
+    private _generate_get_ibutton_prefix_remove = (queue_s_tx: string[]): boolean => {
         const n_offset = _type_system_offset.SYS_OFFSET_IBUTTON_G_PRE_REMOVE;
         const n_size = _type_system_size.SYS_SIZE_IBUTTON_G_PRE_REMOVE;
         return this._generate_config_get(queue_s_tx, n_offset, n_size);
     }
 
     /** @description iButton 제거 알림 시 사용할 Postfix 조회 */
-    private _generate_get_ibutton_postfix_remove(queue_s_tx: string[]): boolean {
+    private _generate_get_ibutton_postfix_remove = (queue_s_tx: string[]): boolean => {
         const n_offset = _type_system_offset.SYS_OFFSET_IBUTTON_G_POST_REMOVE;
         const n_size = _type_system_size.SYS_SIZE_IBUTTON_G_POST_REMOVE;
         return this._generate_config_get(queue_s_tx, n_offset, n_size);
@@ -3616,14 +3616,14 @@ export class lpu237 extends hid {
     // === UART(Serial) 관련 설정 ===
 
     /** @description UART 데이터 전송 시 사용할 Prefix 조회 */
-    private _generate_get_uart_prefix(queue_s_tx: string[]): boolean {
+    private _generate_get_uart_prefix = (queue_s_tx: string[]): boolean => {
         const n_offset = _type_system_offset.SYS_OFFSET_UART_G_PRE;
         const n_size = _type_system_size.SYS_SIZE_UART_G_PRE;
         return this._generate_config_get(queue_s_tx, n_offset, n_size);
     }
 
     /** @description UART 데이터 전송 시 사용할 Postfix 조회 */
-    private _generate_get_uart_postfix(queue_s_tx: string[]): boolean {
+    private _generate_get_uart_postfix = (queue_s_tx: string[]): boolean => {
         const n_offset = _type_system_offset.SYS_OFFSET_UART_G_POST;
         const n_size = _type_system_size.SYS_SIZE_UART_G_POST;
         return this._generate_config_get(queue_s_tx, n_offset, n_size);
@@ -3639,12 +3639,12 @@ export class lpu237 extends hid {
      * @param {string} s_setting_data - 설정할 데이터 (구분자 없는 Hex String)
      * @returns {boolean} 생성 성공 여부
      */
-    private _generate_config_set(
+    private _generate_config_set = (
         queue_s_tx: string[],
         n_offset: number,
         n_size: number,
         s_setting_data: string
-    ): boolean {
+    ): boolean => {
         let b_result = false;
 
         // 1. 입력 파라미터 유효성 검사
@@ -3675,10 +3675,10 @@ export class lpu237 extends hid {
      * @description 글로벌 Prefix/Postfix 전송 조건 설정
      * @param b_send_always true면 데이터가 없어도 태그 전송, false면 데이터가 있을 때만 전송
      */
-    private _generate_set_global_pre_postfix_send_condition(
+    private _generate_set_global_pre_postfix_send_condition = (
         queue_s_tx: string[],
         b_send_always: boolean
-    ): boolean {
+    ): boolean => {
         const n_offset = _type_system_offset.SYS_OFFSET_G_TAG_CONDITION;
         const n_size = _type_system_size.SYS_SIZE_G_TAG_CONDITION;
 
@@ -3692,7 +3692,7 @@ export class lpu237 extends hid {
      * @description 카드 트랙 출력 순서 설정 (예: [2, 1, 3] 순서로 출력)
      * @param array_n_order 트랙 번호가 담긴 3개 요소의 숫자 배열
      */
-    private _generate_set_track_order(queue_s_tx: string[], array_n_order: number[]): boolean {
+    private _generate_set_track_order = (queue_s_tx: string[], array_n_order: number[]): boolean => {
         const n_offset = _type_system_offset.SYS_OFFSET_CONTAINER_TRACK_ORDER;
         const n_size = _type_system_size.SYS_SIZE_CONTAINER_TRACK_ORDER;
 
@@ -3708,7 +3708,7 @@ export class lpu237 extends hid {
      * @description 시스템 예약 또는 공백 4바이트 데이터 설정
      * @param cblank 4개의 숫자로 이루어진 배열
      */
-    private _generate_set_blank_4byets(queue_s_tx: string[], cblank: number[]): boolean {
+    private _generate_set_blank_4byets = (queue_s_tx: string[], cblank: number[]): boolean => {
         const n_offset = _type_system_offset.SYS_OFFSET_BLANK_4BYTES;
         const n_size = _type_system_size.SYS_SIZE_BLANK_4BYTES;
 
@@ -3725,7 +3725,7 @@ export class lpu237 extends hid {
      * @description 장치 통신 인터페이스 설정 (USB HID, 가상 컴포트 등)
      * @param n_interface 인터페이스 타입 코드
      */
-    private _generate_set_interface(queue_s_tx: string[], n_interface: number): boolean {
+    private _generate_set_interface = (queue_s_tx: string[], n_interface: number): boolean => {
         const n_offset = _type_system_offset.SYS_OFFSET_INTERFACE;
         const n_size = _type_system_size.SYS_SIZE_INTERFACE;
         const s_data = util.get_byte_hex_string_from_number(n_interface);
@@ -3741,7 +3741,7 @@ export class lpu237 extends hid {
      * @param {number} n_language - 설정할 언어 인덱스 코드
      * @returns {boolean} 모든 요청 생성 성공 여부
      */
-    private _generate_set_language(queue_s_tx: string[], n_language: number): boolean {
+    private _generate_set_language = (queue_s_tx: string[], n_language: number): boolean => {
         // 1. 공통 데이터 준비 (DWORD 형태의 Hex 문자열)
         const s_data = util.get_dword_hex_string_from_number(n_language);
 
@@ -3771,7 +3771,7 @@ export class lpu237 extends hid {
      * @description 부저(Buzzer) 소리 횟수 또는 주파수 설정
      * @param n_buzzer 설정할 수치 (4바이트 DWORD 형식으로 변환됨)
      */
-    private _generate_set_buzzer_count(queue_s_tx: string[], n_buzzer: number): boolean {
+    private _generate_set_buzzer_count = (queue_s_tx: string[], n_buzzer: number): boolean => {
         const n_offset = _type_system_offset.SYS_OFFSET_BUZZER_FREQ;
         const n_size = _type_system_size.SYS_SIZE_BUZZER_FREQ;
         const s_data = util.get_dword_hex_string_from_number(n_buzzer);
@@ -3784,7 +3784,7 @@ export class lpu237 extends hid {
      * @param n_track 트랙 인덱스 (0~2)
      * @param b_enable 활성화 여부
      */
-    private _generate_set_enable_track(queue_s_tx: string[], n_track: number, b_enable: boolean): boolean {
+    private _generate_set_enable_track = (queue_s_tx: string[], n_track: number, b_enable: boolean): boolean => {
         if (n_track < 0 || n_track > 2) return false;
 
         const n_offset = _type_system_offset.SYS_OFFSET_ENABLE_TRACK[n_track];
@@ -3800,7 +3800,7 @@ export class lpu237 extends hid {
      * @param n_track 트랙 인덱스 (0~2)
      * @param n_direction 방향 설정 코드
      */
-    private _generate_set_direction(queue_s_tx: string[], n_track: number, n_direction: number): boolean {
+    private _generate_set_direction = (queue_s_tx: string[], n_track: number, n_direction: number): boolean => {
         if (n_track < 0 || n_track > 2) return false;
 
         const n_offset = _type_system_offset.SYS_OFFSET_DIRECTION[n_track];
@@ -3814,7 +3814,7 @@ export class lpu237 extends hid {
      * @description 모든 트랙 데이터의 최상단에 붙는 글로벌 접두사(Global Prefix) 설정
      * @param s_tag 설정할 태그 문자열 (Hex String)
      */
-    private _generate_set_global_prefix(queue_s_tx: string[], s_tag: string): boolean {
+    private _generate_set_global_prefix = (queue_s_tx: string[], s_tag: string): boolean => {
         const n_offset = _type_system_offset.SYS_OFFSET_G_PRE;
         const n_size = _type_system_size.SYS_SIZE_G_PRE;
 
@@ -3825,7 +3825,7 @@ export class lpu237 extends hid {
      * @description 모든 트랙 데이터의 최하단에 붙는 글로벌 접미사(Global Postfix) 설정
      * @param s_tag 설정할 태그 문자열 (Hex String)
      */
-    private _generate_set_global_postfix(queue_s_tx: string[], s_tag: string): boolean {
+    private _generate_set_global_postfix = (queue_s_tx: string[], s_tag: string): boolean => {
         const n_offset = _type_system_offset.SYS_OFFSET_G_POST;
         const n_size = _type_system_size.SYS_SIZE_G_POST;
 
@@ -3837,7 +3837,7 @@ export class lpu237 extends hid {
      * @param n_track 트랙 인덱스 (0~2)
      * @param n_combi_number 조합 개수 (1~3)
      */
-    private _generate_set_number_combi(queue_s_tx: string[], n_track: number, n_combi_number: number): boolean {
+    private _generate_set_number_combi = (queue_s_tx: string[], n_track: number, n_combi_number: number): boolean => {
         if (n_track < 0 || n_track > 2) return false;
 
         const n_offset = _type_system_offset.SYS_OFFSET_COMBINATION[n_track];
@@ -3850,7 +3850,7 @@ export class lpu237 extends hid {
     /**
      * @description 특정 트랙/조합의 최대 데이터 길이를 설정합니다.
      */
-    private _generate_set_max_size(queue_s_tx: string[], n_track: number, n_combi: number, n_max_size: number): boolean {
+    private _generate_set_max_size = (queue_s_tx: string[], n_track: number, n_combi: number, n_max_size: number): boolean => {
         if (n_track < 0 || n_track > 2 || n_combi < 0 || n_combi > 2) return false;
 
         const n_offset = _type_system_offset.SYS_OFFSET_MAX_SIZE[n_track][n_combi];
@@ -3863,7 +3863,7 @@ export class lpu237 extends hid {
     /**
      * @description 한 문자를 구성하는 비트 수(5-bit, 7-bit 등)를 설정합니다.
      */
-    private _generate_set_bit_size(queue_s_tx: string[], n_track: number, n_combi: number, n_bit_size: number): boolean {
+    private _generate_set_bit_size = (queue_s_tx: string[], n_track: number, n_combi: number, n_bit_size: number): boolean => {
         if (n_track < 0 || n_track > 2 || n_combi < 0 || n_combi > 2) return false;
 
         const n_offset = _type_system_offset.SYS_OFFSET_BIT_SIZE[n_track][n_combi];
@@ -3876,7 +3876,7 @@ export class lpu237 extends hid {
     /**
      * @description 데이터 유효 비트를 추출하기 위한 마스크 패턴을 설정합니다.
      */
-    private _generate_set_data_mask(queue_s_tx: string[], n_track: number, n_combi: number, c_data_mask: number): boolean {
+    private _generate_set_data_mask = (queue_s_tx: string[], n_track: number, n_combi: number, c_data_mask: number): boolean => {
         if (n_track < 0 || n_track > 2 || n_combi < 0 || n_combi > 2) return false;
 
         const n_offset = _type_system_offset.SYS_OFFSET_DATA_MASK[n_track][n_combi];
@@ -3889,7 +3889,7 @@ export class lpu237 extends hid {
     /**
      * @description 패리티(Parity) 체크 기능 사용 여부를 설정합니다.
      */
-    private _generate_set_use_parity(queue_s_tx: string[], n_track: number, n_combi: number, b_enable: boolean): boolean {
+    private _generate_set_use_parity = (queue_s_tx: string[], n_track: number, n_combi: number, b_enable: boolean): boolean => {
         if (n_track < 0 || n_track > 2 || n_combi < 0 || n_combi > 2) return false;
 
         const n_offset = _type_system_offset.SYS_OFFSET_USE_PARITY[n_track][n_combi];
@@ -3902,7 +3902,7 @@ export class lpu237 extends hid {
     /**
      * @description 패리티 타입을 설정합니다 (0: Even, 1: Odd).
      */
-    private _generate_set_parity_type(queue_s_tx: string[], n_track: number, n_combi: number, n_parity_type: number): boolean {
+    private _generate_set_parity_type = (queue_s_tx: string[], n_track: number, n_combi: number, n_parity_type: number): boolean => {
         if (n_track < 0 || n_track > 2 || n_combi < 0 || n_combi > 2) return false;
 
         const n_offset = _type_system_offset.SYS_OFFSET_PARITY_TYPE[n_track][n_combi];
@@ -3916,7 +3916,7 @@ export class lpu237 extends hid {
      * @description 시작 센티넬(Start Sentinel) 패턴 설정
      * @param c_stxl 시작 센티넬로 사용할 문자 패턴 (1바이트)
      */
-    private _generate_set_stxl(queue_s_tx: string[], n_track: number, n_combi: number, c_stxl: number): boolean {
+    private _generate_set_stxl = (queue_s_tx: string[], n_track: number, n_combi: number, c_stxl: number): boolean => {
         if (n_track < 0 || n_track > 2 || n_combi < 0 || n_combi > 2) return false;
 
         const n_offset = _type_system_offset.SYS_OFFSET_STXL[n_track][n_combi];
@@ -3930,7 +3930,7 @@ export class lpu237 extends hid {
      * @description 종료 센티넬(End Sentinel) 패턴 설정
      * @param c_etxl 종료 센티넬로 사용할 문자 패턴 (1바이트)
      */
-    private _generate_set_etxl(queue_s_tx: string[], n_track: number, n_combi: number, c_etxl: number): boolean {
+    private _generate_set_etxl = (queue_s_tx: string[], n_track: number, n_combi: number, c_etxl: number): boolean => {
         if (n_track < 0 || n_track > 2 || n_combi < 0 || n_combi > 2) return false;
 
         const n_offset = _type_system_offset.SYS_OFFSET_ETXL[n_track][n_combi];
@@ -3943,7 +3943,7 @@ export class lpu237 extends hid {
     /**
      * @description 에러 교정(Error Correction) 기능 활성화 여부 설정
      */
-    private _generate_set_use_error_correct(queue_s_tx: string[], n_track: number, n_combi: number, b_enable: boolean): boolean {
+    private _generate_set_use_error_correct = (queue_s_tx: string[], n_track: number, n_combi: number, b_enable: boolean): boolean => {
         if (n_track < 0 || n_track > 2 || n_combi < 0 || n_combi > 2) return false;
 
         const n_offset = _type_system_offset.SYS_OFFSET_USE_ERROR_CORRECT[n_track][n_combi];
@@ -3956,7 +3956,7 @@ export class lpu237 extends hid {
     /**
      * @description 에러 교정 모드(ECM) 유형 설정
      */
-    private _generate_set_ecm_type(queue_s_tx: string[], n_track: number, n_combi: number, n_ecm_type: number): boolean {
+    private _generate_set_ecm_type = (queue_s_tx: string[], n_track: number, n_combi: number, n_ecm_type: number): boolean => {
         if (n_track < 0 || n_track > 2 || n_combi < 0 || n_combi > 2) return false;
 
         const n_offset = _type_system_offset.SYS_OFFSET_ECM_TYPE[n_track][n_combi];
@@ -3969,7 +3969,7 @@ export class lpu237 extends hid {
     /**
      * @description ASCII 코드 변환을 위한 가산 값(Add Value) 설정
      */
-    private _generate_set_add_value(queue_s_tx: string[], n_track: number, n_combi: number, c_add: number): boolean {
+    private _generate_set_add_value = (queue_s_tx: string[], n_track: number, n_combi: number, c_add: number): boolean => {
         if (n_track < 0 || n_track > 2 || n_combi < 0 || n_combi > 2) return false;
 
         const n_offset = _type_system_offset.SYS_OFFSET_ADD_VALUE[n_track][n_combi];
@@ -3985,12 +3985,12 @@ export class lpu237 extends hid {
      * @param n_combi 조합 인덱스 (0~2)
      * @param s_tag 설정할 태그 데이터 (Hex 문자열)
      */
-    private _generate_set_private_prefix(
+    private _generate_set_private_prefix = (
         queue_s_tx: string[],
         n_track: number,
         n_combi: number,
         s_tag: string
-    ): boolean {
+    ): boolean => {
         if (n_track < 0 || n_track > 2 || n_combi < 0 || n_combi > 2) return false;
 
         const n_offset = _type_system_offset.SYS_OFFSET_P_PRE[n_track][n_combi];
@@ -4005,12 +4005,12 @@ export class lpu237 extends hid {
      * @param n_combi 조합 인덱스 (0~2)
      * @param s_tag 설정할 태그 데이터 (Hex 문자열)
      */
-    private _generate_set_private_postfix(
+    private _generate_set_private_postfix = (
         queue_s_tx: string[],
         n_track: number,
         n_combi: number,
         s_tag: string
-    ): boolean {
+    ): boolean => {
         if (n_track < 0 || n_track > 2 || n_combi < 0 || n_combi > 2) return false;
 
         const n_offset = _type_system_offset.SYS_OFFSET_P_POST[n_track][n_combi];
@@ -4027,7 +4027,7 @@ export class lpu237 extends hid {
      * @param {number} n_language - 언어 인덱스
      * @returns {boolean} 모든 매핑 데이터 기록 성공 여부
      */
-    private _generate_set_key_map(queue_s_tx: string[], n_language: number): boolean {
+    private _generate_set_key_map = (queue_s_tx: string[], n_language: number): boolean => {
         // 최대 ASCII 코드 변환 크기 (보통 128 또는 256)
         const n_max_cvt = elpusk_util_keyboard_const.FOR_CVT_MAX_ASCII_CODE;
 
@@ -4049,7 +4049,7 @@ export class lpu237 extends hid {
     /**
      * @description 데이터를 절반으로 나누어 장치에 기록하는 헬퍼 함수
      */
-    private _send_split_config(queue_s_tx: string[], n_base_offset: number, n_size: number, s_full_data: string): boolean {
+    private _send_split_config = (queue_s_tx: string[], n_base_offset: number, n_size: number, s_full_data: string): boolean => {
         const half_len = Math.floor(s_full_data.length / 2);
 
         // 전반부 기록
@@ -4070,14 +4070,14 @@ export class lpu237 extends hid {
     // === iButton 접촉(Attach) 관련 설정 기록 ===
 
     /** @description iButton 접촉 시 전송될 데이터의 Prefix 설정 */
-    private _generate_set_ibutton_prefix(queue_s_tx: string[], s_tag: string): boolean {
+    private _generate_set_ibutton_prefix = (queue_s_tx: string[], s_tag: string): boolean => {
         const n_offset = _type_system_offset.SYS_OFFSET_IBUTTON_G_PRE;
         const n_size = _type_system_size.SYS_SIZE_IBUTTON_G_PRE;
         return this._generate_config_set(queue_s_tx, n_offset, n_size, s_tag);
     }
 
     /** @description iButton 접촉 시 전송될 데이터의 Postfix 설정 */
-    private _generate_set_ibutton_postfix(queue_s_tx: string[], s_tag: string): boolean {
+    private _generate_set_ibutton_postfix = (queue_s_tx: string[], s_tag: string): boolean => {
         const n_offset = _type_system_offset.SYS_OFFSET_IBUTTON_G_POST;
         const n_size = _type_system_size.SYS_SIZE_IBUTTON_G_POST;
         return this._generate_config_set(queue_s_tx, n_offset, n_size, s_tag);
@@ -4086,21 +4086,21 @@ export class lpu237 extends hid {
     // === iButton 제거(Remove) 관련 설정 기록 ===
 
     /** @description iButton 제거 이벤트 발생 여부 및 관련 데이터 설정 */
-    private _generate_set_ibutton_remove(queue_s_tx: string[], s_tag: string): boolean {
+    private _generate_set_ibutton_remove = (queue_s_tx: string[], s_tag: string): boolean => {
         const n_offset = _type_system_offset.SYS_OFFSET_IBUTTON_REMOVE;
         const n_size = _type_system_size.SYS_SIZE_IBUTTON_REMOVE;
         return this._generate_config_set(queue_s_tx, n_offset, n_size, s_tag);
     }
 
     /** @description iButton 제거 시 전송될 데이터의 Prefix 설정 */
-    private _generate_set_ibutton_prefix_remove(queue_s_tx: string[], s_tag: string): boolean {
+    private _generate_set_ibutton_prefix_remove = (queue_s_tx: string[], s_tag: string): boolean => {
         const n_offset = _type_system_offset.SYS_OFFSET_IBUTTON_G_PRE_REMOVE;
         const n_size = _type_system_size.SYS_SIZE_IBUTTON_G_PRE_REMOVE;
         return this._generate_config_set(queue_s_tx, n_offset, n_size, s_tag);
     }
 
     /** @description iButton 제거 시 전송될 데이터의 Postfix 설정 */
-    private _generate_set_ibutton_postfix_remove(queue_s_tx: string[], s_tag: string): boolean {
+    private _generate_set_ibutton_postfix_remove = (queue_s_tx: string[], s_tag: string): boolean => {
         const n_offset = _type_system_offset.SYS_OFFSET_IBUTTON_G_POST_REMOVE;
         const n_size = _type_system_size.SYS_SIZE_IBUTTON_G_POST_REMOVE;
         return this._generate_config_set(queue_s_tx, n_offset, n_size, s_tag);
@@ -4114,7 +4114,7 @@ export class lpu237 extends hid {
      * @param {string} s_tag - 설정할 Prefix (Hex 문자열)
      * @returns {boolean} 생성 성공 여부
      */
-    private _generate_set_uart_prefix(queue_s_tx: string[], s_tag: string): boolean {
+    private _generate_set_uart_prefix = (queue_s_tx: string[], s_tag: string): boolean => {
         const n_offset = _type_system_offset.SYS_OFFSET_UART_G_PRE;
         const n_size = _type_system_size.SYS_SIZE_UART_G_PRE;
 
@@ -4129,7 +4129,7 @@ export class lpu237 extends hid {
      * @param {string} s_tag - 설정할 Postfix (Hex 문자열)
      * @returns {boolean} 생성 성공 여부
      */
-    private _generate_set_uart_postfix(queue_s_tx: string[], s_tag: string): boolean {
+    private _generate_set_uart_postfix = (queue_s_tx: string[], s_tag: string): boolean => {
         const n_offset = _type_system_offset.SYS_OFFSET_UART_G_POST;
         const n_size = _type_system_size.SYS_SIZE_UART_G_POST;
 
@@ -4139,42 +4139,42 @@ export class lpu237 extends hid {
     /**
      * @description OPOS(OLE for Retail POS) 모드로 진입합니다.
      */
-    private _generate_enter_opos_mode(queue_s_tx: string[]): boolean {
+    private _generate_enter_opos_mode = (queue_s_tx: string[]): boolean => {
         return this._generate_request(queue_s_tx, _type_cmd.REQ_ENTER_OPOS, "00", "");
     }
 
     /**
      * @description OPOS 모드에서 벗어나 일반 모드로 복귀합니다.
      */
-    private _generate_leave_opos_mode(queue_s_tx: string[]): boolean {
+    private _generate_leave_opos_mode = (queue_s_tx: string[]): boolean => {
         return this._generate_request(queue_s_tx, _type_cmd.REQ_LEAVE_OPOS, "00", "");
     }
 
     /**
      * @description 설정 모드(Configuration Mode/CS)로 진입합니다. (설정 변경 전 필수)
      */
-    private _generate_enter_config_mode(queue_s_tx: string[]): boolean {
+    private _generate_enter_config_mode = (queue_s_tx: string[]): boolean => {
         return this._generate_request(queue_s_tx, _type_cmd.REQ_ENTER_CS, "00", "");
     }
 
     /**
      * @description 설정 모드에서 나갑니다.
      */
-    private _generate_leave_config_mode(queue_s_tx: string[]): boolean {
+    private _generate_leave_config_mode = (queue_s_tx: string[]): boolean => {
         return this._generate_request(queue_s_tx, _type_cmd.REQ_LEAVE_CS, "00", "");
     }
 
     /**
      * @description 변경된 설정 사항들을 장치의 비휘발성 메모리에 실제로 적용(Commit)합니다.
      */
-    private _generate_apply_config_mode(queue_s_tx: string[]): boolean {
+    private _generate_apply_config_mode = (queue_s_tx: string[]): boolean => {
         return this._generate_request(queue_s_tx, _type_cmd.REQ_APPLY, "00", "");
     }
 
     /**
      * @description 장치를 부트 로더 모드로 전환합니다. (펌웨어 업데이트 시 사용)
      */
-    private _generate_run_boot_loader(queue_s_tx: string[]): boolean {
+    private _generate_run_boot_loader = (queue_s_tx: string[]): boolean => {
         return this._generate_request(queue_s_tx, _type_cmd.REQ_GOTO_BOOT, "00", "");
     }
 
@@ -4185,7 +4185,7 @@ export class lpu237 extends hid {
      * @param s_len_tag_hex 장치에서 읽어온 태그 데이터 (첫 바이트는 길이 정보)
      * @returns {number[]} ASCII 코드 값들이 담긴 배열
      */
-    private _get_tag_by_ascii_code(n_language: number, s_len_tag_hex: string): number[] {
+    private _get_tag_by_ascii_code = (n_language: number, s_len_tag_hex: string): number[] => {
         const n_hex_result: number[] = [];
 
         // 1. 기본 유효성 검사
@@ -4248,7 +4248,7 @@ export class lpu237 extends hid {
      * @param n_language 언어 인덱스
      * @param s_len_tag_hex 장치에서 수신한 원시 Hex 문자열
      */
-    private _get_tag_by_ascii_hex_string(n_language: number, s_len_tag_hex: string): string[] {
+    private _get_tag_by_ascii_hex_string = (n_language: number, s_len_tag_hex: string): string[] => {
         const s_hex_result: string[] = [];
         // 1. 먼저 HID 코드를 ASCII 숫자 배열로 변환
         const n_ascii_codes = this._get_tag_by_ascii_code(n_language, s_len_tag_hex);
@@ -4267,7 +4267,7 @@ export class lpu237 extends hid {
      * @param n_language 언어 인덱스
      * @param s_len_tag_hex 장치에서 수신한 원시 Hex 문자열
      */
-    private _get_tag_by_ascii_string(n_language: number, s_len_tag_hex: string): string[] {
+    private _get_tag_by_ascii_string = (n_language: number, s_len_tag_hex: string): string[] => {
         const s_char_result: string[] = [];
         // 1. 먼저 HID 코드를 ASCII 숫자 배열로 변환
         const n_ascii_codes = this._get_tag_by_ascii_code(n_language, s_len_tag_hex);
@@ -4287,7 +4287,7 @@ export class lpu237 extends hid {
      * @param s_len_tag_hex 장치에서 수신한 원시 Hex 문자열
      * @returns {string | null} 심볼 문자열, 오류 시 null 반환
      */
-    private _get_tag_by_symbol(n_language: number, s_len_tag_hex: string): string | null {
+    private _get_tag_by_symbol = (n_language: number, s_len_tag_hex: string): string | null => {
         let s_symbols: string | null = null;
 
         // 1. 유효성 검사 및 초기화
@@ -4348,7 +4348,7 @@ export class lpu237 extends hid {
      * @param s_len_tag_hex 장치에서 수신한 원시 Hex 문자열
      * @returns {string | null} 심볼 문자열, 오류 시 null 반환
      */
-    private _get_tag_remove_by_symbol(n_language: number, s_len_tag_hex: string): string | null {
+    private _get_tag_remove_by_symbol = (n_language: number, s_len_tag_hex: string): string | null => {
         let s_symbols: string | null = null;
 
         // 1. 유효성 검사
@@ -4418,7 +4418,7 @@ export class lpu237 extends hid {
      * @description 현재 장치가 설정 모드(Config Mode)인지 여부를 확인합니다.
      * @returns {boolean} true: 설정 모드임, false: 일반 동작 모드임.
      */
-    public is_config_mode(): boolean {
+    public is_config_mode = (): boolean => {
         return this._b_config_mode;
     }
 
@@ -4426,7 +4426,7 @@ export class lpu237 extends hid {
      * @description 현재 장치가 OPOS 모드인지 확인합니다.
      * @returns {boolean} true: OPOS 모드 활성(Vendor-defined HID 인터페이스 사용), false: 일반 키보드 모드.
      */
-    public is_opos_mode(): boolean {
+    public is_opos_mode = (): boolean => {
         return this._b_opos_mode;
     }
 
@@ -4435,7 +4435,7 @@ export class lpu237 extends hid {
      * @param {number} n_track ISO 트랙 번호 (0~2)
      * @returns {string | null} 카드 데이터 문자열. 오류가 있거나 데이터가 없으면 null 반환.
      */
-    public get_msr_data(n_track: number): string | null {
+    public get_msr_data = (n_track: number): string | null => {
         // 1. 매개변수 유효성 검사 (트랙 번호 범위 확인)
         if (typeof n_track !== 'number' || n_track < 0 || n_track >= this._const_the_number_of_track) {
             return null;
@@ -4456,7 +4456,7 @@ export class lpu237 extends hid {
      * @description iButton 리더기에서 읽은 태그 데이터를 가져옵니다.
      * @returns {string | null} iButton 고유 ID 데이터 문자열. 오류 발생 시 null 반환.
      */
-    public get_ibutton_data(): string | null {
+    public get_ibutton_data = (): string | null => {
         // 1. iButton 읽기 에러 코드 확인
         // 0이 아니면 체크섬 오류나 통신 오류가 발생한 상태임
         if (this._n_ibutton_error_code !== 0) {
@@ -4473,7 +4473,7 @@ export class lpu237 extends hid {
      * @param {number} n_track ISO 트랙 번호 (0~2)
      * @returns {number | null} 에러 코드 (0: 정상), 입력값이 잘못된 경우 null 반환
      */
-    public get_msr_error_code(n_track: number): number | null {
+    public get_msr_error_code = (n_track: number): number | null => {
         // 1. 매개변수 유효성 검사
         if (typeof n_track !== 'number' || n_track < 0 || n_track >= this._const_the_number_of_track) {
             return null;
@@ -4488,7 +4488,7 @@ export class lpu237 extends hid {
      * @description iButton 리더기의 에러 코드를 가져옵니다.
      * @returns {number} 에러 코드 (0: 정상)
      */
-    public get_ibutton_error_code(): number {
+    public get_ibutton_error_code = (): number => {
         return this._n_ibutton_error_code;
     }
 
@@ -4497,7 +4497,7 @@ export class lpu237 extends hid {
      * @description 현재 수신된 iButton 데이터를 무시하도록 설정되어 있는지 확인합니다.
      * @returns {boolean} true: 데이터 무시 중, false: 데이터 처리 중
      */
-    public is_ignore_ibutton_data(): boolean {
+    public is_ignore_ibutton_data = (): boolean => {
         return this._b_ignore_ibutton_data;
     }
 
@@ -4506,7 +4506,7 @@ export class lpu237 extends hid {
      * @description 장치의 펌웨어 버전을 가져옵니다.
      * @returns {number[] | null} 4개 숫자로 구성된 버전 배열 (예: [5, 1, 6, 0]), 오류 시 null
      */
-    public get_version(): number[] | null {
+    public get_version = (): number[] | null => {
         // 1. 버전 배열의 유효성 검사
         if (!Array.isArray(this._version) || this._version.length !== 4) {
             return null;
@@ -4520,7 +4520,7 @@ export class lpu237 extends hid {
      * @description 장치 설정 구조(Structure)의 버전을 가져옵니다.
      * @returns {number[] | null} 4개 숫자로 구성된 구조 버전 배열, 오류 시 null
      */
-    public get_version_structure(): number[] | null {
+    public get_version_structure = (): number[] | null => {
         // 2. 구조 버전 배열의 유효성 검사
         if (!Array.isArray(this._version_structure) || this._version_structure.length !== 4) {
             return null;
@@ -4535,7 +4535,7 @@ export class lpu237 extends hid {
      * 정해진 최대 길이(this._const_the_size_of_name)를 초과할 경우 잘라서 반환합니다.
      * @returns {string} 시스템 이름 (이름이 없거나 유효하지 않으면 빈 문자열 반환)
      */
-    public get_name(): string {
+    public get_name = (): string => {
         let s_name: string = "";
 
         // 1. 이름 데이터가 유효한 문자열인지 확인
@@ -4556,7 +4556,7 @@ export class lpu237 extends hid {
      * @description 글로벌 전/후첨자(Prefix/Postfix) 전송 조건을 확인합니다.
      * @returns {boolean} true: 모든 트랙에 에러가 없을 때만 전송, false: 하나라도 정상이면 전송.
      */
-    public get_global_pre_postfix_send_condition(): boolean {
+    public get_global_pre_postfix_send_condition = (): boolean => {
         return this._b_global_pre_postfix_send_condition;
     }
 
@@ -4565,7 +4565,7 @@ export class lpu237 extends hid {
      * @description MSR 트랙 데이터의 전송 순서를 가져옵니다.
      * @returns {number[]} 트랙 번호 배열 (예: [0, 1, 2])
      */
-    public get_track_order(): number[] {
+    public get_track_order = (): number[] => {
         return this._n_order;
     }
 
@@ -4574,7 +4574,7 @@ export class lpu237 extends hid {
      * @description 트랙 하나라도 정상일 때 성공으로 간주할지 여부를 확인합니다.
      * @returns {boolean} true: 하나라도 정상이면 성공 표시, false: 모두 정상이어야 성공 표시.
      */
-    public get_indicate_success_when_any_not_error(): boolean {
+    public get_indicate_success_when_any_not_error = (): boolean => {
         return (this._c_blank[1] & 0x01) !== 0;
     }
 
@@ -4583,7 +4583,7 @@ export class lpu237 extends hid {
      * @description 트랙 1과 2의 데이터가 동일할 때 트랙 1을 무시할지 여부를 확인합니다.
      * @returns {boolean} true: 중복 시 트랙 2만 전송, false: 모두 전송.
      */
-    public get_ignore_iso1(): boolean {
+    public get_ignore_iso1 = (): boolean => {
         return (this._c_blank[1] & 0x02) !== 0;
     }
 
@@ -4592,7 +4592,7 @@ export class lpu237 extends hid {
      * @description 트랙 2와 3의 데이터가 동일할 때 트랙 3을 무시할지 여부를 확인합니다.
      * @returns {boolean} true: 중복 시 트랙 2만 전송, false: 모두 전송.
      */
-    public get_ignore_iso3(): boolean {
+    public get_ignore_iso3 = (): boolean => {
         return (this._c_blank[1] & 0x04) !== 0;
     }
 
@@ -4601,7 +4601,7 @@ export class lpu237 extends hid {
      * @description 특정 조건(ETXL 0xE0)에서 첫 글자가 콜론(':')인 경우 삭제 여부를 확인합니다.
      * @returns {boolean} true: 콜론 삭제 전송, false: 그대로 전송.
      */
-    public get_remove_colon(): boolean {
+    public get_remove_colon = (): boolean => {
         return (this._c_blank[1] & 0x08) !== 0;
     }
 
@@ -4610,7 +4610,7 @@ export class lpu237 extends hid {
      * @description 사용된 디코더 칩셋이 MMD1000인지 확인합니다.
      * @returns {boolean} true: MMD1000 사용, false: Magtek DeltaAsic 사용.
      */
-    public get_device_is_mmd1000(): boolean {
+    public get_device_is_mmd1000 = (): boolean => {
         return this._b_device_is_mmd1000;
     }
 
@@ -4619,7 +4619,7 @@ export class lpu237 extends hid {
      * @description 제조사 정보를 가져옵니다.
      * @returns {number} 0: elpusk, 1: BTC (Legacy)
      */
-    public get_manufacture(): number {
+    public get_manufacture = (): number => {
         return this._n_manufacture;
     }
 
@@ -4629,7 +4629,7 @@ export class lpu237 extends hid {
      * 정해진 최대 길이(_const_the_size_of_uid * 2)를 초과할 경우 잘라서 반환합니다.
      * @returns {string | null} Hex 문자열 형태의 UID, 유효하지 않은 경우 null 반환
      */
-    public get_uid(): string | null {
+    public get_uid = (): string | null => {
         let s_uid: string | null = null;
 
         // 1. UID 데이터가 유효한 문자열인지 확인
@@ -4651,7 +4651,7 @@ export class lpu237 extends hid {
      * @description 장치의 지원 기능을 확인합니다.
      * @returns {number} 0: 미정의, 1: MSR 지원, 2: MSR 및 i-button 지원, 3: i-button 전용
      */
-    public get_device_function(): number {
+    public get_device_function = (): number => {
         return this._n_device_function;
     }
 
@@ -4659,7 +4659,7 @@ export class lpu237 extends hid {
      * @description 장치의 시스템 펌웨어 버전을 가져옵니다.
      * @returns {number[]} [Major, Minor, Build, Revision] 형태의 4개 숫자 배열
      */
-    public get_system_version(): number[] {
+    public get_system_version = (): number[] => {
         return this._version;
     }
 
@@ -4667,7 +4667,7 @@ export class lpu237 extends hid {
      * @description 장치의 설정 데이터 구조 버전을 가져옵니다.
      * @returns {number[]} 4개 숫자 배열
      */
-    public get_structure_version(): number[] {
+    public get_structure_version = (): number[] => {
         return this._version_structure;
     }
 
@@ -4675,7 +4675,7 @@ export class lpu237 extends hid {
      * @description 키 맵 테이블 저장 방식(메모리 절약 모드)을 확인합니다.
      * @returns {boolean} true: 선택된 언어만 저장(메모리 절약), false: 모든 언어 맵 저장
      */
-    public get_removed_key_map_table(): boolean {
+    public get_removed_key_map_table = (): boolean => {
         return this._b_removed_key_map_table;
     }
 
@@ -4683,7 +4683,7 @@ export class lpu237 extends hid {
      * @description 부트로더의 종류를 확인합니다.
      * @returns {boolean} true: HID 부트로더 사용, false: MSD(이동식 디스크) 부트로더 사용
      */
-    public get_hid_boot(): boolean {
+    public get_hid_boot = (): boolean => {
         return this._b_is_hid_boot;
     }
 
@@ -4691,7 +4691,7 @@ export class lpu237 extends hid {
      * @description i-button 전용 모델 여부를 확인합니다.
      * @returns {boolean} true: i-button 전용, false: MSR 포함 모델
      */
-    public get_device_is_ibutton_only(): boolean {
+    public get_device_is_ibutton_only = (): boolean => {
         return this._b_device_is_ibutton_only;
     }
 
@@ -4699,7 +4699,7 @@ export class lpu237 extends hid {
      * @description 하드웨어 타입(Standard 여부)을 확인합니다.
      * @returns {boolean} true: D 또는 E 타입 HW, false: C 또는 F 타입 HW
      */
-    public get_device_is_standard(): boolean {
+    public get_device_is_standard = (): boolean => {
         return this._b_device_is_standard;
     }
 
@@ -4707,14 +4707,14 @@ export class lpu237 extends hid {
      * @description 시스템 인터페이스 설정을 가져옵니다.
      * @returns {number} 0: USB KB, 1: USB MSR(HID), 10: UART, 20: PS2, 21: Bypass 100: HW 스위치 결정
      */
-    public get_interface(): number {
+    public get_interface = (): number => {
         return this._n_interface;
     }
 
     /**
      * @description 카드 읽기 성공 시 부저(비프음) 횟수를 가져옵니다.
      */
-    public get_buzzer_count(): number {
+    public get_buzzer_count = (): number => {
         return this._dw_buzzer_count;
     }
 
@@ -4722,7 +4722,7 @@ export class lpu237 extends hid {
      * @description MSD 부트로더가 실행되는 시간(대기 시간)을 가져옵니다.
      * @returns {number} 밀리초(msec) 단위
      */
-    public get_boot_run_time(): number {
+    public get_boot_run_time = (): number => {
         return this._dw_boot_run_time;
     }
 
@@ -4730,7 +4730,7 @@ export class lpu237 extends hid {
      * @description 키보드 언어 레이아웃 설정을 가져옵니다.
      * @returns {number} 0(US) ~ 10(Turkey) 사이의 인덱스
      */
-    public get_language(): number {
+    public get_language = (): number => {
         return this._n_language_index;
     }
 
@@ -4740,7 +4740,7 @@ export class lpu237 extends hid {
      * @param {number} n_track 트랙 번호 (0~2)
      * @returns {boolean} true: 해당 트랙 읽기 활성, false: 비활성
      */
-    public get_enable_iso(n_track: number): boolean {
+    public get_enable_iso = (n_track: number): boolean => {
         // 유효성 검사: 숫자 타입 여부, 배열 존재 여부, 트랙 개수 일치 여부
         if (
             typeof n_track !== 'number' ||
@@ -4759,7 +4759,7 @@ export class lpu237 extends hid {
      * @param {number} [n_track] 트랙 번호 (0~2). 생략 시 트랙 0의 설정을 반환합니다.
      * @returns {number} 0: 양방향(Bidirectional), 1: 정방향(Forward), 2: 역방향(Backward)
      */
-    public get_direction(n_track?: number): number {
+    public get_direction = (n_track?: number): number => {
         const default_dir = _type_direction.dir_bidectional;
 
         // 기본 배열 유효성 검사
@@ -4785,7 +4785,7 @@ export class lpu237 extends hid {
      * @description 모든 출력 데이터의 앞에 붙는 글로벌 전첨자(Prefix)를 가져옵니다.
      * @returns {string | null} Hex 문자열 형태의 전첨자 데이터 또는 null
      */
-    public get_global_prefix(): string | null {
+    public get_global_prefix = (): string | null => {
         return this._s_global_prefix;
     }
 
@@ -4794,7 +4794,7 @@ export class lpu237 extends hid {
      * @description 모든 출력 데이터의 뒤에 붙는 글로벌 후첨자(Postfix)를 가져옵니다.
      * @returns {string | null} Hex 문자열 형태의 후첨자 데이터 또는 null
      */
-    public get_global_postfix(): string | null {
+    public get_global_postfix = (): string | null => {
         return this._s_global_postfix;
     }
 
@@ -4803,7 +4803,7 @@ export class lpu237 extends hid {
      * @description 특정 트랙에 설정된 디코딩 조합(Combination)의 개수를 가져옵니다.
      * @param {number} n_track MSR 트랙 번호 (0~2)
      */
-    public get_number_combination(n_track: number): number {
+    public get_number_combination = (n_track: number): number => {
         if (typeof n_track !== 'number' || !Array.isArray(this._n_number_combination) ||
             this._n_number_combination.length !== this._const_the_number_of_track) {
             return 0;
@@ -4817,7 +4817,7 @@ export class lpu237 extends hid {
      * @param {number} n_track MSR 트랙 번호 (0~2)
      * @param {number} n_combi 조합 인덱스 (0~2)
      */
-    public get_max_size(n_track: number, n_combi: number): number {
+    public get_max_size = (n_track: number, n_combi: number): number => {
         if (this._is_invalid_track_combi(n_track, this._n_max_size)) return 0;
         return this._n_max_size[n_track][n_combi];
     }
@@ -4828,7 +4828,7 @@ export class lpu237 extends hid {
      * @param {number} n_track MSR 트랙 번호 (0~2)
      * @param {number} n_combi 조합 인덱스 (0~2)
      */
-    public get_bit_size(n_track: number, n_combi: number): number {
+    public get_bit_size = (n_track: number, n_combi: number): number => {
         if (this._is_invalid_track_combi(n_track, this._n_bit_size)) return 0;
         return this._n_bit_size[n_track][n_combi];
     }
@@ -4837,7 +4837,7 @@ export class lpu237 extends hid {
      * @public
      * @description 데이터 추출 시 사용할 비트 마스크 패턴을 가져옵니다.
      */
-    public get_data_mask(n_track: number, n_combi: number): number {
+    public get_data_mask = (n_track: number, n_combi: number): number => {
         if (this._is_invalid_track_combi(n_track, this._c_data_mask)) return 0;
         return this._c_data_mask[n_track][n_combi];
     }
@@ -4846,7 +4846,7 @@ export class lpu237 extends hid {
      * @public
      * @description 패리티(Parity) 비트 사용 여부를 확인합니다.
      */
-    public get_use_parity(n_track: number, n_combi: number): boolean {
+    public get_use_parity = (n_track: number, n_combi: number): boolean => {
         if (this._is_invalid_track_combi(n_track, this._b_use_parity)) return false;
         return this._b_use_parity[n_track][n_combi];
     }
@@ -4856,7 +4856,7 @@ export class lpu237 extends hid {
      * @description 패리티 타입을 가져옵니다.
      * @returns {number} 0: Even(짝수), 1: Odd(홀수)
      */
-    public get_parity_type(n_track: number, n_combi: number): number {
+    public get_parity_type = (n_track: number, n_combi: number): number => {
         if (this._is_invalid_track_combi(n_track, this._n_parity_type)) return 0;
         return this._n_parity_type[n_track][n_combi];
     }
@@ -4867,7 +4867,7 @@ export class lpu237 extends hid {
      * @param {number} n_track 트랙 번호 (0~2)
      * @param {number} n_combi 조합 인덱스 (0~2)
      */
-    public get_stxl(n_track: number, n_combi: number): number {
+    public get_stxl = (n_track: number, n_combi: number): number => {
         if (this._is_invalid_track_combi(n_track, this._c_stxl)) return 0;
         return this._c_stxl[n_track][n_combi];
     }
@@ -4878,7 +4878,7 @@ export class lpu237 extends hid {
      * @param {number} n_track 트랙 번호 (0~2)
      * @param {number} n_combi 조합 인덱스 (0~2)
      */
-    public get_etxl(n_track: number, n_combi: number): number {
+    public get_etxl = (n_track: number, n_combi: number): number => {
         if (this._is_invalid_track_combi(n_track, this._c_etxl)) return 0;
         return this._c_etxl[n_track][n_combi];
     }
@@ -4887,7 +4887,7 @@ export class lpu237 extends hid {
      * @public
      * @description 에러 교정 모드(ECM) 사용 여부를 확인합니다.
      */
-    public get_use_ecm(n_track: number, n_combi: number): boolean {
+    public get_use_ecm = (n_track: number, n_combi: number): boolean => {
         if (this._is_invalid_track_combi(n_track, this._b_use_ecm)) return false;
         return this._b_use_ecm[n_track][n_combi];
     }
@@ -4897,7 +4897,7 @@ export class lpu237 extends hid {
      * @description 에러 교정 방식을 가져옵니다.
      * @returns {number} 0: LRC, 1: Inversion LRC, 2: CRC
      */
-    public get_ecm_type(n_track: number, n_combi: number): number {
+    public get_ecm_type = (n_track: number, n_combi: number): number => {
         if (this._is_invalid_track_combi(n_track, this._n_ecm_type)) return 0;
         return this._n_ecm_type[n_track][n_combi];
     }
@@ -4906,7 +4906,7 @@ export class lpu237 extends hid {
      * @public
      * @description 비트 데이터를 ASCII 문자로 변환할 때 더해지는 오프셋 값을 가져옵니다.
      */
-    public get_add_value(n_track: number, n_combi: number): number {
+    public get_add_value = (n_track: number, n_combi: number): number => {
         if (this._is_invalid_track_combi(n_track, this._n_add_value)) return 0;
         return this._n_add_value[n_track][n_combi];
     }
@@ -4918,7 +4918,7 @@ export class lpu237 extends hid {
      * @param {number} n_combi 조합 인덱스 (0~2)
      * @returns {string | null} Hex 문자열 형태의 전첨자, 유효하지 않으면 null 반환
      */
-    public get_private_prefix(n_track: number, n_combi: number): string | null {
+    public get_private_prefix = (n_track: number, n_combi: number): string | null => {
         if (this._is_invalid_track_combi(n_track, this._s_private_prefix)) {
             return null;
         }
@@ -4933,7 +4933,7 @@ export class lpu237 extends hid {
      * @param {number} n_combi 조합 인덱스 (0~2)
      * @returns {string | null} Hex 문자열 형태의 후첨자, 유효하지 않으면 null 반환
      */
-    public get_private_postfix(n_track: number, n_combi: number): string | null {
+    public get_private_postfix = (n_track: number, n_combi: number): string | null => {
         if (this._is_invalid_track_combi(n_track, this._s_private_postfix)) {
             return null;
         }
@@ -4946,7 +4946,7 @@ export class lpu237 extends hid {
      * @description i-Button 태그 접촉 시 데이터 앞에 붙는 전첨자를 가져옵니다.
      * @returns {string | null} Hex 문자열 또는 null
      */
-    public get_prefix_ibutton(): string | null {
+    public get_prefix_ibutton = (): string | null => {
         return this._s_prefix_ibutton;
     }
 
@@ -4954,7 +4954,7 @@ export class lpu237 extends hid {
      * @public
      * @description i-Button 태그 접촉 시 데이터 뒤에 붙는 후첨자를 가져옵니다.
      */
-    public get_postfix_ibutton(): string | null {
+    public get_postfix_ibutton = (): string | null => {
         return this._s_postfix_ibutton;
     }
 
@@ -4962,7 +4962,7 @@ export class lpu237 extends hid {
      * @public
      * @description i-Button 태그가 제거되었을 때 전송할 식별 문자열을 가져옵니다.
      */
-    public get_ibutton_remove(): string | null {
+    public get_ibutton_remove = (): string | null => {
         return this._s_ibutton_remove;
     }
 
@@ -4970,7 +4970,7 @@ export class lpu237 extends hid {
      * @public
      * @description i-Button 태그 제거 시 전송 데이터의 전첨자를 가져옵니다.
      */
-    public get_prefix_ibutton_remove(): string | null {
+    public get_prefix_ibutton_remove = (): string | null => {
         return this._s_prefix_ibutton_remove;
     }
 
@@ -4978,7 +4978,7 @@ export class lpu237 extends hid {
      * @public
      * @description i-Button 태그 제거 시 전송 데이터의 후첨자를 가져옵니다.
      */
-    public get_postfix_ibutton_remove(): string | null {
+    public get_postfix_ibutton_remove = (): string | null => {
         return this._s_postfix_ibutton_remove;
     }
 
@@ -4986,7 +4986,7 @@ export class lpu237 extends hid {
      * @public
      * @description UART 인터페이스 사용 시 데이터 앞에 붙는 전첨자를 가져옵니다.
      */
-    public get_prefix_uart(): string | null {
+    public get_prefix_uart = (): string | null => {
         return this._s_prefix_uart;
     }
 
@@ -4994,7 +4994,7 @@ export class lpu237 extends hid {
      * @public
      * @description UART 인터페이스 사용 시 데이터 뒤에 붙는 후첨자를 가져옵니다.
      */
-    public get_postfix_uart(): string | null {
+    public get_postfix_uart = (): string | null => {
         return this._s_postfix_uart;
     }
 
@@ -5003,7 +5003,7 @@ export class lpu237 extends hid {
      * @description i-button 모드가 F12 모드인지 확인합니다.
      * @returns {boolean} true: F12 모드 사용 중
      */
-    public get_enable_f12_ibutton(): boolean {
+    public get_enable_f12_ibutton = (): boolean => {
         return (this._c_blank[2] & 0x01) !== 0;
     }
 
@@ -5012,7 +5012,7 @@ export class lpu237 extends hid {
      * @description i-button 모드가 Zeros 모드인지 확인합니다. (0x02 비트가 0일 때 true)
      * @returns {boolean} true: Zeros 모드 사용 중
      */
-    public get_enable_zeros_ibutton(): boolean {
+    public get_enable_zeros_ibutton = (): boolean => {
         // 원본 로직 유지: 0x02 비트가 세팅되어 있으면 false 반환
         return (this._c_blank[2] & 0x02) === 0;
     }
@@ -5022,7 +5022,7 @@ export class lpu237 extends hid {
      * @description i-button 모드가 Zeros 7times 모드인지 확인합니다.
      * @returns {boolean} true: Zeros7 모드 사용 중
      */
-    public get_enable_zeros_7times_ibutton(): boolean {
+    public get_enable_zeros_7times_ibutton = (): boolean => {
         return (this._c_blank[2] & 0x04) !== 0;
     }
 
@@ -5031,7 +5031,7 @@ export class lpu237 extends hid {
      * @description i-button 모드가 Addmit Code Stick 모드인지 확인합니다.
      * @returns {boolean} true: ibutton_addmit 모드 사용 중
      */
-    public get_enable_addmit_code_stick_ibutton(): boolean {
+    public get_enable_addmit_code_stick_ibutton = (): boolean => {
         return (this._c_blank[2] & 0x08) !== 0;
     }
 
@@ -5040,7 +5040,7 @@ export class lpu237 extends hid {
      * @description i-button 모드가 None 모드(사용자 정의 모드)인지 확인합니다.
      * @returns {boolean} true: 하위 4비트 값이 정확히 0x02인 경우
      */
-    public get_enable_none_ibutton(): boolean {
+    public get_enable_none_ibutton = (): boolean => {
         return (this._c_blank[2] & 0x0F) === 0x02;
     }
 
@@ -5049,7 +5049,7 @@ export class lpu237 extends hid {
      * @description MMD1100 디코딩 칩의 리셋 간격을 가져옵니다.
      * @returns {number} 0 ~ 240 범위의 값 (16의 배수)
      */
-    public get_mmd1100_reset_interval(): number {
+    public get_mmd1100_reset_interval = (): number => {
         // 0xF0(1111 0000)으로 비트 마스킹하여 상위 4비트 값만 추출
         const n_interval = this._c_blank[1] & 0xF0;
         return n_interval;
@@ -5060,7 +5060,7 @@ export class lpu237 extends hid {
      * @description 송신 대기열(TX Queue)에서 가장 오래된 요청 문자열을 하나 꺼내옵니다. (FIFO)
      * @returns {string | null} 요청 명령 문자열, 대기열이 비어있으면 null
      */
-    public get_tx_transaction(): string | null {
+    public get_tx_transaction = (): string | null => {
         if (this._dequeu_s_tx.length <= 0) {
             return null;
         }
@@ -5075,7 +5075,7 @@ export class lpu237 extends hid {
      * @param {string} s_response LPU237 프로토콜 패킷 문자열
      * @returns {boolean} 저장 성공 여부
      */
-    public set_rx_transaction(s_response: string): boolean {
+    public set_rx_transaction = (s_response: string): boolean => {
         if (typeof s_response !== 'string' || s_response.length <= 0) {
             return false;
         }
@@ -5116,7 +5116,7 @@ export class lpu237 extends hid {
      * @returns {number} 0 이상의 값 (gt_xxx 상수), 요청이 없으면 -1 반환
      * @description set_from_rx() 호출 전, 어떤 응답을 기다리고 있는지 디버깅 용도로 주로 사용됩니다.
      */
-    public get_current_request_type(): number {
+    public get_current_request_type = (): number => {
         // 큐(Queue)의 첫 번째 요소를 제거하지 않고 값만 확인(Peek)합니다.
         if (this._deque_generated_tx.length <= 0) {
             return -1;
@@ -5129,7 +5129,7 @@ export class lpu237 extends hid {
      * @public
      * @description 모든 트랜잭션 버퍼를 비웁니다. (송신 대기열, 수신 대기열, 요청 타입 큐 전체 초기화)
      */
-    public clear_transaction(): void {
+    public clear_transaction = (): void => {
         this._deque_generated_tx.length = 0;
         this._dequeu_s_rx.length = 0;
         this._dequeu_s_tx.length = 0;
@@ -5140,7 +5140,7 @@ export class lpu237 extends hid {
      * @description 장치의 시스템 정보를 가져오기 위한 일련의 요청 패킷들을 생성합니다.
      * @returns {number} 생성된 요청의 개수 (실패 시 0)
      */
-    public generate_get_system_information(): number {
+    public generate_get_system_information = (): number => {
         let b_result = false;
 
         // 시퀀스 생성 도중 하나라도 실패하면 전체 롤백하기 위해 do-while 패턴 유지 혹은 try-catch 활용
@@ -5187,7 +5187,7 @@ export class lpu237 extends hid {
      * @description 장치의 모든 파라미터(MSR, i-Button, 인터페이스 등)를 읽어오기 위한 패킷 시퀀스를 생성합니다.
      * @returns {number} 생성된 총 요청 패킷의 개수
      */
-    public generate_get_parameters(): number {
+    public generate_get_parameters = (): number => {
         let b_result = false;
 
         // 시퀀스 생성 도중 에러 발생 시 초기화 처리를 위해 do-while 패턴 유지
@@ -5330,7 +5330,7 @@ export class lpu237 extends hid {
      * @param {boolean} b_enable true: 읽기 활성화(Enter OPOS), false: 읽기 비활성화(Leave OPOS)
      * @returns {number} 생성된 요청 개수 (실패 시 0)
      */
-    public generate_enable_read(b_enable: boolean): number {
+    public generate_enable_read = (b_enable: boolean): number => {
         let b_result = false;
 
         do {
@@ -5363,7 +5363,7 @@ export class lpu237 extends hid {
      * @returns {number} 생성된 요청 개수 (2개 예상: Enter Config + Goto Boot)
      * @description 이 명령 이후 장치는 재부팅되며 펌웨어 업데이트 대기 상태가 됩니다.
      */
-    public generate_run_bootloader(): number {
+    public generate_run_bootloader = (): number => {
         let b_result = false;
 
         do {
@@ -5391,7 +5391,7 @@ export class lpu237 extends hid {
      * @param {File} file_rom 펌웨어가 포함된 ROM 파일
      * @returns {Promise<boolean>} 파일 읽기 성공 시 true 반환
      */
-    public update_firmware(file_rom: File): Promise<boolean> {
+    public update_firmware = (file_rom: File): Promise<boolean> => {
         return new Promise((resolve, reject) => {
             if (!(file_rom instanceof File)) {
                 return reject(this._get_error_object('en_e_parameter'));
@@ -5445,7 +5445,7 @@ export class lpu237 extends hid {
      * @description 현재 인스턴스의 모든 설정 데이터를 sessionStorage에 저장합니다.
      * @description 페이지 새로고침 시에도 장치 설정 상태를 유지하기 위해 사용됩니다.
      */
-    public save_to_sessionStorage(): void {
+    public save_to_sessionStorage = (): void => {
         const s_key_p = "{EB7BECC9-E37D-4F41-BDBF-104D5AD624E6}";
         const ss = window.sessionStorage;
 
@@ -5497,7 +5497,7 @@ export class lpu237 extends hid {
      * @public
      * @description sessionStorage에 저장된 데이터를 읽어와 객체의 멤버 변수를 복원합니다.
      */
-    public set_from_sessionStorage(): void {
+    public set_from_sessionStorage = (): void => {
         const s_key_p = "{EB7BECC9-E37D-4F41-BDBF-104D5AD624E6}";
         const ss = window.sessionStorage;
 
@@ -5554,7 +5554,7 @@ export class lpu237 extends hid {
      * @description 카드 트랙 데이터를 담고 있는 버퍼를 초기화합니다.
      * @param {number} [n_track] ISO 트랙 번호 (0~2). 생략 시 모든 트랙 초기화.
      */
-    public reset_msr_data(n_track?: number): void {
+    public reset_msr_data = (n_track?: number): void => {
         // 1. 매개변수가 없는 경우 전체 트랙 초기화
         if (n_track === undefined) {
             for (let i = 0; i < this._array_s_card_data.length; i++) {
@@ -5575,7 +5575,7 @@ export class lpu237 extends hid {
      * @public
      * @description i-Button 데이터를 담고 있는 버퍼와 에러 코드를 초기화합니다.
      */
-    public reset_ibutton_data(): void {
+    public reset_ibutton_data = (): void => {
         this._s_ibutton_data = "";
         this._n_ibutton_error_code = 0;
     }
@@ -5585,7 +5585,7 @@ export class lpu237 extends hid {
      * @description i-Button 데이터 무시 여부를 설정합니다.
      * @param {boolean} b_ignore true면 데이터를 무시하고, false면 데이터를 처리합니다.
      */
-    public set_ignore_ibutton_data(b_ignore: boolean): void {
+    public set_ignore_ibutton_data = (b_ignore: boolean): void => {
         if (typeof b_ignore === 'boolean') {
             this._b_ignore_ibutton_data = b_ignore;
         }
@@ -5597,7 +5597,7 @@ export class lpu237 extends hid {
      * @param {string} s_rx - 16진수 문자열 형태의 수신 패킷
      * @returns {boolean} 분석 성공 여부
      */
-    public set_msr_data_from_rx(s_rx: string): boolean {
+    public set_msr_data_from_rx = (s_rx: string): boolean => {
         let b_result = false;
 
         do {
@@ -5670,7 +5670,7 @@ export class lpu237 extends hid {
      * @param {string} s_rx - 16진수 문자열 형태의 수신 패킷
      * @returns {boolean} i-Button 데이터로 확인되어 성공적으로 추출했는지 여부
      */
-    public set_ibutton_data_from_rx(s_rx: string): boolean {
+    public set_ibutton_data_from_rx = (s_rx: string): boolean => {
         let b_result = false;
 
         do {
@@ -5724,7 +5724,7 @@ export class lpu237 extends hid {
      * @description 장치의 시스템 파라미터 및 설정 상태를 개행 문자(\n)로 구분된 문자열로 반환합니다.
      * @returns {string} 장치 설정 요약 리포트
      */
-    public get_string(): string {
+    public get_string = (): string => {
         let s_description = "";
 
         try {
@@ -5833,7 +5833,7 @@ export class lpu237 extends hid {
      * @param {string} s_tag - 장치로부터 수신된 Hex 형식의 태그 문자열
      * @returns {string[]} ASCII 코드가 담긴 Hex 문자열 배열
      */
-    public get_tag_by_ascii_hex_string(s_tag: string): string[] {
+    public get_tag_by_ascii_hex_string = (s_tag: string): string[] => {
         // 내부 헬퍼 함수를 호출하며 현재 객체의 언어 설정(_n_language_index)을 전달합니다.
         return this._get_tag_by_ascii_hex_string(this._n_language_index, s_tag);
     }
@@ -5844,7 +5844,7 @@ export class lpu237 extends hid {
      * @param {string} s_response - LPU237 장치로부터 받은 응답 패킷
      * @returns {boolean} 성공(Good 또는 Negative Good)이면 true, 아니면 false
      */
-    public is_success_enter_opos_mode(s_response: string): boolean {
+    public is_success_enter_opos_mode = (s_response: string): boolean => {
         // 응답 패킷의 상태 코드를 분석하는 공용 함수를 호출합니다.
         return this._is_success_response(s_response);
     }
@@ -5853,7 +5853,7 @@ export class lpu237 extends hid {
      * @public
      * @description 장치 태그를 현재 설정된 언어 레이아웃에 맞게 ASCII 숫자 배열로 변환합니다.
      */
-    public get_tag_by_ascii_code(s_tag: string): number[] {
+    public get_tag_by_ascii_code = (s_tag: string): number[] => {
         return this._get_tag_by_ascii_code(this._n_language_index, s_tag);
     }
 
@@ -5861,7 +5861,7 @@ export class lpu237 extends hid {
      * @public
      * @description 장치 태그를 현재 설정된 언어 레이아웃에 맞게 ASCII 문자 배열(string[])로 변환합니다.
      */
-    public get_tag_by_ascii_string(s_tag: string): string[] {
+    public get_tag_by_ascii_string = (s_tag: string): string[] => {
         return this._get_tag_by_ascii_string(this._n_language_index, s_tag);
     }
 
@@ -5869,7 +5869,7 @@ export class lpu237 extends hid {
      * @public
      * @description 에러 이름을 전달하여 해당 에러의 상세 메시지를 가져옵니다.
      */
-    public get_error_message(s_error_name: string): string {
+    public get_error_message = (s_error_name: string): string => {
         return this._get_error_message(s_error_name);
     }
 
@@ -5878,7 +5878,7 @@ export class lpu237 extends hid {
      * @description 디바이스 경로(_s_path)를 정규표현식으로 분석하여 장치 타입을 분류합니다.
      * @returns {string} 'compositive_msr', 'compositive_scr', 'compositive_ibutton', 'compositive_switch' 등
      */
-    public get_type_string(): string {
+    public get_type_string = (): string => {
         if (typeof this._s_path !== 'string') return '';
 
         const path = this._s_path.trim();
@@ -5899,7 +5899,7 @@ export class lpu237 extends hid {
      * @param {string | null} s_section - The section to retrieve. Can be "system", "iso1", "iso2", or "iso3". If null, all sections are retrieved.
      * @returns {string} The system parameters as an HTML table.
      */
-    public get_string_html_table(s_section: string | null = null): string {
+    public get_string_html_table = (s_section: string | null = null): string => {
         let s_description: string = "";
         const as_name: string[] = [];
         const as_value: string[] = [];
@@ -6653,7 +6653,7 @@ export class lpu237 extends hid {
      * @return {number} the number of generated requests.
      * <br /> 0 - error
      */
-    public generate_set_parameters(): number {
+    public generate_set_parameters = (): number => {
         let b_result: boolean = false;
 
         do {
@@ -7047,7 +7047,7 @@ export class lpu237 extends hid {
      * @return {boolean} processing result
      * @description analysis and save from response.
      */
-    public set_from_rx(): boolean {
+    public set_from_rx = (): boolean => {
         let b_result: boolean = false;
         do {
             if (this._deque_generated_tx.length <= 0) {
@@ -7828,7 +7828,7 @@ export class lpu237 extends hid {
      * @return {Promise<boolean>} processing result.
      * @description load from xml setting file. and set parameter with this setting.
      */
-    public set_from_file(file_xml: File): Promise<boolean> {
+    public set_from_file = (file_xml: File): Promise<boolean> => {
 
         const this_device = this;
 
@@ -8691,7 +8691,7 @@ export class lpu237 extends hid {
      * @private
      * @description 내부 유효성 검사 헬퍼 함수
      */
-    private _is_invalid_track_combi(n_track: number, targetArray: any[][]): boolean {
+    private _is_invalid_track_combi = (n_track: number, targetArray: any[][]): boolean => {
         return (
             typeof n_track !== 'number' ||
             !Array.isArray(targetArray) ||

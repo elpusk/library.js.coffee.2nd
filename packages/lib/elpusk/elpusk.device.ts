@@ -50,7 +50,7 @@ export class device extends elpusk {
      * Gets the device path.
      * @returns The device path.
      */
-    public get_path(): string {
+    public get_path = (): string => {
         return this._s_path;
     }
 
@@ -58,7 +58,7 @@ export class device extends elpusk {
      * Gets the index of the device.
      * @returns The index of the device. 0 is an unknown index value.
      */
-    public get_device_index(): number {
+    public get_device_index = (): number => {
         return this._n_device_index;
     }
 
@@ -66,14 +66,14 @@ export class device extends elpusk {
      * Sets the device index when the device is opened.
      * @param n_device_index The index of the device. 0 is an unknown index value.
      */
-    public opened(n_device_index: number): void {
+    public opened = (n_device_index: number): void => {
         this._n_device_index = n_device_index;
     }
 
     /**
      * Resets the device index when the device is closed.
      */
-    public closed(): void {
+    public closed = (): void => {
         this._n_device_index = 0;
     }
 }
