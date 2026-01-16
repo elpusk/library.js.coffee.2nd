@@ -1275,10 +1275,10 @@ export class ctl_lpu237{
 
             // 2. 시스템 정보 조회를 위한 첫 번째 IO 시작 및 전체 단계 수 획득
             // _cb_complete_sys_info는 수신 성공 시 실행될 내부 콜백
-            n_request = this._gen_get_sysinfo_start_io(
+            n_request = this._gen_get_para_start_io(
                 server, 
                 device, 
-                this._cb_complete_sys_info, 
+                this._cb_complete_get_parameter, 
                 this._cb_error_common
             );
 

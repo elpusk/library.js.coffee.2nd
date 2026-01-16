@@ -74,23 +74,23 @@ import { util } from "./elpusk.util";
  * @enum {number}
  */
 enum _type_change_parameter {
-    cp_GlobalPrePostfixSendCondition = 0,
+    cp_GlobalPrePostfixSendCondition = 0,//.
     //
-    cp_Blank_4bytes = 1,
+    cp_Blank_4bytes = 1,//.
     //
-    cp_EnableiButton = 2,
-    cp_Interface = 3,
-    cp_BuzzerFrequency = 4,
-    cp_BootRunTime = 5,
-    cp_Language = 6,
+    cp_EnableiButton = 2, //not used. BTC model only.
+    cp_Interface = 3,//.
+    cp_BuzzerFrequency = 4,//.
+    cp_BootRunTime = 5,//not used
+    cp_Language = 6,//.
     cp_EnableISO1 = 7,
     cp_EnableISO2 = 8,
     cp_EnableISO3 = 9,
     cp_Direction1 = 10,
     cp_Direction2 = 11,
     cp_Direction3 = 12,
-    cp_GlobalPrefix = 13,
-    cp_GlobalPostfix = 14,
+    cp_GlobalPrefix = 13,//.
+    cp_GlobalPostfix = 14,//.
     //
     cp_ISO1_NumberCombi = 15,
     cp_ISO2_NumberCombi = 16,
@@ -222,7 +222,7 @@ enum _type_change_parameter {
     cp_Postfix_Uart = 129,
     cp_BtcConfigData = 130,
     //
-    cp_TrackOrder = 131,
+    cp_TrackOrder = 131,//.
     cp_iButton_Remove = 132,
     cp_Prefix_iButton_Remove = 133,
     cp_Postfix_iButton_Remove = 134,
@@ -574,11 +574,12 @@ const _type_system_offset = {
     SYS_OFFSET_KEYMAP: 103,
     SYS_OFFSET_BUZZER_FREQ: 43,
     SYS_OFFSET_BOOT_RUN_TIME: 51,
-    SYS_OFFSET_ENABLE_TRACK: [171, 358, 545],
-    SYS_OFFSET_DIRECTION: [201, 388, 575],
+    SYS_OFFSET_ENABLE_TRACK: [171, 359, 547],
+    SYS_OFFSET_DIRECTION: [201, 389, 577], //zero combination only
     SYS_OFFSET_G_PRE: 141,
     SYS_OFFSET_G_POST: 156,
-    SYS_OFFSET_COMBINATION: [172, 359, 546],
+    SYS_OFFSET_COMBINATION: [172, 360, 548],
+    SYS_OFFSET_ACTIVE_COMBI: [173, 361, 549],
     SYS_OFFSET_MAX_SIZE: [
         [174, 175, 176],
         [361, 362, 363],
@@ -673,6 +674,7 @@ const _type_system_size = {
     SYS_SIZE_G_PRE: 15,
     SYS_SIZE_G_POST: 15,
     SYS_SIZE_COMBINATION: [1, 1, 1],
+    SYS_SIZE_ACTIVE_COMBI: [1, 1, 1],
     SYS_SIZE_MAX_SIZE: [
         [1, 1, 1],
         [1, 1, 1],
@@ -5198,99 +5200,85 @@ export class lpu237 extends hid {
         // 시퀀스 생성 도중 에러 발생 시 초기화 처리를 위해 do-while 패턴 유지
         do {
             // 1. 설정 모드 진입
-            if (!this._generate_enter_config_mode(this._dequeu_s_tx)) break;
+            if (!this._generate_enter_config_mode(this._dequeu_s_tx)) continue;
             this._deque_generated_tx.push(_type_generated_tx_type.gt_enter_config);
 
             // 2. 장치 타입 및 버전별 i-Button 지원 확인 (v3.6.0.4 이상)
             const isV3604OrHigher = this._first_version_greater_then_second_version(false, this._version, [3, 6, 0, 4]);
 
             if (this._b_device_is_standard && isV3604OrHigher) {
-                if (!this._generate_get_device_ibutton_type(this._dequeu_s_tx)) break;
+                if (!this._generate_get_device_ibutton_type(this._dequeu_s_tx)) continue;
                 this._deque_generated_tx.push(_type_generated_tx_type.gt_type_ibutton);
             }
 
             if (isV3604OrHigher) {
-                if (!this._generate_get_uid(this._dequeu_s_tx)) break;
+                if (!this._generate_get_uid(this._dequeu_s_tx)) continue;
                 this._deque_generated_tx.push(_type_generated_tx_type.gt_read_uid);
             }
 
             // 3. 기본 공통 정보 (이름, 글로벌 전/후첨자 조건, MMD1000 지원여부 등)
-            if (!this._generate_get_name(this._dequeu_s_tx)) break;
+            if (!this._generate_get_name(this._dequeu_s_tx)) continue;
             this._deque_generated_tx.push(_type_generated_tx_type.gt_get_name);
 
-            if (!this._generate_get_global_pre_postfix_send_condition(this._dequeu_s_tx)) break;
+            if (!this._generate_get_global_pre_postfix_send_condition(this._dequeu_s_tx)) continue;
             this._deque_generated_tx.push(_type_generated_tx_type.gt_get_global_prepostfix_send_condition);
 
-            if (!this._generate_get_device_support_mmd1000(this._dequeu_s_tx)) break;
+            if (!this._generate_get_device_support_mmd1000(this._dequeu_s_tx)) continue;
             this._deque_generated_tx.push(_type_generated_tx_type.gt_support_mmd1000);
 
-            if (!this._generate_get_interface(this._dequeu_s_tx)) break;
+            if (!this._generate_get_interface(this._dequeu_s_tx)) continue;
             this._deque_generated_tx.push(_type_generated_tx_type.gt_get_interface);
 
-            if (!this._generate_get_language(this._dequeu_s_tx)) break;
+            if (!this._generate_get_language(this._dequeu_s_tx)) continue;
             this._deque_generated_tx.push(_type_generated_tx_type.gt_get_language);
 
-            if (!this._generate_get_buzzer_count(this._dequeu_s_tx)) break;
+            if (!this._generate_get_buzzer_count(this._dequeu_s_tx)) continue;
             this._deque_generated_tx.push(_type_generated_tx_type.gt_get_buzzer_count);
 
-            if (!this._generate_get_boot_run_time(this._dequeu_s_tx)) break;
+            if (!this._generate_get_boot_run_time(this._dequeu_s_tx)) continue;
             this._deque_generated_tx.push(_type_generated_tx_type.gt_get_boot_run_time);
-
-            // 4. 각 트랙별 기본 설정 (방향 등)
-            let trackSuccess = true;
-            for (let i = 0; i < this._const_the_number_of_track; i++) {
-                if (!this._generate_get_direction(this._dequeu_s_tx, i)) { trackSuccess = false; break; }
-                this._deque_generated_tx.push(_type_generated_tx_type.gt_get_direction1 + i);
-            }
-            if (!trackSuccess) break;
 
             // 5. i-Button 및 UART 상세 설정 (버전별 분기)
             if (this._first_version_greater_then_second_version(false, this._version, [3, 0, 0, 0])) {
-                if (!this._generate_get_ibutton_prefix(this._dequeu_s_tx)) break;
+                if (!this._generate_get_ibutton_prefix(this._dequeu_s_tx)) continue;
                 this._deque_generated_tx.push(_type_generated_tx_type.gt_get_prefix_ibutton);
 
-                if (!this._generate_get_ibutton_postfix(this._dequeu_s_tx)) break;
+                if (!this._generate_get_ibutton_postfix(this._dequeu_s_tx)) continue;
                 this._deque_generated_tx.push(_type_generated_tx_type.gt_get_postfix_ibutton);
 
-                if (!this._generate_get_uart_prefix(this._dequeu_s_tx)) break;
+                if (!this._generate_get_uart_prefix(this._dequeu_s_tx)) continue;
                 this._deque_generated_tx.push(_type_generated_tx_type.gt_get_prefix_uart);
 
-                if (!this._generate_get_uart_postfix(this._dequeu_s_tx)) break;
+                if (!this._generate_get_uart_postfix(this._dequeu_s_tx)) continue;
                 this._deque_generated_tx.push(_type_generated_tx_type.gt_get_postfix_uart);
 
                 // i-Button 제거(Remove) 이벤트 지원 확인 (v4.0.0.0 이상 구조)
                 if (this._first_version_greater_then_second_version(true, this._version_structure, [4, 0, 0, 0])) {
-                    if (!this._generate_get_ibutton_remove(this._dequeu_s_tx)) break;
+                    if (!this._generate_get_ibutton_remove(this._dequeu_s_tx)) continue;
                     this._deque_generated_tx.push(_type_generated_tx_type.gt_get_ibutton_remove);
-                    if (!this._generate_get_ibutton_prefix_remove(this._dequeu_s_tx)) break;
+                    if (!this._generate_get_ibutton_prefix_remove(this._dequeu_s_tx)) continue;
                     this._deque_generated_tx.push(_type_generated_tx_type.gt_get_prefix_ibutton_remove);
-                    if (!this._generate_get_ibutton_postfix_remove(this._dequeu_s_tx)) break;
+                    if (!this._generate_get_ibutton_postfix_remove(this._dequeu_s_tx)) continue;
                     this._deque_generated_tx.push(_type_generated_tx_type.gt_get_postfix_ibutton_remove);
                 }
             }
 
             // 6. 트랙별 활성화 및 프라이빗 전/후첨자 (기본 조합)
-            if (!this._generate_get_blank_4bytes(this._dequeu_s_tx)) break;
+            if (!this._generate_get_blank_4bytes(this._dequeu_s_tx)) continue;
             this._deque_generated_tx.push(_type_generated_tx_type.gt_get_blank_4byets);
 
-            trackSuccess = true;
+            // 7. 글로벌 전/후첨자
+            if (!this._generate_get_global_prefix(this._dequeu_s_tx)) continue;
+            this._deque_generated_tx.push(_type_generated_tx_type.gt_get_global_prefix);
+            if (!this._generate_get_global_postfix(this._dequeu_s_tx)) continue;
+            this._deque_generated_tx.push(_type_generated_tx_type.gt_get_global_postfix);
+
+            let trackSuccess = true;
             for (let i = 0; i < this._const_the_number_of_track; i++) {
                 if (!this._generate_get_enable_track(this._dequeu_s_tx, i)) { trackSuccess = false; break; }
                 this._deque_generated_tx.push(_type_generated_tx_type.gt_get_enable_iso1 + i);
-
-                if (!this._generate_get_private_prefix(this._dequeu_s_tx, i, 0)) { trackSuccess = false; break; }
-                this._deque_generated_tx.push(_type_generated_tx_type.gt_get_private_prefix10 + (i * lpu237._const_the_number_of_combination));
-
-                if (!this._generate_get_private_postfix(this._dequeu_s_tx, i, 0)) { trackSuccess = false; break; }
-                this._deque_generated_tx.push(_type_generated_tx_type.gt_get_private_postfix10 + (i * lpu237._const_the_number_of_combination));
             }
-            if (!trackSuccess) break;
-
-            // 7. 글로벌 전/후첨자
-            if (!this._generate_get_global_prefix(this._dequeu_s_tx)) break;
-            this._deque_generated_tx.push(_type_generated_tx_type.gt_get_global_prefix);
-            if (!this._generate_get_global_postfix(this._dequeu_s_tx)) break;
-            this._deque_generated_tx.push(_type_generated_tx_type.gt_get_global_postfix);
+            if (!trackSuccess) continue;
 
             // 8. 고급 다중 조합(Multi-Combination) 설정 (특정 모델 및 버전 이상)
             let b_run_combination = false;
@@ -5298,24 +5286,68 @@ export class lpu237 extends hid {
             if (this._first_version_greater_then_second_version(false, [4, 0, 0, 0], this._version)) {
                 if (this._first_version_greater_then_second_version(false, this._version, [3, 20, 0, 0])) b_run_combination = true;
             }
+            
+            let n_max_combi = lpu237._const_the_number_of_combination;
 
-            if (b_run_combination) {
-                let comboSuccess = true;
-                for (let i = 0; i < this._const_the_number_of_track; i++) {
-                    if (!this._generate_get_number_combi(this._dequeu_s_tx, i)) { comboSuccess = false; break; }
-                    this._deque_generated_tx.push(_type_generated_tx_type.gt_get_iso1_number_combi + i);
-
-                    for (let j = 0; j < lpu237._const_the_number_of_combination; j++) {
-                        // 조합별 상세 파라미터 (BitSize, Mask, Parity, ECM, STX/ETX 등) 요청 생성...
-                        // (중복 로직 생략, 원본의 j 루프 내부 _generate_get_xxx 호출 및 push 로직 수행)
-                        // ...
-                    }
-                }
-                if (!comboSuccess) break;
+            if(!b_run_combination){
+                n_max_combi = 1;
             }
+            
+            trackSuccess = true;
+
+            for (let i = 0; i < this._const_the_number_of_track; i++) {
+                if (!this._generate_get_number_combi(this._dequeu_s_tx, i)) { trackSuccess = false; break; }
+                this._deque_generated_tx.push(_type_generated_tx_type.gt_get_iso1_number_combi + i);
+
+                if (!this._generate_get_direction(this._dequeu_s_tx, i)) { trackSuccess = false; break; }
+                this._deque_generated_tx.push(_type_generated_tx_type.gt_get_direction1 + i);
+
+                let comboSuccess = true;    
+                for (let j = 0; j < lpu237._const_the_number_of_combination; j++) {
+                    // 조합별 상세 파라미터 (BitSize, Mask, Parity, ECM, STX/ETX 등) 요청 생성...
+                    if (!this._generate_get_max_size(this._dequeu_s_tx, i,j)) { comboSuccess = false; break; }
+                    this._deque_generated_tx.push(_type_generated_tx_type.gt_get_iso1_Combi0_MaxSize+ i*this._const_the_number_of_track + j);
+
+                    if (!this._generate_get_bit_size(this._dequeu_s_tx, i,j)) { comboSuccess = false; break; }
+                    this._deque_generated_tx.push(_type_generated_tx_type.gt_get_iso1_Combi0_BitSize+ i*this._const_the_number_of_track + j);
+
+                    if (!this._generate_get_data_mask(this._dequeu_s_tx, i,j)) { comboSuccess = false; break; }
+                    this._deque_generated_tx.push(_type_generated_tx_type.gt_get_iso1_Combi0_DataMask+ i*this._const_the_number_of_track + j);
+
+                    if (!this._generate_get_use_parity(this._dequeu_s_tx, i,j)) { comboSuccess = false; break; }
+                    this._deque_generated_tx.push(_type_generated_tx_type.gt_get_iso1_Combi0_UseParity+ i*this._const_the_number_of_track + j);
+
+                    if (!this._generate_get_parity_type(this._dequeu_s_tx, i,j)) { comboSuccess = false; break; }
+                    this._deque_generated_tx.push(_type_generated_tx_type.gt_get_iso1_Combi0_ParityType+ i*this._const_the_number_of_track + j);
+
+                    if (!this._generate_get_stxl(this._dequeu_s_tx, i,j)) { comboSuccess = false; break; }
+                    this._deque_generated_tx.push(_type_generated_tx_type.gt_get_iso1_Combi0_STX_L+ i*this._const_the_number_of_track + j);
+
+                    if (!this._generate_get_etxl(this._dequeu_s_tx, i,j)) { comboSuccess = false; break; }
+                    this._deque_generated_tx.push(_type_generated_tx_type.gt_get_iso1_Combi0_ETX_L+ i*this._const_the_number_of_track + j);
+
+                    if (!this._generate_get_use_error_correct(this._dequeu_s_tx, i,j)) { comboSuccess = false; break; }
+                    this._deque_generated_tx.push(_type_generated_tx_type.gt_get_iso1_Combi0_UseErrorCorrect+ i*this._const_the_number_of_track + j);
+
+                    if (!this._generate_get_ecm_type(this._dequeu_s_tx, i,j)) { comboSuccess = false; break; }
+                    this._deque_generated_tx.push(_type_generated_tx_type.gt_get_iso1_Combi0_ECMType+ i*this._const_the_number_of_track + j);
+
+                    if (!this._generate_get_add_value(this._dequeu_s_tx, i,j)) { comboSuccess = false; break; }
+                    this._deque_generated_tx.push(_type_generated_tx_type.gt_get_iso1_Combi0_AddValue+ i*this._const_the_number_of_track + j);
+
+                    if (!this._generate_get_private_prefix(this._dequeu_s_tx, i,j)) { comboSuccess = false; break; }
+                    this._deque_generated_tx.push(_type_generated_tx_type.gt_get_private_prefix10+ i*this._const_the_number_of_track + j);
+
+                    if (!this._generate_get_private_postfix(this._dequeu_s_tx, i,j)) { comboSuccess = false; break; }
+                    this._deque_generated_tx.push(_type_generated_tx_type.gt_get_private_postfix10+ i*this._const_the_number_of_track + j);
+
+                }
+                if (!comboSuccess) continue;
+            }
+            if (!trackSuccess) continue;
 
             // 9. 설정 모드 탈출
-            if (!this._generate_leave_config_mode(this._dequeu_s_tx)) break;
+            if (!this._generate_leave_config_mode(this._dequeu_s_tx)) continue;
             this._deque_generated_tx.push(_type_generated_tx_type.gt_leave_config);
 
             b_result = true;
