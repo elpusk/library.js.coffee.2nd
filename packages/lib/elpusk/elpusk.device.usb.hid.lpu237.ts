@@ -20,8 +20,8 @@
  * SOFTWARE.
  * 
  * @author developer 00000006
- * @copyright (c) 2022 Elpusk.Co.,Ltd.
- * @version 1.14
+ * @copyright (c) 2026 Elpusk.Co.,Ltd.
+ * @version 1.15
  * @description elpusk lpu237 device protocol layer library.
  * <br />   2020.4.10 - release 1.0. 
  * <br />   2020.5.12 - release 1.1. 
@@ -61,7 +61,10 @@
  *                     - add ibutton remove tag and remove pre/posfix. expanded structure to version 4.0 
  * <br />   2025.11.26 - release 1.14
  *                     - add get_type_string() public method.
- */
+ * <br />   2026.01.19 - release 1.15
+ *                     - add setter public method.
+*/
+
 import { hid } from "./elpusk.device.usb.hid";
 import * as elpusk_util_keyboard_const from "./elpusk.util.keyboard.const";
 import * as elpusk_util_keyboard_map from "./elpusk.util.keyboard.map";
@@ -818,10 +821,24 @@ export enum type_function {
     fun_ibutton = 3
 }
 
-/** * @private 
+/**
+ * @readonly
+ * @description 마그네틱 카드 읽기 방향 정의
+ */
+export enum type_direction {
+    /** 양방향 읽기 (순방향 및 역방향) */
+    dir_bidectional = 0,
+    /** 순방향 읽기 전용 */
+    dir_forward = 1,
+    /** 역방향 읽기 전용 */
+    dir_backward = 2
+}
+
+
+/**
  * @description the definition of device interface
  */
-enum _type_system_interface {
+export enum type_system_interface {
     system_interface_usb_keyboard = 0,      // system interface is USB keyboard.
     system_interface_usb_msr = 1,           // system interface is USB MSR(generic HID interface).
     system_interface_uart = 10,             // system interface is uart.
@@ -830,10 +847,10 @@ enum _type_system_interface {
     system_interface_by_hw_setting = 100    // system interface is determined by HW Dip switch
 }
 
-/** * @private 
+/** 
  * @description the definition of device language map index
  */
-enum _type_keyboard_language_index {
+export enum type_keyboard_language_index {
     language_map_index_english = 0,    // U.S English
     language_map_index_spanish = 1,
     language_map_index_danish = 2,
@@ -845,6 +862,31 @@ enum _type_keyboard_language_index {
     language_map_index_uk_english = 8,
     language_map_index_israel = 9,
     language_map_index_turkey = 10
+}
+
+/** 
+ * @readonly
+ * @enum {number}
+ * @description the definition of parity bit type
+ */
+export enum type_parity {
+    parity_even = 0,    // even parity
+    parity_odd = 1      // odd parity
+}
+
+
+/**
+ * @readonly
+ * @enum {number}
+ * @description the definition of error correction type
+ */
+export enum type_error_correct {
+    /** Longitudinal Redundancy Check */
+    error_correct_lrc = 0,
+    /** Inversion LRC */
+    error_correct_inv_lrc = 1,
+    /** Cyclic Redundancy Check */
+    error_correct_crc = 2
 }
 
 /** * @private 
@@ -870,42 +912,7 @@ enum _type_ibutton_mode {
     ibutton_addmit = 0x08
 }
 
-/** * @private 
- * @readonly
- * @description 마그네틱 카드 읽기 방향 정의
- */
-enum _type_direction {
-    /** 양방향 읽기 (순방향 및 역방향) */
-    dir_bidectional = 0,
-    /** 순방향 읽기 전용 */
-    dir_forward = 1,
-    /** 역방향 읽기 전용 */
-    dir_backward = 2
-}
 
-/** * @private 
- * @readonly
- * @enum {number}
- * @description the definition of parity bit type
- */
-enum _type_parity {
-    parity_even = 0,    // even parity
-    parity_odd = 1      // odd parity
-}
-
-/** * @private 
- * @readonly
- * @enum {number}
- * @description the definition of error correction type
- */
-enum _type_error_correct {
-    /** Longitudinal Redundancy Check */
-    error_correct_lrc = 0,
-    /** Inversion LRC */
-    error_correct_inv_lrc = 1,
-    /** Cyclic Redundancy Check */
-    error_correct_crc = 2
-}
 
 export class lpu237 extends hid {
 
@@ -937,10 +944,10 @@ export class lpu237 extends hid {
     private _dequeu_s_rx: string[] = [];
     private _b_config_mode: boolean = false;
     private _b_opos_mode: boolean = false;
-    private _set_change_parameter: any[] = []; // 타입에 따라 구체화 필요
+    private _set_change_parameter: _type_change_parameter[] = []; // 타입에 따라 구체화 필요
 
     // 장치 정보
-    private _b_global_pre_postfix_send_condition: boolean = true;
+    private _b_global_pre_postfix_send_condition: boolean = false; //default - any track success - send global tag
     private _n_manufacture: number = _type_manufacturer.mf_elpusk;
     private _s_uid: string | null = null;
     private _n_device_function: number = type_function.fun_none;
@@ -955,14 +962,14 @@ export class lpu237 extends hid {
     private _b_device_is_standard: boolean = false;
 
     // 시스템 인터페이스 및 언어
-    private _n_interface: number = _type_system_interface.system_interface_usb_keyboard;
+    private _n_interface: number = type_system_interface.system_interface_usb_keyboard;
     private _dw_buzzer_count: number = this._const_default_buzzer_count;
     private _dw_boot_run_time: number = 15000;
-    private _n_language_index: number = _type_keyboard_language_index.language_map_index_english;
+    private _n_language_index: number = type_keyboard_language_index.language_map_index_english;
 
     // MSR 공통 설정
     private _b_enable_iso: boolean[] = [true, true, true];
-    private _n_direction: number[] = [_type_direction.dir_bidectional, _type_direction.dir_bidectional, _type_direction.dir_bidectional];
+    private _n_direction: number[] = [type_direction.dir_bidectional, type_direction.dir_bidectional, type_direction.dir_bidectional];
     private _n_order: number[] = [0, 1, 2];
     private _s_global_prefix: string | null = null;
     private _s_global_postfix: string | null = null;
@@ -1006,6 +1013,273 @@ export class lpu237 extends hid {
     private _s_ibutton_data: string = "";
     private _n_ibutton_error_code: number = 0;
     private _b_ignore_ibutton_data: boolean = true;
+
+    ////////////////////////////////////////
+    // setter
+    public set_global_pre_postfix_send_condition = (b_all_track_good:boolean): void =>{
+        if( this._b_global_pre_postfix_send_condition !== b_all_track_good ){
+            util.insert_to_set( this._set_change_parameter, _type_change_parameter.cp_GlobalPrePostfixSendCondition );
+            this._b_global_pre_postfix_send_condition = b_all_track_good;
+        }
+    }
+
+    public set_interface = (n_inf : type_system_interface):void => {
+        if(this._n_interface !== n_inf){
+            util.insert_to_set( this._set_change_parameter, _type_change_parameter.cp_Interface );
+            this._n_interface = n_inf;
+        }
+    }
+
+    public set_buzzer_count = (dw_buzzer_count:number): void => {
+        if(this._dw_buzzer_count !== dw_buzzer_count){
+            util.insert_to_set( this._set_change_parameter, _type_change_parameter.cp_BuzzerFrequency );
+            this._dw_buzzer_count = dw_buzzer_count;
+        }
+    }
+
+    public set_boot_run_time = (dw_boot_run_time:number):void => {
+        if( this._dw_boot_run_time !== dw_boot_run_time ){
+            util.insert_to_set( this._set_change_parameter, _type_change_parameter.cp_BootRunTime );
+            this._dw_boot_run_time = dw_boot_run_time;
+        }
+    }
+
+    public set_language_index = (n_language_index:type_keyboard_language_index):void => {
+        if(this._n_language_index !== n_language_index){
+            util.insert_to_set( this._set_change_parameter, _type_change_parameter.cp_Language );
+            this._n_language_index = n_language_index;
+        }
+    }
+
+    public set_enable_iso = (n_track :number,b_enable_iso:boolean):void => {
+        if(n_track>=0 && n_track<=2){
+            if( this._b_enable_iso[n_track] !== b_enable_iso ){
+                util.insert_to_set( this._set_change_parameter, _type_change_parameter.cp_EnableISO1+n_track );
+                this._b_enable_iso[n_track] = b_enable_iso;
+            }
+        }
+    }
+
+    public set_direction = (n_track :number,n_direction : type_direction):void => {
+        if(n_track>=0 && n_track<=2){
+            if( this._n_direction[n_track] !== n_direction){
+                util.insert_to_set( this._set_change_parameter, _type_change_parameter.cp_Direction1+n_track );
+                this._n_direction[n_track] = n_direction;
+            }
+        }
+    }
+
+    public set_order = (ar_order:number[]): void => {
+        if(ar_order.length === 3){
+            for (let i = 0; i < ar_order.length; i++) {
+                if (this._n_order[i] !== ar_order[i]){
+                    util.insert_to_set( this._set_change_parameter, _type_change_parameter.cp_TrackOrder );
+                    this._n_order[i] = ar_order[i];
+                }
+            }
+        }
+    }
+
+    public set_global_prefix = (s_tag: string | null):void => {
+        if(this._s_global_prefix !== s_tag){
+            util.insert_to_set( this._set_change_parameter, _type_change_parameter.cp_GlobalPrefix );
+            this._s_global_prefix = s_tag;
+        }
+    }
+
+    public set_global_postfix = (s_tag: string | null):void => {
+        if( this._s_global_postfix !== s_tag ){
+            util.insert_to_set( this._set_change_parameter, _type_change_parameter.cp_GlobalPostfix );
+            this._s_global_postfix = s_tag;
+        }
+    }
+
+    public set_number_combination = (n_track :number,n_number_combination : number):void => {
+        if(n_track>=0 && n_track<=2){
+            if( this._n_number_combination[n_track] !== n_number_combination ){
+                util.insert_to_set( this._set_change_parameter, _type_change_parameter.cp_ISO1_NumberCombi+n_track );
+                this._n_number_combination[n_track] = n_number_combination;
+            }
+        }
+    }
+
+    public set_msr_max_size = (n_track :number,n_combi :number,n_max_size:number):void => {
+        if(n_track>=0 && n_track<=2){
+            if(n_combi>=0 && n_combi<=2){
+                if( this._n_max_size[n_track][n_combi] !== n_max_size){
+                    util.insert_to_set( this._set_change_parameter, _type_change_parameter.cp_ISO1_Combi0_MaxSize+ n_track*3+n_combi);
+                    this._n_max_size[n_track][n_combi] = n_max_size;
+                }
+            }
+        }
+    }
+
+    public set_msr_bit_size = (n_track :number,n_combi :number,n_bit_size:number):void => {
+        if(n_track>=0 && n_track<=2){
+            if(n_combi>=0 && n_combi<=2){
+                if(this._n_bit_size[n_track][n_combi] !== n_bit_size){
+                    util.insert_to_set( this._set_change_parameter, _type_change_parameter.cp_ISO1_Combi0_BitSize+ n_track*3+n_combi);
+                    this._n_bit_size[n_track][n_combi] = n_bit_size;
+                }
+            }
+        }
+    }
+
+    public set_msr_data_mask = (n_track :number,n_combi :number,c_data_mask:number):void => {
+        if(n_track>=0 && n_track<=2){
+            if(n_combi>=0 && n_combi<=2){
+                if( this._c_data_mask[n_track][n_combi] !== c_data_mask ){
+                    util.insert_to_set( this._set_change_parameter, _type_change_parameter.cp_ISO1_Combi0_DataMask+ n_track*3+n_combi);
+                    this._c_data_mask[n_track][n_combi] = c_data_mask;
+                }
+            }
+        }
+    }
+
+    public set_msr_use_parity = (n_track :number,n_combi :number,b_use_parity:boolean):void => {
+        if(n_track>=0 && n_track<=2){
+            if(n_combi>=0 && n_combi<=2){
+                if( this._b_use_parity[n_track][n_combi] !== b_use_parity ){
+                    util.insert_to_set( this._set_change_parameter, _type_change_parameter.cp_ISO1_Combi0_UseParity+ n_track*3+n_combi);
+                    this._b_use_parity[n_track][n_combi] = b_use_parity;
+                }
+            }
+        }
+    }
+
+    public set_msr_parity_type = (n_track :number,n_combi :number,pt:type_parity):void => {
+        if(n_track>=0 && n_track<=2){
+            if(n_combi>=0 && n_combi<=2){
+                if( this._n_parity_type[n_track][n_combi] !== pt ){
+                    util.insert_to_set( this._set_change_parameter, _type_change_parameter.cp_ISO1_Combi0_ParityType+ n_track*3+n_combi);
+                    this._n_parity_type[n_track][n_combi] = pt;
+                }
+            }
+        }
+    }
+
+    public set_msr_stxl = (n_track :number,n_combi :number,c_stxl:number):void => {
+        if(n_track>=0 && n_track<=2){
+            if(n_combi>=0 && n_combi<=2){
+                if( this._c_stxl[n_track][n_combi] !== c_stxl){
+                    util.insert_to_set( this._set_change_parameter, _type_change_parameter.cp_ISO1_Combi0_STX_L+ n_track*3+n_combi);
+                    this._c_stxl[n_track][n_combi] = c_stxl;
+                }
+            }
+        }
+    }
+
+    public set_msr_etxl = (n_track :number,n_combi :number,c_etxl:number):void => {
+        if(n_track>=0 && n_track<=2){
+            if(n_combi>=0 && n_combi<=2){
+                if(this._c_etxl[n_track][n_combi] !== c_etxl){
+                    util.insert_to_set( this._set_change_parameter, _type_change_parameter.cp_ISO1_Combi0_ETX_L+ n_track*3+n_combi);
+                    this._c_etxl[n_track][n_combi] = c_etxl;
+                }
+            }
+        }
+    }
+
+    public set_msr_use_ecm = (n_track :number,n_combi :number,b_use_ecm:boolean):void => {
+        if(n_track>=0 && n_track<=2){
+            if(n_combi>=0 && n_combi<=2){
+                if(this._b_use_ecm[n_track][n_combi] !== b_use_ecm){
+                    util.insert_to_set( this._set_change_parameter, _type_change_parameter.cp_ISO1_Combi0_UseErrorCorrect+ n_track*3+n_combi);
+                    this._b_use_ecm[n_track][n_combi] = b_use_ecm;
+                }
+            }
+        }
+    }
+
+    public set_msr_ecm_type = (n_track :number,n_combi :number,et:type_error_correct):void => {
+        if(n_track>=0 && n_track<=2){
+            if(n_combi>=0 && n_combi<=2){
+                if(this._n_ecm_type[n_track][n_combi] !== et){
+                    util.insert_to_set( this._set_change_parameter, _type_change_parameter.cp_ISO1_Combi0_ECMType+ n_track*3+n_combi);
+                    this._n_ecm_type[n_track][n_combi] = et;
+                }
+            }
+        }
+    }
+
+    public set_msr_add_value = (n_track :number,n_combi :number,n_add_value:number):void => {
+        if(n_track>=0 && n_track<=2){
+            if(n_combi>=0 && n_combi<=2){
+                if( this._n_add_value[n_track][n_combi] !== n_add_value){
+                    util.insert_to_set( this._set_change_parameter, _type_change_parameter.cp_ISO1_Combi0_AddValue+ n_track*3+n_combi);
+                    this._n_add_value[n_track][n_combi] = n_add_value;
+                }
+            }
+        }
+    }
+
+    public set_msr_private_prefix = (n_track :number, n_combi :number, s_tag:string|null ):void => {
+        if(n_track>=0 && n_track<=2){
+            if(n_combi>=0 && n_combi<=2){
+                if( this._s_private_prefix[n_track][n_combi] !== s_tag){
+                    util.insert_to_set( this._set_change_parameter, _type_change_parameter.cp_PrivatePrefix10+ n_track*3+n_combi);
+                    this._s_private_prefix[n_track][n_combi] = s_tag;
+                }
+            }
+        }
+    }
+
+    public set_msr_private_postfix = (n_track :number, n_combi :number, s_tag:string|null ):void => {
+        if(n_track>=0 && n_track<=2){
+            if(n_combi>=0 && n_combi<=2){
+                if(this._s_private_postfix[n_track][n_combi] !== s_tag){
+                    util.insert_to_set( this._set_change_parameter, _type_change_parameter.cp_PrivatePostfix10+ n_track*3+n_combi);
+                    this._s_private_postfix[n_track][n_combi] = s_tag;
+                }
+            }
+        }
+    }
+
+    public set_prefix_ibutton = (n_track :number, n_combi :number, s_tag:string|null ):void => {
+        if( this._s_prefix_ibutton !== s_tag){
+            util.insert_to_set( this._set_change_parameter, _type_change_parameter.cp_Prefix_iButton);
+            this._s_prefix_ibutton = s_tag;
+        }
+    }
+
+    public set_postfix_ibutton = (n_track :number, n_combi :number, s_tag:string|null ):void => {
+        if(this._s_postfix_ibutton !== s_tag){
+            util.insert_to_set( this._set_change_parameter, _type_change_parameter.cp_Postfix_iButton);
+            this._s_postfix_ibutton = s_tag;
+        }
+    }
+
+    public set_ibutton_remove = (n_track :number, n_combi :number, s_tag:string|null ):void => {
+        if( this._s_ibutton_remove !== s_tag){
+            util.insert_to_set( this._set_change_parameter, _type_change_parameter.cp_iButton_Remove);
+            this._s_ibutton_remove = s_tag;
+        }
+    }
+
+    public set_prefix_ibutton_remove = (n_track :number, n_combi :number, s_tag:string|null ):void => {
+        if( this._s_prefix_ibutton_remove !== s_tag ){
+            util.insert_to_set( this._set_change_parameter, _type_change_parameter.cp_Prefix_iButton_Remove);
+            this._s_prefix_ibutton_remove = s_tag;
+        }
+    }
+
+    public set_postfix_ibutton_remove = (n_track :number, n_combi :number, s_tag:string|null ):void => {
+        if(this._s_postfix_ibutton_remove !== s_tag){
+            util.insert_to_set( this._set_change_parameter, _type_change_parameter.cp_Postfix_iButton_Remove);
+            this._s_postfix_ibutton_remove = s_tag;
+        }
+    }
+
+    public set_blank = (ar_blank:number[]):void => {
+        if(ar_blank.length === 4 ){
+            for (let i = 0; i < ar_blank.length; i++) {
+                if( this._c_blank[i] !== ar_blank[i] ){
+                    util.insert_to_set( this._set_change_parameter, _type_change_parameter.cp_Blank_4bytes);
+                    this._c_blank[i] = ar_blank[i];
+                }
+            }
+        }
+    }
 
 
     /** * @description get error message with error name
@@ -1354,33 +1628,33 @@ export class lpu237 extends hid {
     /**
      * @private
      * @function _get_system_interface_string
-     * @param {number} type_system_interface _type_system_interface value.
+     * @param {number} inf type_system_interface value.
      * @returns {string} system interface string.
      */
-    private _get_system_interface_string = (type_system_interface: number): string => {
+    private _get_system_interface_string = (inf: number): string => {
         // 유효성 검사
-        if (typeof type_system_interface !== 'number') {
+        if (typeof inf !== 'number') {
             return "unknown";
         }
 
         // enum을 활용한 매핑
-        switch (type_system_interface) {
-            case _type_system_interface.system_interface_usb_keyboard:
+        switch (inf) {
+            case type_system_interface.system_interface_usb_keyboard:
                 return "Usb Hid keyboard";
 
-            case _type_system_interface.system_interface_usb_msr:
+            case type_system_interface.system_interface_usb_msr:
                 return "Usb Hid vendor defined";
 
-            case _type_system_interface.system_interface_uart:
+            case type_system_interface.system_interface_uart:
                 return "Uart";
 
-            case _type_system_interface.system_interface_ps2_stand_alone:
+            case type_system_interface.system_interface_ps2_stand_alone:
                 return "Standalone PS2";
 
-            case _type_system_interface.system_interface_ps2_bypass:
+            case type_system_interface.system_interface_ps2_bypass:
                 return "Bypass PS2";
 
-            case _type_system_interface.system_interface_by_hw_setting:
+            case type_system_interface.system_interface_by_hw_setting:
                 return "By HW setting";
 
             default:
@@ -1391,38 +1665,38 @@ export class lpu237 extends hid {
     /**
      * @private
      * @function _get_keyboard_language_index_string
-     * @param {number} type_keyboard_language_index _type_keyboard_language_index value.
+     * @param {number} lang type_keyboard_language_index value.
      * @returns {string} language name.
      */
-    private _get_keyboard_language_index_string = (type_keyboard_language_index: number): string => {
+    private _get_keyboard_language_index_string = (lang: number): string => {
         // 유효성 검사
-        if (typeof type_keyboard_language_index !== 'number') {
+        if (typeof lang !== 'number') {
             return "unknown";
         }
 
         // enum 값을 기반으로 언어 이름 매핑
-        switch (type_keyboard_language_index) {
-            case _type_keyboard_language_index.language_map_index_english:
+        switch (lang) {
+            case type_keyboard_language_index.language_map_index_english:
                 return "English";
-            case _type_keyboard_language_index.language_map_index_spanish:
+            case type_keyboard_language_index.language_map_index_spanish:
                 return "Spanish";
-            case _type_keyboard_language_index.language_map_index_danish:
+            case type_keyboard_language_index.language_map_index_danish:
                 return "Danish";
-            case _type_keyboard_language_index.language_map_index_french:
+            case type_keyboard_language_index.language_map_index_french:
                 return "French";
-            case _type_keyboard_language_index.language_map_index_german:
+            case type_keyboard_language_index.language_map_index_german:
                 return "German";
-            case _type_keyboard_language_index.language_map_index_italian:
+            case type_keyboard_language_index.language_map_index_italian:
                 return "Italian";
-            case _type_keyboard_language_index.language_map_index_norwegian:
+            case type_keyboard_language_index.language_map_index_norwegian:
                 return "Norwegian";
-            case _type_keyboard_language_index.language_map_index_swedish:
+            case type_keyboard_language_index.language_map_index_swedish:
                 return "Swedish";
-            case _type_keyboard_language_index.language_map_index_uk_english:
+            case type_keyboard_language_index.language_map_index_uk_english:
                 return "UK English";
-            case _type_keyboard_language_index.language_map_index_israel:
+            case type_keyboard_language_index.language_map_index_israel:
                 return "Israel";
-            case _type_keyboard_language_index.language_map_index_turkey:
+            case type_keyboard_language_index.language_map_index_turkey:
                 return "Turkey";
             default:
                 return "unknown";
@@ -1571,24 +1845,24 @@ export class lpu237 extends hid {
     /**
      * @private
      * @description 카드 읽기 방향 값을 기반으로 명칭 문자열을 반환합니다.
-     * @param type_direction _type_direction 열거형 값
+     * @param direction type_direction 열거형 값
      * @returns 읽기 방향 명칭 (기본값 "unknown")
      */
-    private _get_direction_string(type_direction: _type_direction): string {
+    private _get_direction_string(direction: type_direction): string {
         // 1. 타입 유효성 검사
-        if (typeof type_direction !== 'number') {
+        if (typeof direction !== 'number') {
             return "unknown";
         }
 
         // 2. 방향별 문자열 매핑 (Early Return 적용)
-        switch (type_direction) {
-            case _type_direction.dir_bidectional:
+        switch (direction) {
+            case type_direction.dir_bidectional:
                 return "Bidirectional reading";
 
-            case _type_direction.dir_forward:
+            case type_direction.dir_forward:
                 return "Forward reading";
 
-            case _type_direction.dir_backward:
+            case type_direction.dir_backward:
                 return "Backward reading";
 
             default:
@@ -1599,20 +1873,20 @@ export class lpu237 extends hid {
     /**
      * @private
      * @function _get_parity_type_string
-     * @param {number} type_parity _type_parity value.
+     * @param {number} pt type_parity value.
      * @returns {string} parity type.
      */
-    private _get_parity_type_string(type_parity: number): string {
+    private _get_parity_type_string(pt: number): string {
         // 유효성 검사
-        if (typeof type_parity !== 'number') {
+        if (typeof pt !== 'number') {
             return "unknown";
         }
 
         // 패리티 타입 매핑
-        switch (type_parity) {
-            case _type_parity.parity_even:
+        switch (pt) {
+            case type_parity.parity_even:
                 return "even parity";
-            case _type_parity.parity_odd:
+            case type_parity.parity_odd:
                 return "odd parity";
             default:
                 return "unknown";
@@ -1622,24 +1896,24 @@ export class lpu237 extends hid {
     /**
      * @private
      * @function _get_error_correct_type_string
-     * @param {number} type_error_correct _type_error_correct value.
+     * @param {number} et type_error_correct value.
      * @returns {string} error correction type.
      */
-    private _get_error_correct_type_string(type_error_correct: number): string {
+    private _get_error_correct_type_string(et: number): string {
         // 유효성 검사
-        if (typeof type_error_correct !== 'number') {
+        if (typeof et !== 'number') {
             return "unknown";
         }
 
         // 오류 교정 타입 매핑 (Early Return)
-        switch (type_error_correct) {
-            case _type_error_correct.error_correct_lrc:
+        switch (et) {
+            case type_error_correct.error_correct_lrc:
                 return "LRC error correction";
 
-            case _type_error_correct.error_correct_inv_lrc:
+            case type_error_correct.error_correct_inv_lrc:
                 return "Inversion LRC error correction";
 
-            case _type_error_correct.error_correct_crc:
+            case type_error_correct.error_correct_crc:
                 return "CRC error correction";
 
             default:
@@ -2748,9 +3022,9 @@ export class lpu237 extends hid {
         if (typeof s_string !== 'string') return -1;
 
         const interfaceMap: Record<string, number> = {
-            "usb_kb": _type_system_interface.system_interface_usb_keyboard,
-            "usb_hid": _type_system_interface.system_interface_usb_msr,
-            "rs232": _type_system_interface.system_interface_uart
+            "usb_kb": type_system_interface.system_interface_usb_keyboard,
+            "usb_hid": type_system_interface.system_interface_usb_msr,
+            "rs232": type_system_interface.system_interface_uart
         };
 
         return interfaceMap[s_string] ?? -1;
@@ -2766,16 +3040,16 @@ export class lpu237 extends hid {
         if (typeof s_string !== 'string') return -1;
 
         const langMap: Record<string, number> = {
-            "usa_english": _type_keyboard_language_index.language_map_index_english,
-            "spanish": _type_keyboard_language_index.language_map_index_spanish,
-            "danish": _type_keyboard_language_index.language_map_index_danish,
-            "french": _type_keyboard_language_index.language_map_index_french,
-            "german": _type_keyboard_language_index.language_map_index_german,
-            "italian": _type_keyboard_language_index.language_map_index_italian,
-            "norwegian": _type_keyboard_language_index.language_map_index_norwegian,
-            "swedish": _type_keyboard_language_index.language_map_index_swedish,
-            "hebrew": _type_keyboard_language_index.language_map_index_israel,
-            "turkey": _type_keyboard_language_index.language_map_index_turkey
+            "usa_english": type_keyboard_language_index.language_map_index_english,
+            "spanish": type_keyboard_language_index.language_map_index_spanish,
+            "danish": type_keyboard_language_index.language_map_index_danish,
+            "french": type_keyboard_language_index.language_map_index_french,
+            "german": type_keyboard_language_index.language_map_index_german,
+            "italian": type_keyboard_language_index.language_map_index_italian,
+            "norwegian": type_keyboard_language_index.language_map_index_norwegian,
+            "swedish": type_keyboard_language_index.language_map_index_swedish,
+            "hebrew": type_keyboard_language_index.language_map_index_israel,
+            "turkey": type_keyboard_language_index.language_map_index_turkey
         };
 
         return langMap[s_string] ?? -1;
@@ -2852,9 +3126,9 @@ export class lpu237 extends hid {
 
         // 매핑 객체를 사용하여 조건문 가독성 향상
         const directionMap: Record<string, number> = {
-            "bidirectional": _type_direction.dir_bidectional, // 오타가 포함된 원본 속성명 유지
-            "forward": _type_direction.dir_forward,
-            "backward": _type_direction.dir_backward
+            "bidirectional": type_direction.dir_bidectional, // 오타가 포함된 원본 속성명 유지
+            "forward": type_direction.dir_forward,
+            "backward": type_direction.dir_backward
         };
 
         // 매핑된 값이 있으면 반환, 없으면 -1 반환
@@ -2996,8 +3270,8 @@ export class lpu237 extends hid {
         if (typeof s_string !== 'string') return -1;
 
         const parityMap: Record<string, number> = {
-            "even": _type_parity.parity_even,
-            "odd": _type_parity.parity_odd
+            "even": type_parity.parity_even,
+            "odd": type_parity.parity_odd
         };
 
         return parityMap[s_string] ?? -1;
@@ -3014,9 +3288,9 @@ export class lpu237 extends hid {
         if (typeof s_string !== 'string') return -1;
 
         const errorCorrectMap: Record<string, number> = {
-            "lrc": _type_error_correct.error_correct_lrc,
-            "invlrc": _type_error_correct.error_correct_inv_lrc,
-            "crc": _type_error_correct.error_correct_crc
+            "lrc": type_error_correct.error_correct_lrc,
+            "invlrc": type_error_correct.error_correct_inv_lrc,
+            "crc": type_error_correct.error_correct_crc
         };
 
         return errorCorrectMap[s_string] ?? -1;
@@ -4762,7 +5036,7 @@ export class lpu237 extends hid {
      * @returns {number} 0: 양방향(Bidirectional), 1: 정방향(Forward), 2: 역방향(Backward)
      */
     public get_direction = (n_track?: number): number => {
-        const default_dir = _type_direction.dir_bidectional;
+        const default_dir = type_direction.dir_bidectional;
 
         // 기본 배열 유효성 검사
         if (!Array.isArray(this._n_direction) || this._n_direction.length !== this._const_the_number_of_track) {
@@ -8697,27 +8971,27 @@ export class lpu237 extends hid {
     /**
      * @private
      * @description 인터페이스 타입 코드를 사람이 읽을 수 있는 문자열로 변환합니다.
-     * @param {number} type_system_interface - 시스템 인터페이스 타입 코드
+     * @param {number} inf - 시스템 인터페이스 타입 코드
      * @returns {string} 인터페이스 명칭 (알 수 없는 경우 "unknown")
      */
-    private _get_system_inferface_string(type_system_interface: number): string {
+    private _get_system_inferface_string(inf: number): string {
         // 유효성 검사
-        if (typeof type_system_interface !== 'number') {
+        if (typeof inf !== 'number') {
             return "unknown";
         }
 
-        switch (type_system_interface) {
-            case _type_system_interface.system_interface_usb_keyboard:
+        switch (inf) {
+            case type_system_interface.system_interface_usb_keyboard:
                 return "Usb Hid keyboard";
-            case _type_system_interface.system_interface_usb_msr:
+            case type_system_interface.system_interface_usb_msr:
                 return "Usb Hid vendor defined"; // 일반적인 웹 SDK나 OPOS 모드에서 사용
-            case _type_system_interface.system_interface_uart:
+            case type_system_interface.system_interface_uart:
                 return "Uart";
-            case _type_system_interface.system_interface_ps2_stand_alone:
+            case type_system_interface.system_interface_ps2_stand_alone:
                 return "Standalone PS2";
-            case _type_system_interface.system_interface_ps2_bypass:
+            case type_system_interface.system_interface_ps2_bypass:
                 return "Bypass PS2";
-            case _type_system_interface.system_interface_by_hw_setting:
+            case type_system_interface.system_interface_by_hw_setting:
                 return "By HW setting";
             default:
                 return "unknown";
