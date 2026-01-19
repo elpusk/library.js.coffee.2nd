@@ -54,7 +54,7 @@
  * <br />   2022.03.29 - release 1.12.0
  *                     - add setting of track order parameter.
  * <br />   2022.03.31 - release 1.12.2
- *                     - fix _get_mmd1100_reset_interval_string() bug.(mssing 48)
+ *                     - fix get_mmd1100_reset_interval_string() bug.(mssing 48)
  * <br />   2022.03.31 - release 1.12.3
  *                     - fix LPU-208D function string MSR & i-button -> MSR & SCR
  * <br />   2022.11.04 - release 1.13
@@ -1014,6 +1014,13 @@ export class lpu237 extends hid {
     private _n_ibutton_error_code: number = 0;
     private _b_ignore_ibutton_data: boolean = true;
 
+
+    private _DIRECTION_MAP: Record<string, number> = {
+    'Bidirectional': type_direction.dir_bidectional,
+    'Forward': type_direction.dir_forward,
+    'Backward': type_direction.dir_backward
+    };    
+
     ////////////////////////////////////////
     // setter
     public set_global_pre_postfix_send_condition = (b_all_track_good:boolean): void =>{
@@ -1065,6 +1072,21 @@ export class lpu237 extends hid {
             if( this._n_direction[n_track] !== n_direction){
                 util.insert_to_set( this._set_change_parameter, _type_change_parameter.cp_Direction1+n_track );
                 this._n_direction[n_track] = n_direction;
+            }
+        }
+    }
+
+    public set_direction_by_string = (n_track :number,s_direction : string):void => {
+        if(n_track>=0 && n_track<=2){
+            // s_direction 유효성 검사: _DIRECTION_MAP의 키인지 확인
+            const validDirectionKeys = Object.keys(this._DIRECTION_MAP);
+            if (validDirectionKeys.includes(s_direction)) {            
+                let t = this._DIRECTION_MAP[s_direction];
+
+                if( this._n_direction[n_track] !== t){
+                    util.insert_to_set( this._set_change_parameter, _type_change_parameter.cp_Direction1+n_track );
+                    this._n_direction[n_track] = t;
+                }
             }
         }
     }
@@ -1798,13 +1820,13 @@ export class lpu237 extends hid {
     }
 
     /**
-     * @private
+     * @public
      * @description MMD1100 리셋 간격 값을 문자열로 반환합니다.
      * @param n_interval 리셋 간격 값 (0~240, 16의 배수)
      * @param b_device_version_greater_then_5_18 장치 펌웨어 버전이 5.18보다 높은지 여부
      * @returns 리셋 간격 설명 문자열
      */
-    private _get_mmd1100_reset_interval_string(
+    public get_mmd1100_reset_interval_string(
         n_interval: number,
         b_device_version_greater_then_5_18: boolean
     ): string {
@@ -1815,7 +1837,7 @@ export class lpu237 extends hid {
 
         // 2. 특수 케이스 처리 (0 및 240)
         if (n_interval === 0) {
-            return "0(default, interval - 03:22)";
+            return "0(default, 03:22)";
         }
 
         if (n_interval === 240) {
@@ -1839,7 +1861,23 @@ export class lpu237 extends hid {
 
         const timeInfo = intervalMap[n_interval];
 
-        return timeInfo ? `${n_interval}(interval - ${timeInfo})` : "unknown";
+        return timeInfo ? `${n_interval}(${timeInfo})` : "unknown";
+    }
+
+    /**
+     * @public
+     * @description 카드 읽기 방향 값을 기반으로 명칭 문자열을 반환합니다.
+     * @param n_track 카드의 트랙 번호.(0~2)
+     * @returns 읽기 방향 명칭 (기본값 "unknown")
+     */
+    public get_direction_string = (n_track:number): string =>{
+
+        if(n_track<0 || n_track >2){
+            return "";
+        }
+
+        let d = this._get_direction_string(this._n_direction[n_track]);
+        return d;
     }
 
     /**
@@ -1854,20 +1892,8 @@ export class lpu237 extends hid {
             return "unknown";
         }
 
-        // 2. 방향별 문자열 매핑 (Early Return 적용)
-        switch (direction) {
-            case type_direction.dir_bidectional:
-                return "Bidirectional reading";
-
-            case type_direction.dir_forward:
-                return "Forward reading";
-
-            case type_direction.dir_backward:
-                return "Backward reading";
-
-            default:
-                return "unknown";
-        }
+        const s_d = Object.keys(this._DIRECTION_MAP).find(k => this._DIRECTION_MAP[k] === direction) || 'unknown';
+        return s_d;
     }
 
     /**
@@ -4847,6 +4873,15 @@ export class lpu237 extends hid {
 
     /**
      * @public
+     * @description the blank 4 bytes array
+     * @returns {number[]} bitmap system parameters.
+     */
+    public get_blank = (): number[] => {
+        return this._c_blank;
+    }
+
+    /**
+     * @public
      * @description 트랙 하나라도 정상일 때 성공으로 간주할지 여부를 확인합니다.
      * @returns {boolean} true: 하나라도 정상이면 성공 표시, false: 모두 정상이어야 성공 표시.
      */
@@ -5273,6 +5308,22 @@ export class lpu237 extends hid {
     public get_postfix_uart = (): string | null => {
         return this._s_postfix_uart;
     }
+
+    /**
+     * @public
+     * @description get i-button range
+     * @returns {number[]} 2 byte array. [0] - start pos (0~15), [1] - end pos (0~15)
+     */    
+    public get_ibutton_range = (): number[] => {
+        let ar_pos = [0,15];
+
+        ar_pos[0] = this._c_blank[0] & 0xF0;
+        ar_pos[0] = ar_pos[0] >> 4;
+
+        ar_pos[1] = this._c_blank[0] & 0x0F;    
+        return ar_pos;
+    }
+
 
     /**
      * @public
@@ -6088,7 +6139,7 @@ export class lpu237 extends hid {
             if (this._first_version_greater_then_second_version(false, this._version, [5, 15, 0, 0]) &&
                 this._first_version_greater_then_second_version(false, [6, 0, 0, 0], this._version)) {
                 const isGreater518 = this._first_version_greater_then_second_version(false, this._version, [5, 18, 0, 0]);
-                s_description += `mmd1100 reset interval : ${this._get_mmd1100_reset_interval_string(this._c_blank[1] & 0xF0, isGreater518)}\n`;
+                s_description += `mmd1100 reset interval : ${this.get_mmd1100_reset_interval_string(this._c_blank[1] & 0xF0, isGreater518)}\n`;
             }
 
             // 6. 접두사/접미사 정보
@@ -6365,7 +6416,7 @@ export class lpu237 extends hid {
                     if (this._first_version_greater_then_second_version(false, [6, 0, 0, 0], this._version)) {
                         ++n_count;
                         as_name[n_count] = "mmd1100 reset interval";
-                        as_value[n_count] = this._get_mmd1100_reset_interval_string(this._c_blank[1] & 0xF0, b_device_version_greater_then_5_18);
+                        as_value[n_count] = this.get_mmd1100_reset_interval_string(this._c_blank[1] & 0xF0, b_device_version_greater_then_5_18);
                     }
                 }
                 //

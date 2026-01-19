@@ -3,7 +3,7 @@
 import React from 'react';
 import { AppState, ConnectionStatus, DeviceType, DeviceConfig } from './types';
 import { coffee } from '@lib/elpusk.framework.coffee';
-import { lpu237, type_function } from '@lib/elpusk.device.usb.hid.lpu237';
+import { lpu237, type_function, type_system_interface, type_keyboard_language_index, type_direction } from '@lib/elpusk.device.usb.hid.lpu237';
 import { ctl_lpu237 } from '@lib/elpusk.framework.coffee.ctl_lpu237';
 
 
@@ -11,6 +11,30 @@ import { ctl_lpu237 } from '@lib/elpusk.framework.coffee.ctl_lpu237';
 let g_coffee = coffee.get_instance();
 let g_lpu_device: lpu237 | null = null;
 let g_ctl: ctl_lpu237 | null = null;
+
+
+/**
+ * MAPPING HELPERS: HW <-> UI
+ */
+
+const INTERFACE_MAP: Record<string, number> = {
+  'USB keyboard mode': type_system_interface.system_interface_usb_keyboard,
+  'USB HID Vendor mode': type_system_interface.system_interface_usb_msr,
+  'RS232 mode': type_system_interface.system_interface_uart
+};
+
+const LANGUAGE_LIST = [
+  'USA English', 'Spanish', 'Danish', 'French', 'German', 'Italian', 'Norwegian', 'Swedish', 'UK English', 'Herbrew', 'Turkiye'
+];
+
+const IBUTTON_MODE_MAP: Record<string, number> = {
+  'zero-16 times': 0x00,
+  'F12': 0x01,
+  'zero-7 times': 0x04,
+  'Code stick protocol': 0x08,
+  'user definition': 0x02
+};
+
 
 /**
  * GLOBAL SYSTEM HANDLERS
@@ -161,6 +185,35 @@ export const createHandlers = (
         );
         addLog("Hardware parameters synchronized.");
 
+
+        // Apply hardware parameters to UI state (CommonTab)
+        const hw = g_lpu_device;
+        const currentInterface = Object.keys(INTERFACE_MAP).find(k => INTERFACE_MAP[k] === hw.get_interface()) || 'USB keyboard mode';
+        const currentLanguage = LANGUAGE_LIST[hw.get_language()] || 'USA English';
+        
+        const currentBlank = hw.get_blank(); // Assuming this is the 4-byte array
+        const currentIButtonMode = Object.keys(IBUTTON_MODE_MAP).find(k => IBUTTON_MODE_MAP[k] === (currentBlank[2] & 0x0F)) || 'zero-16 times';
+        const currentResetInterval = hw.get_mmd1100_reset_interval();
+        const isAnyTrackNormalSuccess = hw.get_indicate_success_when_any_not_error();
+        const ar_range = hw.get_ibutton_range();
+
+        const newConfig: DeviceConfig = {
+          interface: currentInterface,
+          buzzer: hw.get_buzzer_count() > 5000, 
+          language: currentLanguage,
+          ibuttonMode: currentIButtonMode,
+          ibuttonRangeStart: ar_range[0], 
+          ibuttonRangeEnd: ar_range[1],
+          msrDirection: hw.get_direction_string(0),
+          msrTrackOrder: hw.get_track_order().map(n => n + 1).join(''),
+          msrResetInterval: hw.get_mmd1100_reset_interval_string(currentResetInterval,true),
+          msrEnableISO1: hw.get_enable_iso(0),
+          msrEnableISO2: hw.get_enable_iso(1),
+          msrEnableISO3: hw.get_enable_iso(2),
+          msrGlobalSendCondition: hw.get_global_pre_postfix_send_condition() ? 'No Error in all tracks' : 'One more track is normal',
+          msrSuccessIndCondition: isAnyTrackNormalSuccess ? 'One more track is normal' : 'No Error in all tracks',
+        };
+
         // Determine DeviceType for UI Logic based on the path string
         let type = DeviceType.MSR_IBUTTON;
 
@@ -183,6 +236,7 @@ export const createHandlers = (
           status: ConnectionStatus.CONNECTED,
           devicePath: path,
           deviceType: type,
+          config: newConfig,
           loading: null,
           logs: [...prev.logs, `Device connected via library: ${path}`]
         }));
@@ -208,6 +262,8 @@ export const createHandlers = (
 
         const s_result = await g_ctl.close_with_promise();
         addLog(`Closing result: ${s_result}`);
+        g_ctl = null;
+        g_lpu_device = null;
 
       } catch (error: any) {
 
@@ -275,12 +331,67 @@ export const createHandlers = (
      
     },
 
-    onApply: () => {
-      addLog('Syncing configuration with hardware...');
-      // REAL INTEGRATION POINT:
-      // Use your library to send HID Feature Reports or Output Reports 
-      // based on the state.config object.
-      addLog('Apply Success: Hardware registers updated.');
+    onApply: async () => {
+      if (!g_lpu_device || !g_ctl) {
+        addLog('Error: No device connection available for Apply.');
+        return;
+      }
+
+      addLog('Uploading configuration to hardware...');
+      setState(prev => ({ ...prev, loading: { current: 0, total: 100, message: 'Writing registers...' } }));
+
+      try {
+        const ui = state.config;
+        const hw = g_lpu_device;
+
+        // Push UI settings back to LPU237 instance using its set_x methods
+        hw.set_interface(INTERFACE_MAP[ui.interface] as any);
+        hw.set_language_index(LANGUAGE_LIST.indexOf(ui.language) as any);
+        hw.set_buzzer_count(ui.buzzer ? 26000 : 5000);
+        
+        hw.set_global_pre_postfix_send_condition(ui.msrGlobalSendCondition === 'No Error in all tracks');
+        hw.set_order(ui.msrTrackOrder.split('').map(c => parseInt(c) - 1));
+        
+        for (let i = 0; i < 3; i++) {
+          const isEnabled = i === 0 ? ui.msrEnableISO1 : i === 1 ? ui.msrEnableISO2 : ui.msrEnableISO3;
+          hw.set_enable_iso(i, isEnabled);
+          hw.set_direction_by_string(i, ui.msrDirection);
+        }
+
+        // Handle composite bits in blank registers
+        const blank = hw.get_blank(); 
+        // Success condition bit 0 of blank[1]
+        if (ui.msrSuccessIndCondition === 'One more track is normal') blank[1] |= 0x01;
+        else blank[1] &= ~0x01;
+        
+        // Reset interval bits 4-7 of blank[1]
+        const intervalValue = parseInt(ui.msrResetInterval.split('(')[0]);
+        blank[1] = (blank[1] & 0x0F) | (intervalValue & 0xF0);
+
+        // iButton mode bits 0-3 of blank[2]
+        const iMode = IBUTTON_MODE_MAP[ui.ibuttonMode];
+        blank[2] = (blank[2] & 0xF0) | (iMode & 0x0F);
+        
+        hw.set_blank(blank);
+
+        // Commit changes to hardware non-volatile memory
+        await g_ctl.save_parameter_to_device_with_promise((n, total, cur) => {
+          setState(prev => ({
+            ...prev,
+            loading: {
+              current: cur,
+              total: total,
+              message: `Updating hardware registry (${cur}/${total})...`
+            }
+          }));
+        });
+
+        addLog('Apply Success: Hardware settings persistent.');
+        setState(prev => ({ ...prev, loading: null }));
+      } catch (error: any) {
+        addLog(`Apply Failure: ${error.message}`);
+        setState(prev => ({ ...prev, loading: null }));
+      }
     },
 
     onClearLogs: () => {
