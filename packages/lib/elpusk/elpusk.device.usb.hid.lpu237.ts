@@ -839,8 +839,9 @@ export enum type_direction {
  * @description the definition of device interface
  */
 export enum type_system_interface {
-    system_interface_usb_keyboard = 0,      // system interface is USB keyboard.
+    system_interface_usb_keyboard = 0,      // system interface is USB keyboard. - LPU237 only
     system_interface_usb_msr = 1,           // system interface is USB MSR(generic HID interface).
+    system_interface_usb_vcom = 2,          //system interface is USB virtual Com port (CCD).- LPU238 only
     system_interface_uart = 10,             // system interface is uart.
     system_interface_ps2_stand_alone = 20,  // system interface is PS2 stand along mode.
     system_interface_ps2_bypass = 21,       // system interface is bypass mode.
@@ -916,27 +917,27 @@ enum _type_ibutton_mode {
 
 export class lpu237 extends hid {
 
-    private readonly _const_min_size_request_header: number = 3;
-    private readonly _const_min_size_response_header: number = 3;
-    private readonly _const_the_number_of_track: number = 3;
+    private static readonly _const_min_size_request_header: number = 3;
+    private static readonly _const_min_size_response_header: number = 3;
+    private static readonly _const_the_number_of_track: number = 3;
     private static readonly _const_the_number_of_combination: number = 3;
-    private readonly _const_the_size_of_name: number = 16;
-    private readonly _const_the_size_of_uid: number = 4 * 4;
-    private readonly _const_the_size_of_system_blank: number = 4;
-    private readonly _const_the_number_of_frequency: number = 22;
-    private readonly _const_the_number_of_support_language: number = 11;	//the number of supported language.
-    private readonly _const_max_size_tag_byte: number = 14;
-    private readonly _const_max_size_tag_key: number = this._const_max_size_tag_byte / 2;
+    private static readonly _const_the_size_of_name: number = 16;
+    private static readonly _const_the_size_of_uid: number = 4 * 4;
+    private static readonly _const_the_size_of_system_blank: number = 4;
+    private static readonly _const_the_number_of_frequency: number = 22;
+    private static readonly _const_the_number_of_support_language: number = 11;	//the number of supported language.
+    private static readonly _const_max_size_tag_byte: number = 14;
+    private static readonly _const_max_size_tag_key: number = lpu237._const_max_size_tag_byte / 2;
 
-    private readonly _const_max_size_tag_remove_byte: number = 40;
-    private readonly _const_max_size_tag_remove_key: number = this._const_max_size_tag_remove_byte / 2;
+    private static readonly _const_max_size_tag_remove_byte: number = 40;
+    private static readonly _const_max_size_tag_remove_key: number = lpu237._const_max_size_tag_remove_byte / 2;
 
-    private readonly _const_address_system_hid_key_map_offset: number = 0x400;	//size 1K
-    private readonly _const_address_system_ps2_key_map_offset: number = 0x800;	//size 1K
-    private readonly _const_default_buzzer_count_old: number = 25000; //at less then callisto 3.15, ganymede 5.7.
-    private readonly _const_default_buzzer_count: number = 26000;    // default buzzer count of plus generator.
-    private readonly _const_default_buzzer_count_for_wiznova_board: number = 16000;	// default buzzer count. ganymede.
-    private readonly _const_default_buzzer_count_for_off: number = 5000;    // default buzzer count of plus generator for buzzer off status.
+    private static readonly _const_address_system_hid_key_map_offset: number = 0x400;	//size 1K
+    private static readonly _const_address_system_ps2_key_map_offset: number = 0x800;	//size 1K
+    private static readonly _const_default_buzzer_count_old: number = 25000; //at less then callisto 3.15, ganymede 5.7.
+    private static readonly _const_default_buzzer_count: number = 26000;    // default buzzer count of plus generator.
+    private static readonly _const_default_buzzer_count_for_wiznova_board: number = 16000;	// default buzzer count. ganymede.
+    private static readonly _const_default_buzzer_count_for_off: number = 5000;    // default buzzer count of plus generator for buzzer off status.
 
     // 내부 큐 및 모드 상태
     private _deque_generated_tx: number[] = [];
@@ -963,7 +964,7 @@ export class lpu237 extends hid {
 
     // 시스템 인터페이스 및 언어
     private _n_interface: number = type_system_interface.system_interface_usb_keyboard;
-    private _dw_buzzer_count: number = this._const_default_buzzer_count;
+    private _dw_buzzer_count: number = lpu237._const_default_buzzer_count;
     private _dw_boot_run_time: number = 15000;
     private _n_language_index: number = type_keyboard_language_index.language_map_index_english;
 
@@ -1015,11 +1016,122 @@ export class lpu237 extends hid {
     private _b_ignore_ibutton_data: boolean = true;
 
 
-    private _DIRECTION_MAP: Record<string, number> = {
+    public static readonly DIRECTION_MAP: Record<string, number> = {
     'Bidirectional': type_direction.dir_bidectional,
     'Forward': type_direction.dir_forward,
     'Backward': type_direction.dir_backward
-    };    
+    };
+
+    public static GetDirectionStringList():string[]{
+        const sl = Object.keys(lpu237.DIRECTION_MAP) as string[];
+        return sl;
+    }
+
+    public static readonly INTERFACE_MAP: Record<string, number> = {
+    'USB keyboard': type_system_interface.system_interface_usb_keyboard,
+    'USB HID Vendor': type_system_interface.system_interface_usb_msr,
+    'USB Virtual COM': type_system_interface.system_interface_usb_vcom,
+    'RS232': type_system_interface.system_interface_uart,
+    'Standalone PS2': type_system_interface.system_interface_ps2_stand_alone,
+    'Bypass PS2' : type_system_interface.system_interface_ps2_bypass,
+    'By HW setting' : type_system_interface.system_interface_by_hw_setting
+    };
+
+    public static GetInterfaceStringList():string[]{
+        const sl = Object.keys(lpu237.INTERFACE_MAP) as string[];
+        return sl;
+    }
+
+    public static readonly LANGUAGE_MAP: Record<string, number> = {
+    'USA English': type_keyboard_language_index.language_map_index_english,
+    'Spanish': type_keyboard_language_index.language_map_index_spanish,
+    'Danish': type_keyboard_language_index.language_map_index_danish,
+    'French': type_keyboard_language_index.language_map_index_french,
+    'German': type_keyboard_language_index.language_map_index_german,
+    'Italian': type_keyboard_language_index.language_map_index_italian,
+    'Norwegian': type_keyboard_language_index.language_map_index_norwegian,
+    'Swedish': type_keyboard_language_index.language_map_index_swedish,
+    'UK English': type_keyboard_language_index.language_map_index_uk_english,
+    'Herbrew': type_keyboard_language_index.language_map_index_israel,
+    'Turkiye': type_keyboard_language_index.language_map_index_turkey
+    };
+
+    public static GetLanguageStringList():string[]{
+        const sl = Object.keys(lpu237.LANGUAGE_MAP) as string[];
+        return sl;
+    }
+
+    public static readonly IBUTTON_MODE_MAP: Record<string, number> = {// 왜 3개만 있지 다른 것들은 5개씩 있는데.?
+    'Zeros': _type_ibutton_mode.ibutton_zeros, // 16 times zeroes
+    'F12': _type_ibutton_mode.ibutton_f12,
+    'Zero-7 times': _type_ibutton_mode.ibutton_zeros7,
+    'Addmit Code stick': _type_ibutton_mode.ibutton_addmit,
+    'User definition': _type_ibutton_mode.ibutton_none
+    };
+
+    public static GetiButtonStringList():string[]{
+        const sl = Object.keys(lpu237.IBUTTON_MODE_MAP) as string[];
+        return sl;
+    }
+
+    // 3. 간격별 시간 정보 매핑
+    public static readonly RESET_INTERVAL_MAP: Record<string, number> = {// 왜 3개만 있지 다른 것들은 5개씩 있는데.?
+        'default-03:22': 0,
+        '06:43': 16, 
+        '13:27': 32, 
+        '20:10': 48, 
+        '26:53': 64,
+        '33:36': 80, 
+        '40:19': 96, 
+        '47:03': 112, 
+        '53:46': 128,
+        '01:00:29': 144, 
+        '01:07:12': 160, 
+        '01:13:55': 176,
+        '01:20:39': 192, 
+        '01:27:22': 208, 
+        '01:34:05': 224, 
+        'disable': 240 // fw 버전이 5.18 보다 크면 "disable", 작거나 같으면 missing code 로 인한 사용불가("don't use").
+    };
+
+    public static GetResetIntervalStringList():string[]{
+        const sl = Object.keys(lpu237.RESET_INTERVAL_MAP) as string[];
+        return sl;
+    }
+
+    public static readonly ORDER_MAP: Record<string,number[]> = {
+        "123": [0, 1, 2],
+        "132": [0, 2, 1],
+        "213": [1, 0, 2],
+        "231": [1, 2, 0],
+        "312": [2, 0, 1],
+        "321": [2, 1, 0]
+    };
+
+    public static GetOrderStringList():string[]{
+        const sl = Object.keys(lpu237.ORDER_MAP) as string[];
+        return sl;
+    }
+
+    public static readonly GLOBAL_TAG_SEND_CONDITION_ARRAY: string[] = [
+        'One more track is normal', //condition flag is false
+        'No Error in all tracks' //condition flag is true
+    ];
+
+    public static GetGlobalTagSendConditionStringList():string[]{
+        const sl = lpu237.GLOBAL_TAG_SEND_CONDITION_ARRAY;
+        return sl;
+    }
+
+    public static readonly SUCCESS_INDICATE_CONDITION_ARRAY: string[] = [
+        'No Error in all tracks', //condition flag is false
+        'One more track is normal' //condition flag is true
+    ];
+
+    public static GetSuccessIndicateConditionStringList():string[]{
+        const sl = lpu237.SUCCESS_INDICATE_CONDITION_ARRAY;
+        return sl;
+    }
 
     ////////////////////////////////////////
     // setter
@@ -1028,35 +1140,66 @@ export class lpu237 extends hid {
             util.insert_to_set( this._set_change_parameter, _type_change_parameter.cp_GlobalPrePostfixSendCondition );
             this._b_global_pre_postfix_send_condition = b_all_track_good;
         }
-    }
+    };
+
+    public set_global_pre_postfix_send_condition_by_string = (s_condition:string):void => {
+        let b_condition = lpu237._get_global_pre_postfix_send_condition_from_string(s_condition);
+        if (b_condition !== null){
+            if(this._b_global_pre_postfix_send_condition !== b_condition){
+                util.insert_to_set( this._set_change_parameter, _type_change_parameter.cp_GlobalPrePostfixSendCondition );
+                this._b_global_pre_postfix_send_condition = b_condition;
+            }
+        }
+    };
 
     public set_interface = (n_inf : type_system_interface):void => {
         if(this._n_interface !== n_inf){
             util.insert_to_set( this._set_change_parameter, _type_change_parameter.cp_Interface );
             this._n_interface = n_inf;
         }
-    }
+    };
+
+    public set_interface_by_string = (s_interface : string):void => {
+        let n_inf = lpu237._get_interface_from_string(s_interface);
+        if( n_inf != -1){
+            if( this._n_interface !== n_inf){
+                util.insert_to_set( this._set_change_parameter, _type_change_parameter.cp_Interface );
+                this._n_interface = n_inf;
+            }
+        }
+    };
+
 
     public set_buzzer_count = (dw_buzzer_count:number): void => {
         if(this._dw_buzzer_count !== dw_buzzer_count){
             util.insert_to_set( this._set_change_parameter, _type_change_parameter.cp_BuzzerFrequency );
             this._dw_buzzer_count = dw_buzzer_count;
         }
-    }
+    };
 
     public set_boot_run_time = (dw_boot_run_time:number):void => {
         if( this._dw_boot_run_time !== dw_boot_run_time ){
             util.insert_to_set( this._set_change_parameter, _type_change_parameter.cp_BootRunTime );
             this._dw_boot_run_time = dw_boot_run_time;
         }
-    }
+    };
 
     public set_language_index = (n_language_index:type_keyboard_language_index):void => {
         if(this._n_language_index !== n_language_index){
             util.insert_to_set( this._set_change_parameter, _type_change_parameter.cp_Language );
             this._n_language_index = n_language_index;
         }
-    }
+    };
+
+    public set_language_index_by_string = (s_language:string):void => {
+        let n_lang = lpu237._get_language_from_string(s_language);
+        if(n_lang != -1){
+            if(this._n_language_index !== n_lang){
+                util.insert_to_set( this._set_change_parameter, _type_change_parameter.cp_Language );
+                this._n_language_index = n_lang;
+            }
+        }
+    };
 
     public set_enable_iso = (n_track :number,b_enable_iso:boolean):void => {
         if(n_track>=0 && n_track<=2){
@@ -1065,7 +1208,7 @@ export class lpu237 extends hid {
                 this._b_enable_iso[n_track] = b_enable_iso;
             }
         }
-    }
+    };
 
     public set_direction = (n_track :number,n_direction : type_direction):void => {
         if(n_track>=0 && n_track<=2){
@@ -1074,22 +1217,19 @@ export class lpu237 extends hid {
                 this._n_direction[n_track] = n_direction;
             }
         }
-    }
+    };
 
     public set_direction_by_string = (n_track :number,s_direction : string):void => {
         if(n_track>=0 && n_track<=2){
-            // s_direction 유효성 검사: _DIRECTION_MAP의 키인지 확인
-            const validDirectionKeys = Object.keys(this._DIRECTION_MAP);
-            if (validDirectionKeys.includes(s_direction)) {            
-                let t = this._DIRECTION_MAP[s_direction];
-
+            let t = lpu237._get_direction_from_string(s_direction);
+            if(t != -1){
                 if( this._n_direction[n_track] !== t){
                     util.insert_to_set( this._set_change_parameter, _type_change_parameter.cp_Direction1+n_track );
                     this._n_direction[n_track] = t;
                 }
             }
         }
-    }
+    };
 
     public set_order = (ar_order:number[]): void => {
         if(ar_order.length === 3){
@@ -1100,21 +1240,21 @@ export class lpu237 extends hid {
                 }
             }
         }
-    }
+    };
 
     public set_global_prefix = (s_tag: string | null):void => {
         if(this._s_global_prefix !== s_tag){
             util.insert_to_set( this._set_change_parameter, _type_change_parameter.cp_GlobalPrefix );
             this._s_global_prefix = s_tag;
         }
-    }
+    };
 
     public set_global_postfix = (s_tag: string | null):void => {
         if( this._s_global_postfix !== s_tag ){
             util.insert_to_set( this._set_change_parameter, _type_change_parameter.cp_GlobalPostfix );
             this._s_global_postfix = s_tag;
         }
-    }
+    };
 
     public set_number_combination = (n_track :number,n_number_combination : number):void => {
         if(n_track>=0 && n_track<=2){
@@ -1123,7 +1263,7 @@ export class lpu237 extends hid {
                 this._n_number_combination[n_track] = n_number_combination;
             }
         }
-    }
+    };
 
     public set_msr_max_size = (n_track :number,n_combi :number,n_max_size:number):void => {
         if(n_track>=0 && n_track<=2){
@@ -1134,7 +1274,7 @@ export class lpu237 extends hid {
                 }
             }
         }
-    }
+    };
 
     public set_msr_bit_size = (n_track :number,n_combi :number,n_bit_size:number):void => {
         if(n_track>=0 && n_track<=2){
@@ -1145,7 +1285,7 @@ export class lpu237 extends hid {
                 }
             }
         }
-    }
+    };
 
     public set_msr_data_mask = (n_track :number,n_combi :number,c_data_mask:number):void => {
         if(n_track>=0 && n_track<=2){
@@ -1156,7 +1296,7 @@ export class lpu237 extends hid {
                 }
             }
         }
-    }
+    };
 
     public set_msr_use_parity = (n_track :number,n_combi :number,b_use_parity:boolean):void => {
         if(n_track>=0 && n_track<=2){
@@ -1167,7 +1307,7 @@ export class lpu237 extends hid {
                 }
             }
         }
-    }
+    };
 
     public set_msr_parity_type = (n_track :number,n_combi :number,pt:type_parity):void => {
         if(n_track>=0 && n_track<=2){
@@ -1178,7 +1318,7 @@ export class lpu237 extends hid {
                 }
             }
         }
-    }
+    };
 
     public set_msr_stxl = (n_track :number,n_combi :number,c_stxl:number):void => {
         if(n_track>=0 && n_track<=2){
@@ -1189,7 +1329,7 @@ export class lpu237 extends hid {
                 }
             }
         }
-    }
+    };
 
     public set_msr_etxl = (n_track :number,n_combi :number,c_etxl:number):void => {
         if(n_track>=0 && n_track<=2){
@@ -1200,7 +1340,7 @@ export class lpu237 extends hid {
                 }
             }
         }
-    }
+    };
 
     public set_msr_use_ecm = (n_track :number,n_combi :number,b_use_ecm:boolean):void => {
         if(n_track>=0 && n_track<=2){
@@ -1211,7 +1351,7 @@ export class lpu237 extends hid {
                 }
             }
         }
-    }
+    };
 
     public set_msr_ecm_type = (n_track :number,n_combi :number,et:type_error_correct):void => {
         if(n_track>=0 && n_track<=2){
@@ -1222,7 +1362,7 @@ export class lpu237 extends hid {
                 }
             }
         }
-    }
+    };
 
     public set_msr_add_value = (n_track :number,n_combi :number,n_add_value:number):void => {
         if(n_track>=0 && n_track<=2){
@@ -1233,7 +1373,7 @@ export class lpu237 extends hid {
                 }
             }
         }
-    }
+    };
 
     public set_msr_private_prefix = (n_track :number, n_combi :number, s_tag:string|null ):void => {
         if(n_track>=0 && n_track<=2){
@@ -1244,7 +1384,7 @@ export class lpu237 extends hid {
                 }
             }
         }
-    }
+    };
 
     public set_msr_private_postfix = (n_track :number, n_combi :number, s_tag:string|null ):void => {
         if(n_track>=0 && n_track<=2){
@@ -1255,42 +1395,42 @@ export class lpu237 extends hid {
                 }
             }
         }
-    }
+    };
 
     public set_prefix_ibutton = (n_track :number, n_combi :number, s_tag:string|null ):void => {
         if( this._s_prefix_ibutton !== s_tag){
             util.insert_to_set( this._set_change_parameter, _type_change_parameter.cp_Prefix_iButton);
             this._s_prefix_ibutton = s_tag;
         }
-    }
+    };
 
     public set_postfix_ibutton = (n_track :number, n_combi :number, s_tag:string|null ):void => {
         if(this._s_postfix_ibutton !== s_tag){
             util.insert_to_set( this._set_change_parameter, _type_change_parameter.cp_Postfix_iButton);
             this._s_postfix_ibutton = s_tag;
         }
-    }
+    };
 
     public set_ibutton_remove = (n_track :number, n_combi :number, s_tag:string|null ):void => {
         if( this._s_ibutton_remove !== s_tag){
             util.insert_to_set( this._set_change_parameter, _type_change_parameter.cp_iButton_Remove);
             this._s_ibutton_remove = s_tag;
         }
-    }
+    };
 
     public set_prefix_ibutton_remove = (n_track :number, n_combi :number, s_tag:string|null ):void => {
         if( this._s_prefix_ibutton_remove !== s_tag ){
             util.insert_to_set( this._set_change_parameter, _type_change_parameter.cp_Prefix_iButton_Remove);
             this._s_prefix_ibutton_remove = s_tag;
         }
-    }
+    };
 
     public set_postfix_ibutton_remove = (n_track :number, n_combi :number, s_tag:string|null ):void => {
         if(this._s_postfix_ibutton_remove !== s_tag){
             util.insert_to_set( this._set_change_parameter, _type_change_parameter.cp_Postfix_iButton_Remove);
             this._s_postfix_ibutton_remove = s_tag;
         }
-    }
+    };
 
     public set_blank = (ar_blank:number[]):void => {
         if(ar_blank.length === 4 ){
@@ -1301,7 +1441,7 @@ export class lpu237 extends hid {
                 }
             }
         }
-    }
+    };
 
 
     /** * @description get error message with error name
@@ -1648,41 +1788,69 @@ export class lpu237 extends hid {
     };
 
     /**
+     * @public
+     * @function get_interface_string
+     * @returns {string} the current system interface string.
+     */
+    public get_interface_string = (): string => {
+        return lpu237._get_interface_string(this._n_interface);
+    };
+
+    /**
      * @private
-     * @function _get_system_interface_string
+     * @function _get_interface_string
      * @param {number} inf type_system_interface value.
      * @returns {string} system interface string.
      */
-    private _get_system_interface_string = (inf: number): string => {
+    private static _get_interface_string(inf: number): string{
         // 유효성 검사
         if (typeof inf !== 'number') {
             return "unknown";
         }
 
-        // enum을 활용한 매핑
-        switch (inf) {
-            case type_system_interface.system_interface_usb_keyboard:
-                return "Usb Hid keyboard";
-
-            case type_system_interface.system_interface_usb_msr:
-                return "Usb Hid vendor defined";
-
-            case type_system_interface.system_interface_uart:
-                return "Uart";
-
-            case type_system_interface.system_interface_ps2_stand_alone:
-                return "Standalone PS2";
-
-            case type_system_interface.system_interface_ps2_bypass:
-                return "Bypass PS2";
-
-            case type_system_interface.system_interface_by_hw_setting:
-                return "By HW setting";
-
-            default:
-                return "unknown";
-        }
+        const s_value = Object.keys(lpu237.INTERFACE_MAP).find(k => lpu237.INTERFACE_MAP[k] === inf) || 'unknown';
+        return s_value;
     }
+
+        /**
+     * @private
+     * @function _get_order_string
+     * @returns {string} the current msr sending orders string.
+     */
+    public get_order_string = (): string =>{
+        return lpu237._get_order_string(this._n_order);
+    }
+    /**
+     * @private
+     * @function _get_order_string
+     * @param {number[]} ar_order 3 number array.
+     * @returns {string} msr sending orders string.
+     */
+    private static _get_order_string(ar_order: number[]): string{
+        // 유효성 검사
+        if( !Array.isArray(ar_order)){
+            return "unknown";
+        }
+
+        if (ar_order.length !=3 ) {
+            return "unknown";
+        }
+
+        const s_value = Object.keys(lpu237.ORDER_MAP).find(
+            k => lpu237.ORDER_MAP[k].length === ar_order.length && lpu237.ORDER_MAP[k].every((v,i) => v === ar_order[i])
+        ) || 'unknown';
+        return s_value;
+    }
+
+
+    /**
+     * @public
+     * @function get_keyboard_language_index_string
+     * @returns {string} the current language name.
+     */
+    public get_keyboard_language_index_string = (): string => {
+        return lpu237._get_keyboard_language_index_string(this._n_language_index);
+    };
 
     /**
      * @private
@@ -1690,39 +1858,13 @@ export class lpu237 extends hid {
      * @param {number} lang type_keyboard_language_index value.
      * @returns {string} language name.
      */
-    private _get_keyboard_language_index_string = (lang: number): string => {
+    private static _get_keyboard_language_index_string(lang: number): string{
         // 유효성 검사
         if (typeof lang !== 'number') {
             return "unknown";
         }
-
-        // enum 값을 기반으로 언어 이름 매핑
-        switch (lang) {
-            case type_keyboard_language_index.language_map_index_english:
-                return "English";
-            case type_keyboard_language_index.language_map_index_spanish:
-                return "Spanish";
-            case type_keyboard_language_index.language_map_index_danish:
-                return "Danish";
-            case type_keyboard_language_index.language_map_index_french:
-                return "French";
-            case type_keyboard_language_index.language_map_index_german:
-                return "German";
-            case type_keyboard_language_index.language_map_index_italian:
-                return "Italian";
-            case type_keyboard_language_index.language_map_index_norwegian:
-                return "Norwegian";
-            case type_keyboard_language_index.language_map_index_swedish:
-                return "Swedish";
-            case type_keyboard_language_index.language_map_index_uk_english:
-                return "UK English";
-            case type_keyboard_language_index.language_map_index_israel:
-                return "Israel";
-            case type_keyboard_language_index.language_map_index_turkey:
-                return "Turkey";
-            default:
-                return "unknown";
-        }
+        const s_value = Object.keys(lpu237.LANGUAGE_MAP).find(k => lpu237.LANGUAGE_MAP[k] === lang) || 'unknown';
+        return s_value;
     }
 
     /**
@@ -1742,7 +1884,7 @@ export class lpu237 extends hid {
         const n_freq = n_count / 8.67;
 
         return n_freq;
-    }
+    };
 
     /**
      * @private
@@ -1751,7 +1893,7 @@ export class lpu237 extends hid {
      * @param s_tag1 비교할 두 번째 16진수 태그 문자열
      * @returns 두 태그의 내용이 일치하면 true, 그렇지 않으면 false
      */
-    private _is_equal_tag = (s_tag0: string, s_tag1: string): boolean => {
+    private static  _is_equal_tag(s_tag0: string, s_tag1: string): boolean{
         // 1. 기본 유효성 및 타입 검사
         if (typeof s_tag0 !== 'string' || typeof s_tag1 !== 'string') return false;
 
@@ -1762,8 +1904,8 @@ export class lpu237 extends hid {
         if (s_tag0.length === 0 && s_tag1.length === 0) return true;
 
         // 2. 문자열을 숫자 배열(Byte Array)로 변환
-        const n_tag0: number[] = this._hex_to_bytes(s_tag0);
-        const n_tag1: number[] = this._hex_to_bytes(s_tag1);
+        const n_tag0: number[] = lpu237._hex_to_bytes(s_tag0);
+        const n_tag1: number[] = lpu237._hex_to_bytes(s_tag1);
 
         // 3. 길이(Length) 바이트 추출 (첫 번째 요소)
         const len0 = n_tag0.shift();
@@ -1782,8 +1924,16 @@ export class lpu237 extends hid {
         }
 
         return true;
-    }
+    };
 
+    /**
+     * @public
+     * @description i-button 읽기 모드 값을 기반으로 모드 명칭 문자열을 반환합니다.
+     * @returns 현재 i-button 읽기 모드 명칭 (기본값 "unknown")
+     */
+    public get_ibutton_mode_string = (): string => {
+        return lpu237._get_ibutton_mode_string(this._c_blank[2]&0x0F)
+    };
 
     /**
      * @private
@@ -1791,31 +1941,31 @@ export class lpu237 extends hid {
      * @param type_ibutton_mode _type_ibutton_mode 열거형 값
      * @returns i-button 읽기 모드 명칭 (기본값 "unknown")
      */
-    private _get_ibutton_mode_string(type_ibutton_mode: _type_ibutton_mode): string {
+    private static _get_ibutton_mode_string(type_ibutton_mode: _type_ibutton_mode): string {
         // 1. 타입 유효성 검사
         if (typeof type_ibutton_mode !== 'number') {
             return "unknown";
         }
+        const s_value = Object.keys(lpu237.IBUTTON_MODE_MAP).find(k => lpu237.IBUTTON_MODE_MAP[k] === type_ibutton_mode) || 'unknown';
+        return s_value;
+    }
 
-        // 2. 모드별 문자열 매핑
-        switch (type_ibutton_mode) {
-            case _type_ibutton_mode.ibutton_none:
-                return "None mode";
-
-            case _type_ibutton_mode.ibutton_zeros:
-                return "Zeros mode";
-
-            case _type_ibutton_mode.ibutton_f12:
-                return "F12 key mode";
-
-            case _type_ibutton_mode.ibutton_zeros7:
-                return "Zeros 7times mode";
-
-            case _type_ibutton_mode.ibutton_addmit:
-                return "Addmit codestick mode";
-
-            default:
-                return "unknown";
+    /**
+     * @public
+     * @description 현재 MMD1100 리셋 간격 값을 문자열로 반환합니다.
+     *  
+     *  원래 함수 이름을 get_mmd1100_reset_interval_string() 로 해야 하나, 기존에 있어서, 하위 버전 호환성 문제로 이름이 좀 이상하게 지어짐. 
+     * 
+     * @returns {string} 리셋 간격 설명 문자열
+     */
+    public get_mmd1100_reset_interval_string_cur = (): string => {
+        if (this._first_version_greater_then_second_version(false, this._version, [5, 15, 0, 0]) &&
+            this._first_version_greater_then_second_version(false, [6, 0, 0, 0], this._version)) {
+            const isGreater518 = this._first_version_greater_then_second_version(false, this._version, [5, 18, 0, 0]);
+            return this.get_mmd1100_reset_interval_string(this._c_blank[1] & 0xF0, isGreater518)
+        }
+        else{
+            return "unknown";
         }
     }
 
@@ -1824,7 +1974,7 @@ export class lpu237 extends hid {
      * @description MMD1100 리셋 간격 값을 문자열로 반환합니다.
      * @param n_interval 리셋 간격 값 (0~240, 16의 배수)
      * @param b_device_version_greater_then_5_18 장치 펌웨어 버전이 5.18보다 높은지 여부
-     * @returns 리셋 간격 설명 문자열
+     * @returns {string} 리셋 간격 설명 문자열
      */
     public get_mmd1100_reset_interval_string(
         n_interval: number,
@@ -1834,34 +1984,18 @@ export class lpu237 extends hid {
         if (typeof n_interval !== 'number' || n_interval < 0 || n_interval > 240) {
             return "unknown";
         }
-
-        // 2. 특수 케이스 처리 (0 및 240)
-        if (n_interval === 0) {
-            return "0(default, 03:22)";
-        }
-
-        if (n_interval === 240) {
-            return b_device_version_greater_then_5_18
-                ? "240(disable)"
-                : "240(don't use code)";
-        }
-
         // 16의 배수가 아니면 unknown 반환
         if (n_interval % 16 !== 0) {
             return "unknown";
         }
 
-        // 3. 간격별 시간 정보 매핑
-        const intervalMap: Record<number, string> = {
-            16: "06:43", 32: "13:27", 48: "20:10", 64: "26:53",
-            80: "33:36", 96: "40:19", 112: "47:03", 128: "53:46",
-            144: "01:00:29", 160: "01:07:12", 176: "01:13:55",
-            192: "01:20:39", 208: "01:27:22", 224: "01:34:05"
-        };
+        // 2. 특수 케이스 처리 (240)
+        if (n_interval === 240 && !b_device_version_greater_then_5_18 ) {
+            return "don't use";
+        }
 
-        const timeInfo = intervalMap[n_interval];
-
-        return timeInfo ? `${n_interval}(${timeInfo})` : "unknown";
+        const s_value = Object.keys(lpu237.RESET_INTERVAL_MAP).find(k => lpu237.RESET_INTERVAL_MAP[k] === n_interval) || 'unknown';
+        return s_value;
     }
 
     /**
@@ -1876,9 +2010,9 @@ export class lpu237 extends hid {
             return "";
         }
 
-        let d = this._get_direction_string(this._n_direction[n_track]);
+        let d = lpu237._get_direction_string(this._n_direction[n_track]);
         return d;
-    }
+    };
 
     /**
      * @private
@@ -1886,13 +2020,13 @@ export class lpu237 extends hid {
      * @param direction type_direction 열거형 값
      * @returns 읽기 방향 명칭 (기본값 "unknown")
      */
-    private _get_direction_string(direction: type_direction): string {
+    private static _get_direction_string(direction: type_direction): string {
         // 1. 타입 유효성 검사
         if (typeof direction !== 'number') {
             return "unknown";
         }
 
-        const s_d = Object.keys(this._DIRECTION_MAP).find(k => this._DIRECTION_MAP[k] === direction) || 'unknown';
+        const s_d = Object.keys(lpu237.DIRECTION_MAP).find(k => lpu237.DIRECTION_MAP[k] === direction) || 'unknown';
         return s_d;
     }
 
@@ -2028,8 +2162,8 @@ export class lpu237 extends hid {
         second_version: number[] | number
     ): boolean => {
         // 1. 입력 유효성 검사 및 정규화 (배열로 통일)
-        const ar1: number[] = this._normalize_version(first_version);
-        const ar2: number[] = this._normalize_version(second_version);
+        const ar1: number[] = lpu237._normalize_version(first_version);
+        const ar2: number[] = lpu237._normalize_version(second_version);
 
         // 2. 버전 비교 (Major -> Minor -> Patch -> Build 순서)
         for (let i = 0; i < 4; i++) {
@@ -2040,7 +2174,7 @@ export class lpu237 extends hid {
 
         // 3. 모든 자릿수가 같을 경우 b_equal 설정에 따라 결과 반환
         return b_equal;
-    }
+    };
 
     /**
      * @private
@@ -2051,7 +2185,7 @@ export class lpu237 extends hid {
         if (typeof s_response !== 'string') return false;
 
         // 헤더 사이즈 체크 (16진수 문자열이므로 헤더 길이에 2를 곱함)
-        if (s_response.length < (2 * this._const_min_size_response_header)) return false;
+        if (s_response.length < (2 * lpu237._const_min_size_response_header)) return false;
 
         // Prefix 확인: 0번째 바이트가 0x52('R')인지 확인
         const prefix = parseInt(s_response.substring(0, 2), 16);
@@ -2062,7 +2196,7 @@ export class lpu237 extends hid {
 
         // 0xFF(Good) 또는 0x80(Negative Good)이면 성공
         return c_result === 0xFF || c_result === 0x80;
-    }
+    };
 
     /**
      * @private
@@ -2071,13 +2205,13 @@ export class lpu237 extends hid {
      */
     private _is_good_response = (s_response: string): boolean => {
         if (typeof s_response !== 'string') return false;
-        if (s_response.length < (2 * this._const_min_size_response_header)) return false;
+        if (s_response.length < (2 * lpu237._const_min_size_response_header)) return false;
 
         if (parseInt(s_response.substring(0, 2), 16) !== 0x52) return false;
 
         const c_result = parseInt(s_response.substring(2, 4), 16);
         return c_result === 0xFF;
-    }
+    };
 
     /**
      * @private
@@ -2085,7 +2219,7 @@ export class lpu237 extends hid {
      */
     private _is_success_enter_config_mode = (s_response: string): boolean => {
         return this._is_success_response(s_response);
-    }
+    };
 
     /**
      * @private
@@ -2093,7 +2227,7 @@ export class lpu237 extends hid {
      */
     private _is_success_leave_config_mode = (s_response: string): boolean => {
         return this._is_success_response(s_response);
-    }
+    };
 
     /**
      * @private
@@ -2101,7 +2235,7 @@ export class lpu237 extends hid {
      */
     private _is_success_apply_config_mode = (s_response: string): boolean => {
         return this._is_success_response(s_response);
-    }
+    };
 
     /**
      * @private
@@ -2118,7 +2252,7 @@ export class lpu237 extends hid {
         }
 
         // 16진수 문자열은 2글자가 1바이트이므로 길이 비교 시 2를 곱함
-        if (s_response.length < (2 * this._const_min_size_response_header)) {
+        if (s_response.length < (2 * lpu237._const_min_size_response_header)) {
             return n_length;
         }
 
@@ -2135,14 +2269,40 @@ export class lpu237 extends hid {
         n_length = parseInt(s_length_hex, 16);
 
         return n_length;
-    }
+    };
 
     /**
      * @private
-     * @function _get_data_field_member_of_response_by_number_array
+     * @function _get_data_field_member_of_response_by_int_number_array
+     * @description Data 필드를 숫자 배열(Int array)로 반환합니다. int 의 크기는 4 bytes.
+     */
+    private _get_data_field_member_of_response_by_int_number_array = (s_response: string): number[] | null => {
+        const n_length = this._get_valid_length(s_response);
+        if (n_length <= 0) return null;
+        if (n_length%4 != 0) return null;
+
+        const n_data: number[] = [];
+        let n_offset = 3*2; // Data 시작 오프셋 (Prefix, Result, Length 이후)
+
+        for (let i = n_offset; i < (n_offset+n_length*2); i += 8) {
+            // little-endian이므로 바이트 순서를 뒤집어서 16진수로 읽음
+            const reversed = 
+            s_response.slice(i+6, i+8) +
+            s_response.slice(i+4, i+6) +
+            s_response.slice(i+2, i+4) +
+            s_response.slice(i,   i+2);
+            
+            n_data.push(Number.parseInt(reversed, 16));
+        }        
+        return n_data;
+    };
+
+    /**
+     * @private
+     * @function _get_data_field_member_of_response_by_byte_number_array
      * @description Data 필드를 숫자 배열(byte array)로 반환합니다.
      */
-    private _get_data_field_member_of_response_by_number_array = (s_response: string): number[] | null => {
+    private _get_data_field_member_of_response_by_byte_number_array = (s_response: string): number[] | null => {
         const n_length = this._get_valid_length(s_response);
         if (n_length <= 0) return null;
 
@@ -2154,7 +2314,7 @@ export class lpu237 extends hid {
             n_data.push(val);
         }
         return n_data;
-    }
+    };
 
     /**
      * @private
@@ -2174,7 +2334,7 @@ export class lpu237 extends hid {
             s_data += String.fromCharCode(n_val);
         }
         return s_data;
-    }
+    };
 
     /**
      * @private
@@ -2187,7 +2347,7 @@ export class lpu237 extends hid {
 
         const n_offset = 3;
         return s_response.substring(n_offset * 2, (n_offset + n_length) * 2);
-    }
+    };
 
     /**
      * @private
@@ -2204,7 +2364,7 @@ export class lpu237 extends hid {
             if (c_val !== 0) return true;
         }
         return false;
-    }
+    };
 
     /**
      * @private
@@ -2220,18 +2380,19 @@ export class lpu237 extends hid {
 
         // 외부 유틸리티 호출 (elpusk 라이브러리 가정)
         return util.get_number_from_little_endian_hex_string(s_data);
-    }
+    };
 
     /**
      * @description 공통 유효성 검사 및 데이터 길이 추출 내부 메서드
+     * @return {number} get data length field.( size is byte unit)
      */
     private _get_valid_length = (s_response: string): number => {
         if (typeof s_response !== 'string') return -1;
-        if (s_response.length < (2 * this._const_min_size_response_header)) return -1;
+        if (s_response.length < (2 * lpu237._const_min_size_response_header)) return -1;
 
         // Index 2 (Offset 2)에 위치한 Length 필드 추출
         return parseInt(s_response.substring(4, 6), 16);
-    }
+    };
 
     /**
      * @private
@@ -2257,10 +2418,10 @@ export class lpu237 extends hid {
         }
 
         // 3. 데이터 필드에서 버전 숫자 배열 추출
-        version = this._get_data_field_member_of_response_by_number_array(s_response);
+        version = this._get_data_field_member_of_response_by_byte_number_array(s_response);
 
         return version;
-    }
+    };
 
     /**
      * @private
@@ -2286,10 +2447,10 @@ export class lpu237 extends hid {
         }
 
         // 3. 데이터 필드(Payload)를 숫자 배열로 변환하여 반환
-        version = this._get_data_field_member_of_response_by_number_array(s_response);
+        version = this._get_data_field_member_of_response_by_byte_number_array(s_response);
 
         return version;
-    }
+    };
 
     /**
      * @private
@@ -2308,7 +2469,7 @@ export class lpu237 extends hid {
         }
 
         return this._get_data_field_member_of_response_by_string(s_response);
-    }
+    };
 
     /**
      * @private
@@ -2317,7 +2478,7 @@ export class lpu237 extends hid {
      */
     private _get_support_mmd1000_from_response = (s_response: string): boolean => {
         return this._is_good_response(s_response);
-    }
+    };
 
     /**
      * @private
@@ -2330,13 +2491,13 @@ export class lpu237 extends hid {
             return null;
         }
 
-        const n_size = this._const_the_size_of_uid;
+        const n_size = lpu237._const_the_size_of_uid;
         if (this._get_length_member_of_response(s_response) !== n_size) {
             return null;
         }
 
         return this._get_data_field_member_of_response_by_hex_string(s_response);
-    }
+    };
 
     /**
      * @private
@@ -2345,7 +2506,7 @@ export class lpu237 extends hid {
      */
     private _get_ibutton_type_from_response = (s_response: string): boolean => {
         return this._is_good_response(s_response);
-    }
+    };
 
     /**
      * @private
@@ -2354,7 +2515,7 @@ export class lpu237 extends hid {
      */
     private _get_type_from_response = (s_response: string): boolean => {
         return this._is_good_response(s_response);
-    }
+    };
 
     /**
      * @private
@@ -2373,7 +2534,7 @@ export class lpu237 extends hid {
         }
 
         return this._get_data_field_member_of_response_by_boolean(s_response);
-    }
+    };
 
     /**
      * @private
@@ -2391,8 +2552,8 @@ export class lpu237 extends hid {
             return null;
         }
 
-        return this._get_data_field_member_of_response_by_number_array(s_response);
-    }
+        return this._get_data_field_member_of_response_by_int_number_array(s_response);
+    };
 
     /**
      * @private
@@ -2410,8 +2571,8 @@ export class lpu237 extends hid {
             return null;
         }
 
-        return this._get_data_field_member_of_response_by_number_array(s_response);
-    }
+        return this._get_data_field_member_of_response_by_byte_number_array(s_response);
+    };
 
     /**
      * @private
@@ -2430,7 +2591,7 @@ export class lpu237 extends hid {
         }
 
         return this._get_data_field_member_of_response_by_number(s_response);
-    }
+    };
 
     /**
      * @private
@@ -2449,7 +2610,7 @@ export class lpu237 extends hid {
         }
 
         return this._get_data_field_member_of_response_by_number(s_response);
-    }
+    };
 
     /**
      * @private
@@ -2468,7 +2629,7 @@ export class lpu237 extends hid {
         }
 
         return this._get_data_field_member_of_response_by_number(s_response);
-    }
+    };
 
     /**
      * @private
@@ -2483,7 +2644,7 @@ export class lpu237 extends hid {
         if (this._get_length_member_of_response(s_response) !== n_size) return -1;
 
         return this._get_data_field_member_of_response_by_number(s_response);
-    }
+    };
 
     /**
      * @private
@@ -2506,7 +2667,7 @@ export class lpu237 extends hid {
         if (this._get_length_member_of_response(s_response) !== n_size) return null;
 
         return this._get_data_field_member_of_response_by_boolean(s_response);
-    }
+    };
 
     /**
      * @private
@@ -2529,7 +2690,7 @@ export class lpu237 extends hid {
         if (this._get_length_member_of_response(s_response) !== n_size) return -1;
 
         return this._get_data_field_member_of_response_by_number(s_response);
-    }
+    };
 
     /**
      * @private
@@ -2544,7 +2705,7 @@ export class lpu237 extends hid {
         if (this._get_length_member_of_response(s_response) !== n_size) return null;
 
         return this._get_data_field_member_of_response_by_hex_string(s_response);
-    }
+    };
 
     /**
      * @private
@@ -2559,7 +2720,7 @@ export class lpu237 extends hid {
         if (this._get_length_member_of_response(s_response) !== n_size) return null;
 
         return this._get_data_field_member_of_response_by_hex_string(s_response);
-    }
+    };
 
     /**
      * @private
@@ -2582,7 +2743,7 @@ export class lpu237 extends hid {
         if (this._get_length_member_of_response(s_response) !== n_size) return -1;
 
         return this._get_data_field_member_of_response_by_number(s_response);
-    }
+    };
 
     /**
      * @private
@@ -2618,7 +2779,7 @@ export class lpu237 extends hid {
 
         // 4. 데이터 필드를 숫자로 변환하여 반환
         return this._get_data_field_member_of_response_by_number(s_response);
-    }
+    };
 
     /**
      * @private
@@ -2640,7 +2801,7 @@ export class lpu237 extends hid {
         if (this._get_length_member_of_response(s_response) !== n_size) return -1;
 
         return this._get_data_field_member_of_response_by_number(s_response);
-    }
+    };
 
     /**
      * @private
@@ -2662,7 +2823,7 @@ export class lpu237 extends hid {
         if (this._get_length_member_of_response(s_response) !== n_size) return 0;
 
         return this._get_data_field_member_of_response_by_number(s_response);
-    }
+    };
 
     /**
      * @private
@@ -2684,7 +2845,7 @@ export class lpu237 extends hid {
         if (this._get_length_member_of_response(s_response) !== n_size) return null;
 
         return this._get_data_field_member_of_response_by_boolean(s_response);
-    }
+    };
 
     /**
      * @private
@@ -2706,7 +2867,7 @@ export class lpu237 extends hid {
         if (this._get_length_member_of_response(s_response) !== n_size) return -1;
 
         return this._get_data_field_member_of_response_by_number(s_response);
-    }
+    };
 
     /**
      * @private
@@ -2730,7 +2891,7 @@ export class lpu237 extends hid {
         if (this._get_length_member_of_response(s_response) !== n_size) return 0;
 
         return this._get_data_field_member_of_response_by_number(s_response);
-    }
+    };
 
     /**
      * @private
@@ -2754,7 +2915,7 @@ export class lpu237 extends hid {
         if (this._get_length_member_of_response(s_response) !== n_size) return 0;
 
         return this._get_data_field_member_of_response_by_number(s_response);
-    }
+    };
 
     /**
      * @private
@@ -2776,7 +2937,7 @@ export class lpu237 extends hid {
         if (this._get_length_member_of_response(s_response) !== n_size) return null;
 
         return this._get_data_field_member_of_response_by_boolean(s_response);
-    }
+    };
 
     /**
      * @private
@@ -2798,7 +2959,7 @@ export class lpu237 extends hid {
         if (this._get_length_member_of_response(s_response) !== n_size) return -1;
 
         return this._get_data_field_member_of_response_by_number(s_response);
-    }
+    };
 
     /**
      * @private
@@ -2820,7 +2981,7 @@ export class lpu237 extends hid {
         if (this._get_length_member_of_response(s_response) !== n_size) return -1;
 
         return this._get_data_field_member_of_response_by_number(s_response);
-    }
+    };
 
     /**
      * @private
@@ -2846,7 +3007,7 @@ export class lpu237 extends hid {
 
         // 3. 헥사 문자열로 변환하여 반환
         return this._get_data_field_member_of_response_by_hex_string(s_response);
-    }
+    };
 
     /**
      * @private
@@ -2872,7 +3033,7 @@ export class lpu237 extends hid {
 
         // 3. 헥사 문자열로 변환하여 반환
         return this._get_data_field_member_of_response_by_hex_string(s_response);
-    }
+    };
 
     /**
      * @private
@@ -2887,7 +3048,7 @@ export class lpu237 extends hid {
         if (this._get_length_member_of_response(s_response) !== n_size) return null;
 
         return this._get_data_field_member_of_response_by_hex_string(s_response);
-    }
+    };
 
     /**
      * @private
@@ -2902,7 +3063,7 @@ export class lpu237 extends hid {
         if (this._get_length_member_of_response(s_response) !== n_size) return null;
 
         return this._get_data_field_member_of_response_by_hex_string(s_response);
-    }
+    };
 
     /**
      * @private
@@ -2917,7 +3078,7 @@ export class lpu237 extends hid {
         if (this._get_length_member_of_response(s_response) !== n_size) return null;
 
         return this._get_data_field_member_of_response_by_hex_string(s_response);
-    }
+    };
 
     /**
      * @private
@@ -2932,7 +3093,7 @@ export class lpu237 extends hid {
         if (this._get_length_member_of_response(s_response) !== n_size) return null;
 
         return this._get_data_field_member_of_response_by_hex_string(s_response);
-    }
+    };
 
     /**
      * @private
@@ -2947,7 +3108,7 @@ export class lpu237 extends hid {
         if (this._get_length_member_of_response(s_response) !== n_size) return null;
 
         return this._get_data_field_member_of_response_by_hex_string(s_response);
-    }
+    };
 
     /**
      * @private
@@ -2963,7 +3124,7 @@ export class lpu237 extends hid {
         if (this._get_length_member_of_response(s_response) !== n_size) return null;
 
         return this._get_data_field_member_of_response_by_hex_string(s_response);
-    }
+    };
 
     /**
      * @private
@@ -2979,21 +3140,21 @@ export class lpu237 extends hid {
         if (this._get_length_member_of_response(s_response) !== n_size) return null;
 
         return this._get_data_field_member_of_response_by_hex_string(s_response);
-    }
+    };
 
     /**
      * @private
      * @function _get_global_pre_postfix_send_condition_from_string
      * @description 문자열 입력을 바탕으로 전역 접두사/접미사 전송 조건을 결정합니다.
-     * @param {string} s_string - "and" 또는 "or"
+     * @param {string} s_string - "and" "No Error in all tracks", "One more track is normal" 또는 "or"
      * @returns {boolean | null} true(And 조건: 모든 트랙 성공 시), false(Or 조건: 하나만 성공해도), 에러 시 null
      */
-    private _get_global_pre_postfix_send_condition_from_string(s_string: string): boolean | null {
+    private static _get_global_pre_postfix_send_condition_from_string(s_string: string): boolean | null {
         if (typeof s_string !== 'string') return null;
 
-        if (s_string === "and") {
+        if (s_string === "and" || s_string === lpu237.GLOBAL_TAG_SEND_CONDITION_ARRAY[1]) {
             return true;
-        } else if (s_string === "or") {
+        } else if (s_string === "or" || s_string === lpu237.GLOBAL_TAG_SEND_CONDITION_ARRAY[0]) {
             return false;
         }
 
@@ -3007,36 +3168,49 @@ export class lpu237 extends hid {
      * @param {string} s_string - "123", "132", "213", "231", "312", "321" 중 하나
      * @returns {number[] | null} 트랙 인덱스 배열 (예: [0, 1, 2]), 에러 시 null
      */
-    private _get_track_order_from_string(s_string: string): number[] | null {
-        if (typeof s_string !== 'string') return null;
+    private static _get_track_order_from_string(s_string: string): number[] | null {
 
-        // 매핑 테이블을 사용하여 가독성 개선
-        const orderMap: { [key: string]: number[] } = {
-            "123": [0, 1, 2],
-            "132": [0, 2, 1],
-            "213": [1, 0, 2],
-            "231": [1, 2, 0],
-            "312": [2, 0, 1],
-            "321": [2, 1, 0]
-        };
-
-        return orderMap[s_string] || null;
+        const validDirectionKeys = Object.keys(lpu237.ORDER_MAP);
+        if (validDirectionKeys.includes(s_string)) {            
+            return lpu237.ORDER_MAP[s_string];
+        }
+        else{
+            return null;
+        }
     }
 
     /**
      * @private
      * @function _get_indicate_error_condition_from_string
-     * @description 장치가 성공/에러 상태를 표시할 기준 조건을 결정합니다.
+     * @description 문자열 입력을 바탕으로 장치가 성공/에러 상태를 표시할 기준 조건을 결정합니다.
+     * @param {string} s_string - "and" "One more track is normal", "No Error in all tracks" 또는 "or"
      * @returns {boolean | null} true(And: 모든 트랙 성공 시만 성공 표시), false(Or: 하나만 성공해도 성공 표시), 에러 시 null
      */
-    private _get_indicate_error_condition_from_string(s_string: string): boolean | null {
+    private static _get_indicate_error_condition_from_string(s_string: string): boolean | null {
         if (typeof s_string !== 'string') return null;
 
-        if (s_string === "and") return true;
-        if (s_string === "or") return false;
+        if (s_string === "and" || s_string == lpu237.SUCCESS_INDICATE_CONDITION_ARRAY[1]) return true;
+        if (s_string === "or" || s_string == lpu237.SUCCESS_INDICATE_CONDITION_ARRAY[0]) return false;
 
         return null;
     }
+
+        /**
+     * @private
+     * @function _get_ibutton_mode_from_string
+     * @description 문자열을 기반으로 ibutton 모드 숫자 값을 얻음.
+     * @returns {number} 숫자값, 에러 시 -1. 이 값은 this._c_blank array 의 인덱스 2(인덱스는 0부터)의 하위 nibble 에 설정되어야 한다.
+     */
+    private static _get_ibutton_mode_from_string(s_string: string): number{
+
+        const validDirectionKeys = Object.keys(lpu237.IBUTTON_MODE_MAP);
+        if (validDirectionKeys.includes(s_string)) {            
+            return lpu237.IBUTTON_MODE_MAP[s_string];
+        }
+        else{
+            return -1;
+        }
+    };
 
     /**
      * @private
@@ -3044,17 +3218,16 @@ export class lpu237 extends hid {
      * @description 문자열을 기반으로 시스템 인터페이스 번호를 가져옵니다.
      * @returns {number} 인터페이스 번호, 에러 시 -1
      */
-    private _get_interface_from_string(s_string: string): number {
-        if (typeof s_string !== 'string') return -1;
+    private static _get_interface_from_string(s_string: string): number{
 
-        const interfaceMap: Record<string, number> = {
-            "usb_kb": type_system_interface.system_interface_usb_keyboard,
-            "usb_hid": type_system_interface.system_interface_usb_msr,
-            "rs232": type_system_interface.system_interface_uart
-        };
-
-        return interfaceMap[s_string] ?? -1;
-    }
+        const validDirectionKeys = Object.keys(lpu237.INTERFACE_MAP);
+        if (validDirectionKeys.includes(s_string)) {            
+            return lpu237.INTERFACE_MAP[s_string];
+        }
+        else{
+            return -1;
+        }
+    };
 
     /**
      * @private
@@ -3062,23 +3235,15 @@ export class lpu237 extends hid {
      * @description 키보드 시뮬레이션에 사용할 언어 인덱스를 가져옵니다.
      * @returns {number} 언어 인덱스 번호, 에러 시 -1
      */
-    private _get_language_from_string(s_string: string): number {
-        if (typeof s_string !== 'string') return -1;
+    private static _get_language_from_string(s_string: string): number{
 
-        const langMap: Record<string, number> = {
-            "usa_english": type_keyboard_language_index.language_map_index_english,
-            "spanish": type_keyboard_language_index.language_map_index_spanish,
-            "danish": type_keyboard_language_index.language_map_index_danish,
-            "french": type_keyboard_language_index.language_map_index_french,
-            "german": type_keyboard_language_index.language_map_index_german,
-            "italian": type_keyboard_language_index.language_map_index_italian,
-            "norwegian": type_keyboard_language_index.language_map_index_norwegian,
-            "swedish": type_keyboard_language_index.language_map_index_swedish,
-            "hebrew": type_keyboard_language_index.language_map_index_israel,
-            "turkey": type_keyboard_language_index.language_map_index_turkey
-        };
-
-        return langMap[s_string] ?? -1;
+        const validDirectionKeys = Object.keys(lpu237.LANGUAGE_MAP);
+        if (validDirectionKeys.includes(s_string)) {            
+            return lpu237.LANGUAGE_MAP[s_string];
+        }
+        else{
+            return -1;
+        }
     }
 
     /**
@@ -3088,12 +3253,12 @@ export class lpu237 extends hid {
      * @param {string} s_string - "on", "off" 또는 숫자로 된 주파수 문자열
      * @returns {number | null} 주파수 카운터 값, 에러 시 null
      */
-    private _get_buzzer_count_from_string = (s_string: string): number | null => {
+    private static _get_buzzer_count_from_string(s_string: string): number | null{
         if (s_string === "on") {
-            return this._const_default_buzzer_count;
+            return lpu237._const_default_buzzer_count;
         }
         if (s_string === "off") {
-            return this._const_default_buzzer_count_for_off;
+            return lpu237._const_default_buzzer_count_for_off;
         }
 
         // 주파수(Hz)를 카운터 값으로 변환
@@ -3104,7 +3269,24 @@ export class lpu237 extends hid {
 
         // 장치 내부 타이머 틱에 맞춘 변환 수식: Count = 8.67 * Frequency
         return 8.67 * n_freq;
-    }
+    };
+
+    /**
+     * @private
+     * @function _get_buzzer_count_from_boolean
+     * @description 문자열 입력을 바탕으로 버저 주파수 카운터를 계산합니다.
+     * @param {boolean} b_on - true : buzzer on, false : buzzer off
+     * @returns {number | null} 주파수 카운터 값, 에러 시 null
+     */
+    private static _get_buzzer_count_from_boolean(b_on: boolean): number{
+        if (b_on) {
+            return lpu237._const_default_buzzer_count;
+        }
+        else{
+            return lpu237._const_default_buzzer_count_for_off;
+        }
+    };
+
 
     /**
      * @private
@@ -3129,7 +3311,7 @@ export class lpu237 extends hid {
      */
     private _get_use_parity_from_string = (s_string: string): boolean | null => {
         return this._get_enable_track_from_string(s_string);
-    }
+    };
 
     /**
      * @private
@@ -3138,7 +3320,7 @@ export class lpu237 extends hid {
      */
     private _get_use_error_correct_from_string = (s_string: string): boolean | null => {
         return this._get_enable_track_from_string(s_string);
-    }
+    };
 
     /**
      * @private
@@ -3147,18 +3329,15 @@ export class lpu237 extends hid {
      * @param {string} s_string - "bidirectional", "forward" 또는 "backward"
      * @returns {number} 읽기 방향 코드값, 에러 시 -1
      */
-    private _get_direction_from_string(s_string: string): number {
-        if (typeof s_string !== 'string') return -1;
+    private static _get_direction_from_string(s_string: string): number{
 
-        // 매핑 객체를 사용하여 조건문 가독성 향상
-        const directionMap: Record<string, number> = {
-            "bidirectional": type_direction.dir_bidectional, // 오타가 포함된 원본 속성명 유지
-            "forward": type_direction.dir_forward,
-            "backward": type_direction.dir_backward
-        };
-
-        // 매핑된 값이 있으면 반환, 없으면 -1 반환
-        return directionMap[s_string] ?? -1;
+        const validDirectionKeys = Object.keys(lpu237.DIRECTION_MAP);
+        if (validDirectionKeys.includes(s_string)) {            
+            return lpu237.DIRECTION_MAP[s_string];
+        }
+        else{
+            return -1;
+        }
     }
 
     /**
@@ -3260,7 +3439,7 @@ export class lpu237 extends hid {
         } else {
             return s_len + s_hex_result;
         }
-    }
+    };
 
     /**
      * @private
@@ -3430,7 +3609,7 @@ export class lpu237 extends hid {
             _type_system_request_config.request_config_get.toString(16).padStart(2, '0'),
             s_data
         );
-    }
+    };
 
     /**
      * @private
@@ -3443,7 +3622,7 @@ export class lpu237 extends hid {
         const n_offset = _type_system_offset.SYS_OFFSET_VERSION;
         const n_size = _type_system_size.SYS_SIZE_VERSION;
         return this._generate_config_get(queue_s_tx, n_offset, n_size);
-    }
+    };
 
     /**
      * @private
@@ -3456,7 +3635,7 @@ export class lpu237 extends hid {
         const n_offset = _type_system_offset.SYS_OFFSET_VERSION_STRUCTURE;
         const n_size = _type_system_size.SYS_SIZE_VERSION_STRUCTURE;
         return this._generate_config_get(queue_s_tx, n_offset, n_size);
-    }
+    };
 
     /**
      * @private
@@ -3469,7 +3648,7 @@ export class lpu237 extends hid {
         const n_offset = _type_system_offset.SYS_OFFSET_NAME;
         const n_size = _type_system_size.SYS_SIZE_NAME;
         return this._generate_config_get(queue_s_tx, n_offset, n_size);
-    }
+    };
 
     /**
      * @private
@@ -3481,7 +3660,7 @@ export class lpu237 extends hid {
     private _generate_get_device_support_mmd1000 = (queue_s_tx: string[]): boolean => {
         // 데이터 필드(s_hex_data_field)가 없는 경우 빈 문자열("")을 전달합니다.
         return this._generate_request(queue_s_tx, _type_cmd.REQ_IS_MMD1000, "00", "");
-    }
+    };
 
     /**
      * @private
@@ -3492,7 +3671,7 @@ export class lpu237 extends hid {
      */
     private _generate_get_uid = (queue_s_tx: string[]): boolean => {
         return this._generate_request(queue_s_tx, _type_cmd.REQ_GET_ID, "00", "");
-    }
+    };
 
     /**
      * @private
@@ -3503,7 +3682,7 @@ export class lpu237 extends hid {
      */
     private _generate_get_device_ibutton_type = (queue_s_tx: string[]): boolean => {
         return this._generate_request(queue_s_tx, _type_cmd.REQ_IS_ONLY_IBUTTON, "00", "");
-    }
+    };
 
     /**
      * @private
@@ -3514,7 +3693,7 @@ export class lpu237 extends hid {
      */
     private _generate_get_device_type = (queue_s_tx: string[]): boolean => {
         return this._generate_request(queue_s_tx, _type_cmd.REQ_IS_STANDARD, "00", "");
-    }
+    };
 
     /**
      * @private
@@ -3525,7 +3704,7 @@ export class lpu237 extends hid {
         const n_offset = _type_system_offset.SYS_OFFSET_G_TAG_CONDITION;
         const n_size = _type_system_size.SYS_SIZE_G_TAG_CONDITION;
         return this._generate_config_get(queue_s_tx, n_offset, n_size);
-    }
+    };
 
     /**
      * @private
@@ -3536,7 +3715,18 @@ export class lpu237 extends hid {
         const n_offset = _type_system_offset.SYS_OFFSET_BLANK_4BYTES;
         const n_size = _type_system_size.SYS_SIZE_BLANK_4BYTES;
         return this._generate_config_get(queue_s_tx, n_offset, n_size);
-    }
+    };
+
+    /**
+     * @private
+     * @function _generate_get_track_order
+     * @description 3 바이트 array 로 msr 트랙의 전송 순서를 나타내ama 값을 얻는 명령 생성.
+     */
+    private _generate_get_track_order = (queue_s_tx: string[]): boolean => {
+        const n_offset = _type_system_offset.SYS_OFFSET_CONTAINER_TRACK_ORDER;
+        const n_size = _type_system_size.SYS_SIZE_CONTAINER_TRACK_ORDER;
+        return this._generate_config_get(queue_s_tx, n_offset, n_size);
+    };
 
     /**
      * @private
@@ -3547,7 +3737,7 @@ export class lpu237 extends hid {
         const n_offset = _type_system_offset.SYS_OFFSET_INTERFACE;
         const n_size = _type_system_size.SYS_SIZE_INTERFACE;
         return this._generate_config_get(queue_s_tx, n_offset, n_size);
-    }
+    };
 
     /**
      * @private
@@ -3558,7 +3748,7 @@ export class lpu237 extends hid {
         const n_offset = _type_system_offset.SYS_OFFSET_KEYMAP;
         const n_size = _type_system_size.SYS_SIZE_KEYMAP;
         return this._generate_config_get(queue_s_tx, n_offset, n_size);
-    }
+    };
 
     /**
      * @private
@@ -3569,7 +3759,7 @@ export class lpu237 extends hid {
         const n_offset = _type_system_offset.SYS_OFFSET_BUZZER_FREQ;
         const n_size = _type_system_size.SYS_SIZE_BUZZER_FREQ;
         return this._generate_config_get(queue_s_tx, n_offset, n_size);
-    }
+    };
 
     /**
      * @private
@@ -3580,7 +3770,7 @@ export class lpu237 extends hid {
         const n_offset = _type_system_offset.SYS_OFFSET_BOOT_RUN_TIME;
         const n_size = _type_system_size.SYS_SIZE_BOOT_RUN_TIME;
         return this._generate_config_get(queue_s_tx, n_offset, n_size);
-    }
+    };
 
     /**
      * @private
@@ -3598,7 +3788,7 @@ export class lpu237 extends hid {
         const n_size = _type_system_size.SYS_SIZE_ENABLE_TRACK[n_track];
 
         return this._generate_config_get(queue_s_tx, n_offset, n_size);
-    }
+    };
 
     /**
      * @private
@@ -3616,7 +3806,7 @@ export class lpu237 extends hid {
         const n_size = _type_system_size.SYS_SIZE_DIRECTION[n_track];
 
         return this._generate_config_get(queue_s_tx, n_offset, n_size);
-    }
+    };
 
     /**
      * @private
@@ -3629,7 +3819,7 @@ export class lpu237 extends hid {
         const n_offset = _type_system_offset.SYS_OFFSET_G_PRE;
         const n_size = _type_system_size.SYS_SIZE_G_PRE;
         return this._generate_config_get(queue_s_tx, n_offset, n_size);
-    }
+    };
 
     /**
      * @private
@@ -3642,7 +3832,7 @@ export class lpu237 extends hid {
         const n_offset = _type_system_offset.SYS_OFFSET_G_POST;
         const n_size = _type_system_size.SYS_SIZE_G_POST;
         return this._generate_config_get(queue_s_tx, n_offset, n_size);
-    }
+    };
 
     /**
      * @private
@@ -3667,7 +3857,7 @@ export class lpu237 extends hid {
 
         // 3. 공통 설정 읽기 함수 호출
         return this._generate_config_get(queue_s_tx, n_offset, n_size);
-    }
+    };
 
     /**
      * @private
@@ -3681,7 +3871,7 @@ export class lpu237 extends hid {
         const n_size = _type_system_size.SYS_SIZE_MAX_SIZE[n_track][n_combi];
 
         return this._generate_config_get(queue_s_tx, n_offset, n_size);
-    }
+    };
 
     /**
      * @private
@@ -3695,7 +3885,7 @@ export class lpu237 extends hid {
         const n_size = _type_system_size.SYS_SIZE_BIT_SIZE[n_track][n_combi];
 
         return this._generate_config_get(queue_s_tx, n_offset, n_size);
-    }
+    };
 
     /**
      * @private
@@ -3709,7 +3899,7 @@ export class lpu237 extends hid {
         const n_size = _type_system_size.SYS_SIZE_DATA_MASK[n_track][n_combi];
 
         return this._generate_config_get(queue_s_tx, n_offset, n_size);
-    }
+    };
 
     /**
      * @private
@@ -3731,7 +3921,7 @@ export class lpu237 extends hid {
         const n_size = _type_system_size.SYS_SIZE_USE_PARITY[n_track][n_combi];
 
         return this._generate_config_get(queue_s_tx, n_offset, n_size);
-    }
+    };
 
     /**
      * @private
@@ -3756,7 +3946,7 @@ export class lpu237 extends hid {
         const n_size = _type_system_size.SYS_SIZE_PARITY_TYPE[n_track][n_combi];
 
         return this._generate_config_get(queue_s_tx, n_offset, n_size);
-    }
+    };
 
     /**
      * @private
@@ -3777,7 +3967,7 @@ export class lpu237 extends hid {
         const n_size = _type_system_size.SYS_SIZE_STXL[n_track][n_combi];
 
         return this._generate_config_get(queue_s_tx, n_offset, n_size);
-    }
+    };
 
     /**
      * @private
@@ -3798,7 +3988,7 @@ export class lpu237 extends hid {
         const n_size = _type_system_size.SYS_SIZE_ETXL[n_track][n_combi];
 
         return this._generate_config_get(queue_s_tx, n_offset, n_size);
-    }
+    };
 
     /**
      * @private
@@ -3812,7 +4002,7 @@ export class lpu237 extends hid {
         const n_size = _type_system_size.SYS_SIZE_USE_ERROR_CORRECT[n_track][n_combi];
 
         return this._generate_config_get(queue_s_tx, n_offset, n_size);
-    }
+    };
 
     /**
      * @private
@@ -3826,7 +4016,7 @@ export class lpu237 extends hid {
         const n_size = _type_system_size.SYS_SIZE_ECM_TYPE[n_track][n_combi];
 
         return this._generate_config_get(queue_s_tx, n_offset, n_size);
-    }
+    };
 
     /**
      * @private
@@ -3840,7 +4030,7 @@ export class lpu237 extends hid {
         const n_size = _type_system_size.SYS_SIZE_ADD_VALUE[n_track][n_combi];
 
         return this._generate_config_get(queue_s_tx, n_offset, n_size);
-    }
+    };
 
     /**
      * @private
@@ -3857,7 +4047,7 @@ export class lpu237 extends hid {
         const n_size = _type_system_size.SYS_SIZE_P_PRE[n_track][n_combi];
 
         return this._generate_config_get(queue_s_tx, n_offset, n_size);
-    }
+    };
 
     /**
      * @private
@@ -3874,7 +4064,7 @@ export class lpu237 extends hid {
         const n_size = _type_system_size.SYS_SIZE_P_POST[n_track][n_combi];
 
         return this._generate_config_get(queue_s_tx, n_offset, n_size);
-    }
+    };
 
     // === iButton 접촉(Attach) 관련 설정 ===
 
@@ -3883,14 +4073,14 @@ export class lpu237 extends hid {
         const n_offset = _type_system_offset.SYS_OFFSET_IBUTTON_G_PRE;
         const n_size = _type_system_size.SYS_SIZE_IBUTTON_G_PRE;
         return this._generate_config_get(queue_s_tx, n_offset, n_size);
-    }
+    };
 
     /** @description iButton 접촉 시 데이터 뒤에 붙는 Postfix 조회 */
     private _generate_get_ibutton_postfix = (queue_s_tx: string[]): boolean => {
         const n_offset = _type_system_offset.SYS_OFFSET_IBUTTON_G_POST;
         const n_size = _type_system_size.SYS_SIZE_IBUTTON_G_POST;
         return this._generate_config_get(queue_s_tx, n_offset, n_size);
-    }
+    };
 
     // === iButton 제거(Remove) 관련 설정 ===
 
@@ -3899,21 +4089,21 @@ export class lpu237 extends hid {
         const n_offset = _type_system_offset.SYS_OFFSET_IBUTTON_REMOVE;
         const n_size = _type_system_size.SYS_SIZE_IBUTTON_REMOVE;
         return this._generate_config_get(queue_s_tx, n_offset, n_size);
-    }
+    };
 
     /** @description iButton 제거 알림 시 사용할 Prefix 조회 */
     private _generate_get_ibutton_prefix_remove = (queue_s_tx: string[]): boolean => {
         const n_offset = _type_system_offset.SYS_OFFSET_IBUTTON_G_PRE_REMOVE;
         const n_size = _type_system_size.SYS_SIZE_IBUTTON_G_PRE_REMOVE;
         return this._generate_config_get(queue_s_tx, n_offset, n_size);
-    }
+    };
 
     /** @description iButton 제거 알림 시 사용할 Postfix 조회 */
     private _generate_get_ibutton_postfix_remove = (queue_s_tx: string[]): boolean => {
         const n_offset = _type_system_offset.SYS_OFFSET_IBUTTON_G_POST_REMOVE;
         const n_size = _type_system_size.SYS_SIZE_IBUTTON_G_POST_REMOVE;
         return this._generate_config_get(queue_s_tx, n_offset, n_size);
-    }
+    };
 
     // === UART(Serial) 관련 설정 ===
 
@@ -3922,14 +4112,14 @@ export class lpu237 extends hid {
         const n_offset = _type_system_offset.SYS_OFFSET_UART_G_PRE;
         const n_size = _type_system_size.SYS_SIZE_UART_G_PRE;
         return this._generate_config_get(queue_s_tx, n_offset, n_size);
-    }
+    };
 
     /** @description UART 데이터 전송 시 사용할 Postfix 조회 */
     private _generate_get_uart_postfix = (queue_s_tx: string[]): boolean => {
         const n_offset = _type_system_offset.SYS_OFFSET_UART_G_POST;
         const n_size = _type_system_size.SYS_SIZE_UART_G_POST;
         return this._generate_config_get(queue_s_tx, n_offset, n_size);
-    }
+    };
 
     /**
      * @private
@@ -3971,7 +4161,7 @@ export class lpu237 extends hid {
         );
 
         return b_result;
-    }
+    };
 
     /**
      * @description 글로벌 Prefix/Postfix 전송 조건 설정
@@ -3988,7 +4178,7 @@ export class lpu237 extends hid {
         const s_data = util.get_dword_hex_string_from_number(b_send_always ? 1 : 0);
 
         return this._generate_config_set(queue_s_tx, n_offset, n_size, s_data);
-    }
+    };
 
     /**
      * @description 카드 트랙 출력 순서 설정 (예: [2, 1, 3] 순서로 출력)
@@ -4004,7 +4194,7 @@ export class lpu237 extends hid {
             .join("");
 
         return this._generate_config_set(queue_s_tx, n_offset, n_size, s_data);
-    }
+    };
 
     /**
      * @description 시스템 예약 또는 공백 4바이트 데이터 설정
@@ -4021,7 +4211,7 @@ export class lpu237 extends hid {
             .join("");
 
         return this._generate_config_set(queue_s_tx, n_offset, n_size, s_data);
-    }
+    };
 
     /**
      * @description 장치 통신 인터페이스 설정 (USB HID, 가상 컴포트 등)
@@ -4033,7 +4223,7 @@ export class lpu237 extends hid {
         const s_data = util.get_byte_hex_string_from_number(n_interface);
 
         return this._generate_config_set(queue_s_tx, n_offset, n_size, s_data);
-    }
+    };
 
     /**
      * @private
@@ -4056,8 +4246,8 @@ export class lpu237 extends hid {
         }
 
         // 3. 각 트랙별 언어 설정 동기화 (InformSR Map Index)
-        // this._const_the_number_of_track는 보통 3 (Track 1, 2, 3)입니다.
-        for (let i = 0; i < this._const_the_number_of_track; i++) {
+        // lpu237._const_the_number_of_track는 보통 3 (Track 1, 2, 3)입니다.
+        for (let i = 0; i < lpu237._const_the_number_of_track; i++) {
             n_offset = _type_system_offset.SYS_OFFSET_INFOMSR_MAP_INDEX[i];
             n_size = _type_system_size.SYS_SIZE_INFOMSR_MAP_INDEX[i];
 
@@ -4067,7 +4257,7 @@ export class lpu237 extends hid {
         }
 
         return true;
-    }
+    };
 
     /**
      * @description 부저(Buzzer) 소리 횟수 또는 주파수 설정
@@ -4079,7 +4269,7 @@ export class lpu237 extends hid {
         const s_data = util.get_dword_hex_string_from_number(n_buzzer);
 
         return this._generate_config_set(queue_s_tx, n_offset, n_size, s_data);
-    }
+    };
 
     /**
      * @description 특정 트랙(0~2)의 활성화/비활성화 설정
@@ -4095,7 +4285,7 @@ export class lpu237 extends hid {
         const s_data = util.get_byte_hex_string_from_number(b_enable ? 1 : 0);
 
         return this._generate_config_set(queue_s_tx, n_offset, n_size, s_data);
-    }
+    };
 
     /**
      * @description 트랙 읽기 방향 설정 (정방향/역방향/양방향 등)
@@ -4110,7 +4300,7 @@ export class lpu237 extends hid {
         const s_data = util.get_byte_hex_string_from_number(n_direction);
 
         return this._generate_config_set(queue_s_tx, n_offset, n_size, s_data);
-    }
+    };
 
     /**
      * @description 모든 트랙 데이터의 최상단에 붙는 글로벌 접두사(Global Prefix) 설정
@@ -4121,7 +4311,7 @@ export class lpu237 extends hid {
         const n_size = _type_system_size.SYS_SIZE_G_PRE;
 
         return this._generate_config_set(queue_s_tx, n_offset, n_size, s_tag);
-    }
+    };
 
     /**
      * @description 모든 트랙 데이터의 최하단에 붙는 글로벌 접미사(Global Postfix) 설정
@@ -4132,7 +4322,7 @@ export class lpu237 extends hid {
         const n_size = _type_system_size.SYS_SIZE_G_POST;
 
         return this._generate_config_set(queue_s_tx, n_offset, n_size, s_tag);
-    }
+    };
 
     /**
      * @description 트랙별 사용될 조합(Combination)의 개수를 설정합니다.
@@ -4147,7 +4337,7 @@ export class lpu237 extends hid {
         const s_data = util.get_byte_hex_string_from_number(n_combi_number);
 
         return this._generate_config_set(queue_s_tx, n_offset, n_size, s_data);
-    }
+    };
 
     /**
      * @description 특정 트랙/조합의 최대 데이터 길이를 설정합니다.
@@ -4160,7 +4350,7 @@ export class lpu237 extends hid {
         const s_data = util.get_byte_hex_string_from_number(n_max_size);
 
         return this._generate_config_set(queue_s_tx, n_offset, n_size, s_data);
-    }
+    };
 
     /**
      * @description 한 문자를 구성하는 비트 수(5-bit, 7-bit 등)를 설정합니다.
@@ -4173,7 +4363,7 @@ export class lpu237 extends hid {
         const s_data = util.get_byte_hex_string_from_number(n_bit_size);
 
         return this._generate_config_set(queue_s_tx, n_offset, n_size, s_data);
-    }
+    };
 
     /**
      * @description 데이터 유효 비트를 추출하기 위한 마스크 패턴을 설정합니다.
@@ -4186,7 +4376,7 @@ export class lpu237 extends hid {
         const s_data = util.get_byte_hex_string_from_number(c_data_mask);
 
         return this._generate_config_set(queue_s_tx, n_offset, n_size, s_data);
-    }
+    };
 
     /**
      * @description 패리티(Parity) 체크 기능 사용 여부를 설정합니다.
@@ -4199,7 +4389,7 @@ export class lpu237 extends hid {
         const s_data = util.get_byte_hex_string_from_number(b_enable ? 1 : 0);
 
         return this._generate_config_set(queue_s_tx, n_offset, n_size, s_data);
-    }
+    };
 
     /**
      * @description 패리티 타입을 설정합니다 (0: Even, 1: Odd).
@@ -4212,7 +4402,7 @@ export class lpu237 extends hid {
         const s_data = util.get_byte_hex_string_from_number(n_parity_type);
 
         return this._generate_config_set(queue_s_tx, n_offset, n_size, s_data);
-    }
+    };
 
     /**
      * @description 시작 센티넬(Start Sentinel) 패턴 설정
@@ -4226,7 +4416,7 @@ export class lpu237 extends hid {
         const s_data = util.get_byte_hex_string_from_number(c_stxl);
 
         return this._generate_config_set(queue_s_tx, n_offset, n_size, s_data);
-    }
+    };
 
     /**
      * @description 종료 센티넬(End Sentinel) 패턴 설정
@@ -4240,7 +4430,7 @@ export class lpu237 extends hid {
         const s_data = util.get_byte_hex_string_from_number(c_etxl);
 
         return this._generate_config_set(queue_s_tx, n_offset, n_size, s_data);
-    }
+    };
 
     /**
      * @description 에러 교정(Error Correction) 기능 활성화 여부 설정
@@ -4253,7 +4443,7 @@ export class lpu237 extends hid {
         const s_data = util.get_byte_hex_string_from_number(b_enable ? 1 : 0);
 
         return this._generate_config_set(queue_s_tx, n_offset, n_size, s_data);
-    }
+    };
 
     /**
      * @description 에러 교정 모드(ECM) 유형 설정
@@ -4266,7 +4456,7 @@ export class lpu237 extends hid {
         const s_data = util.get_byte_hex_string_from_number(n_ecm_type);
 
         return this._generate_config_set(queue_s_tx, n_offset, n_size, s_data);
-    }
+    };
 
     /**
      * @description ASCII 코드 변환을 위한 가산 값(Add Value) 설정
@@ -4279,7 +4469,7 @@ export class lpu237 extends hid {
         const s_data = util.get_byte_hex_string_from_number(c_add);
 
         return this._generate_config_set(queue_s_tx, n_offset, n_size, s_data);
-    }
+    };
 
     /**
      * @description 특정 트랙 및 조합의 개별 접두사(Private Prefix)를 설정합니다.
@@ -4299,7 +4489,7 @@ export class lpu237 extends hid {
         const n_size = _type_system_size.SYS_SIZE_P_PRE[n_track][n_combi];
 
         return this._generate_config_set(queue_s_tx, n_offset, n_size, s_tag);
-    }
+    };
 
     /**
      * @description 특정 트랙 및 조합의 개별 접미사(Private Postfix)를 설정합니다.
@@ -4319,7 +4509,7 @@ export class lpu237 extends hid {
         const n_size = _type_system_size.SYS_SIZE_P_POST[n_track][n_combi];
 
         return this._generate_config_set(queue_s_tx, n_offset, n_size, s_tag);
-    }
+    };
 
     /**
      * @private
@@ -4335,18 +4525,18 @@ export class lpu237 extends hid {
 
         // --- 1. USB HID Key Map 설정 ---
         let s_full_data = elpusk_util_keyboard_map.get_ascii_to_hid_key_map_string(n_language);
-        if (!this._send_split_config(queue_s_tx, this._const_address_system_hid_key_map_offset, n_max_cvt, s_full_data)) {
+        if (!this._send_split_config(queue_s_tx, lpu237._const_address_system_hid_key_map_offset, n_max_cvt, s_full_data)) {
             return false;
         }
 
         // --- 2. PS/2 Key Map 설정 ---
         s_full_data = elpusk_util_keyboard_map.get_ascii_to_ps2_key_map_string(n_language);
-        if (!this._send_split_config(queue_s_tx, this._const_address_system_ps2_key_map_offset, n_max_cvt, s_full_data)) {
+        if (!this._send_split_config(queue_s_tx, lpu237._const_address_system_ps2_key_map_offset, n_max_cvt, s_full_data)) {
             return false;
         }
 
         return true;
-    }
+    };
 
     /**
      * @description 데이터를 절반으로 나누어 장치에 기록하는 헬퍼 함수
@@ -4367,7 +4557,7 @@ export class lpu237 extends hid {
         }
 
         return true;
-    }
+    };
 
     // === iButton 접촉(Attach) 관련 설정 기록 ===
 
@@ -4376,14 +4566,14 @@ export class lpu237 extends hid {
         const n_offset = _type_system_offset.SYS_OFFSET_IBUTTON_G_PRE;
         const n_size = _type_system_size.SYS_SIZE_IBUTTON_G_PRE;
         return this._generate_config_set(queue_s_tx, n_offset, n_size, s_tag);
-    }
+    };
 
     /** @description iButton 접촉 시 전송될 데이터의 Postfix 설정 */
     private _generate_set_ibutton_postfix = (queue_s_tx: string[], s_tag: string): boolean => {
         const n_offset = _type_system_offset.SYS_OFFSET_IBUTTON_G_POST;
         const n_size = _type_system_size.SYS_SIZE_IBUTTON_G_POST;
         return this._generate_config_set(queue_s_tx, n_offset, n_size, s_tag);
-    }
+    };
 
     // === iButton 제거(Remove) 관련 설정 기록 ===
 
@@ -4392,21 +4582,21 @@ export class lpu237 extends hid {
         const n_offset = _type_system_offset.SYS_OFFSET_IBUTTON_REMOVE;
         const n_size = _type_system_size.SYS_SIZE_IBUTTON_REMOVE;
         return this._generate_config_set(queue_s_tx, n_offset, n_size, s_tag);
-    }
+    };
 
     /** @description iButton 제거 시 전송될 데이터의 Prefix 설정 */
     private _generate_set_ibutton_prefix_remove = (queue_s_tx: string[], s_tag: string): boolean => {
         const n_offset = _type_system_offset.SYS_OFFSET_IBUTTON_G_PRE_REMOVE;
         const n_size = _type_system_size.SYS_SIZE_IBUTTON_G_PRE_REMOVE;
         return this._generate_config_set(queue_s_tx, n_offset, n_size, s_tag);
-    }
+    };
 
     /** @description iButton 제거 시 전송될 데이터의 Postfix 설정 */
     private _generate_set_ibutton_postfix_remove = (queue_s_tx: string[], s_tag: string): boolean => {
         const n_offset = _type_system_offset.SYS_OFFSET_IBUTTON_G_POST_REMOVE;
         const n_size = _type_system_size.SYS_SIZE_IBUTTON_G_POST_REMOVE;
         return this._generate_config_set(queue_s_tx, n_offset, n_size, s_tag);
-    }
+    };
 
     /**
      * @private
@@ -4421,7 +4611,7 @@ export class lpu237 extends hid {
         const n_size = _type_system_size.SYS_SIZE_UART_G_PRE;
 
         return this._generate_config_set(queue_s_tx, n_offset, n_size, s_tag);
-    }
+    };
 
     /**
      * @private
@@ -4436,49 +4626,49 @@ export class lpu237 extends hid {
         const n_size = _type_system_size.SYS_SIZE_UART_G_POST;
 
         return this._generate_config_set(queue_s_tx, n_offset, n_size, s_tag);
-    }
+    };
 
     /**
      * @description OPOS(OLE for Retail POS) 모드로 진입합니다.
      */
     private _generate_enter_opos_mode = (queue_s_tx: string[]): boolean => {
         return this._generate_request(queue_s_tx, _type_cmd.REQ_ENTER_OPOS, "00", "");
-    }
+    };
 
     /**
      * @description OPOS 모드에서 벗어나 일반 모드로 복귀합니다.
      */
     private _generate_leave_opos_mode = (queue_s_tx: string[]): boolean => {
         return this._generate_request(queue_s_tx, _type_cmd.REQ_LEAVE_OPOS, "00", "");
-    }
+    };
 
     /**
      * @description 설정 모드(Configuration Mode/CS)로 진입합니다. (설정 변경 전 필수)
      */
     private _generate_enter_config_mode = (queue_s_tx: string[]): boolean => {
         return this._generate_request(queue_s_tx, _type_cmd.REQ_ENTER_CS, "00", "");
-    }
+    };
 
     /**
      * @description 설정 모드에서 나갑니다.
      */
     private _generate_leave_config_mode = (queue_s_tx: string[]): boolean => {
         return this._generate_request(queue_s_tx, _type_cmd.REQ_LEAVE_CS, "00", "");
-    }
+    };
 
     /**
      * @description 변경된 설정 사항들을 장치의 비휘발성 메모리에 실제로 적용(Commit)합니다.
      */
     private _generate_apply_config_mode = (queue_s_tx: string[]): boolean => {
         return this._generate_request(queue_s_tx, _type_cmd.REQ_APPLY, "00", "");
-    }
+    };
 
     /**
      * @description 장치를 부트 로더 모드로 전환합니다. (펌웨어 업데이트 시 사용)
      */
     private _generate_run_boot_loader = (queue_s_tx: string[]): boolean => {
         return this._generate_request(queue_s_tx, _type_cmd.REQ_GOTO_BOOT, "00", "");
-    }
+    };
 
     /**
      * @private
@@ -4509,8 +4699,8 @@ export class lpu237 extends hid {
         let n_len = n_tag_bytes.shift() || 0; // 첫 번째 바이트는 태그의 실제 길이
         if (n_len === 0) return n_hex_result;
 
-        if (n_len > this._const_max_size_tag_byte) {
-            n_len = this._const_max_size_tag_byte;
+        if (n_len > lpu237._const_max_size_tag_byte) {
+            n_len = lpu237._const_max_size_tag_byte;
         }
         n_tag_bytes.length = n_len; // 실제 유효 데이터 크기만큼 자르기
 
@@ -4542,7 +4732,7 @@ export class lpu237 extends hid {
         }
 
         return n_hex_result;
-    }
+    };
 
     /**
      * @private
@@ -4561,7 +4751,7 @@ export class lpu237 extends hid {
         }
 
         return s_hex_result;
-    }
+    };
 
     /**
      * @private
@@ -4580,7 +4770,7 @@ export class lpu237 extends hid {
         }
 
         return s_char_result;
-    }
+    };
 
     /**
      * @private
@@ -4615,8 +4805,8 @@ export class lpu237 extends hid {
             return s_symbols; // 데이터가 없는 경우 빈 문자열 반환
         }
 
-        if (n_len > this._const_max_size_tag_byte) {
-            n_len = this._const_max_size_tag_byte;
+        if (n_len > lpu237._const_max_size_tag_byte) {
+            n_len = lpu237._const_max_size_tag_byte;
         }
         n_tag_bytes.length = n_len;
 
@@ -4641,7 +4831,7 @@ export class lpu237 extends hid {
         }
 
         return s_symbols;
-    }
+    };
 
     /**
      * @private
@@ -4677,8 +4867,8 @@ export class lpu237 extends hid {
         }
 
         // iButton 제거 태그 전용 상수 사용
-        if (n_len > this._const_max_size_tag_remove_byte) {
-            n_len = this._const_max_size_tag_remove_byte;
+        if (n_len > lpu237._const_max_size_tag_remove_byte) {
+            n_len = lpu237._const_max_size_tag_remove_byte;
         }
         n_tag_bytes.length = n_len;
 
@@ -4702,7 +4892,7 @@ export class lpu237 extends hid {
         }
 
         return s_symbols;
-    }
+    };
 
     /**
      * @constructor
@@ -4722,7 +4912,7 @@ export class lpu237 extends hid {
      */
     public is_config_mode = (): boolean => {
         return this._b_config_mode;
-    }
+    };
 
     /**
      * @description 현재 장치가 OPOS 모드인지 확인합니다.
@@ -4730,7 +4920,7 @@ export class lpu237 extends hid {
      */
     public is_opos_mode = (): boolean => {
         return this._b_opos_mode;
-    }
+    };
 
     /**
      * @description 지정된 ISO 트랙의 카드 데이터를 가져옵니다.
@@ -4739,7 +4929,7 @@ export class lpu237 extends hid {
      */
     public get_msr_data = (n_track: number): string | null => {
         // 1. 매개변수 유효성 검사 (트랙 번호 범위 확인)
-        if (typeof n_track !== 'number' || n_track < 0 || n_track >= this._const_the_number_of_track) {
+        if (typeof n_track !== 'number' || n_track < 0 || n_track >= lpu237._const_the_number_of_track) {
             return null;
         }
 
@@ -4751,7 +4941,7 @@ export class lpu237 extends hid {
 
         // 3. 정상 데이터 반환 (데이터가 비어있어도 저장된 문자열 반환)
         return this._array_s_card_data[n_track];
-    }
+    };
 
     /**
      * @public
@@ -4767,7 +4957,7 @@ export class lpu237 extends hid {
 
         // 2. 정상 데이터 반환 (ID 데이터가 담긴 문자열)
         return this._s_ibutton_data;
-    }
+    };
 
     /**
      * @public
@@ -4777,13 +4967,13 @@ export class lpu237 extends hid {
      */
     public get_msr_error_code = (n_track: number): number | null => {
         // 1. 매개변수 유효성 검사
-        if (typeof n_track !== 'number' || n_track < 0 || n_track >= this._const_the_number_of_track) {
+        if (typeof n_track !== 'number' || n_track < 0 || n_track >= lpu237._const_the_number_of_track) {
             return null;
         }
 
         // 2. 해당 트랙의 에러 코드 반환
         return this._array_n_card_error_code[n_track];
-    }
+    };
 
     /**
      * @public
@@ -4792,7 +4982,7 @@ export class lpu237 extends hid {
      */
     public get_ibutton_error_code = (): number => {
         return this._n_ibutton_error_code;
-    }
+    };
 
     /**
      * @public
@@ -4801,7 +4991,7 @@ export class lpu237 extends hid {
      */
     public is_ignore_ibutton_data = (): boolean => {
         return this._b_ignore_ibutton_data;
-    }
+    };
 
     /**
      * @public
@@ -4815,7 +5005,7 @@ export class lpu237 extends hid {
         }
 
         return this._version;
-    }
+    };
 
     /**
      * @public
@@ -4829,12 +5019,12 @@ export class lpu237 extends hid {
         }
 
         return this._version_structure;
-    }
+    };
 
     /**
      * @public
      * @description 장치의 시스템 이름을 가져옵니다. 
-     * 정해진 최대 길이(this._const_the_size_of_name)를 초과할 경우 잘라서 반환합니다.
+     * 정해진 최대 길이(lpu237._const_the_size_of_name)를 초과할 경우 잘라서 반환합니다.
      * @returns {string} 시스템 이름 (이름이 없거나 유효하지 않으면 빈 문자열 반환)
      */
     public get_name = (): string => {
@@ -4843,24 +5033,48 @@ export class lpu237 extends hid {
         // 1. 이름 데이터가 유효한 문자열인지 확인
         if (typeof this._s_name === 'string') {
             // 2. 최대 길이를 초과하는 경우 서브스트링으로 자름
-            if (this._s_name.length > this._const_the_size_of_name) {
-                s_name = this._s_name.substring(0, this._const_the_size_of_name);
+            if (this._s_name.length > lpu237._const_the_size_of_name) {
+                s_name = this._s_name.substring(0, lpu237._const_the_size_of_name);
             } else {
                 s_name = this._s_name;
             }
         }
 
         return s_name;
-    }
+    };
 
     /**
      * @public
      * @description 글로벌 전/후첨자(Prefix/Postfix) 전송 조건을 확인합니다.
-     * @returns {boolean} true: 모든 트랙에 에러가 없을 때만 전송, false: 하나라도 정상이면 전송.
+     * @returns {string}  전송 조건을 설명 문자열.
+     */
+    public get_global_pre_postfix_send_condition_string = (): string => {
+        if( this._b_global_pre_postfix_send_condition ){
+            return lpu237.GLOBAL_TAG_SEND_CONDITION_ARRAY[1];
+        }
+        else{
+            return lpu237.GLOBAL_TAG_SEND_CONDITION_ARRAY[0];
+        }
+    };
+
+    /**
+     * @public
+     * @description 글로벌 전/후첨자(Prefix/Postfix) 전송 조건을 확인합니다.
+     * @returns {boolean} true: 모든 트랙에 에러가 없을 때만 msr global tag  전송 , false: 하나라도 정상이면 전송.
+     */
+    public is_send_global_pre_postfix_when_none_error_in_all_trace = (): boolean => {
+        return this._b_global_pre_postfix_send_condition;
+    };
+
+    /**
+     * @deprecated is_send_global_pre_postfix_when_none_error_in_all_trace() 를 사용하세요.
+     * @public
+     * @description 글로벌 전/후첨자(Prefix/Postfix) 전송 조건을 확인합니다.
+     * @returns {boolean} true: 모든 트랙에 에러가 없을 때만 msr global tag  전송 , false: 하나라도 정상이면 전송.
      */
     public get_global_pre_postfix_send_condition = (): boolean => {
         return this._b_global_pre_postfix_send_condition;
-    }
+    };
 
     /**
      * @public
@@ -4869,7 +5083,7 @@ export class lpu237 extends hid {
      */
     public get_track_order = (): number[] => {
         return this._n_order;
-    }
+    };
 
     /**
      * @public
@@ -4878,16 +5092,40 @@ export class lpu237 extends hid {
      */
     public get_blank = (): number[] => {
         return this._c_blank;
-    }
+    };
+
+    /**
+     * @public
+     * @description 트랙 하나라도 정상일 때 성공으로 간주할지 여부를 확인하는 문자여루 얻기
+     * @returns {stirng} 'One more track is normal': msr 의 하나의 track 이라도 정상이면 성공 표시(LED, Buzzer),  'No Error in all tracks': 모두 정상이어야 성공 표시(LED, Buzzer).
+     */
+    public get_indicate_success_when_any_not_error_string = (): string => {
+        if( (this._c_blank[1] & 0x01) !== 0){
+            return lpu237.SUCCESS_INDICATE_CONDITION_ARRAY[1];
+        }
+        else{
+            return lpu237.SUCCESS_INDICATE_CONDITION_ARRAY[0];
+        }
+    };
 
     /**
      * @public
      * @description 트랙 하나라도 정상일 때 성공으로 간주할지 여부를 확인합니다.
-     * @returns {boolean} true: 하나라도 정상이면 성공 표시, false: 모두 정상이어야 성공 표시.
+     * @returns {boolean} true: msr 의 하나의 track 이라도 정상이면 성공 표시(LED, Buzzer), false: 모두 정상이어야 성공 표시(LED, Buzzer).
+     */
+    public is_indicate_success_when_any_track_is_not_error = (): boolean => {
+        return (this._c_blank[1] & 0x01) !== 0;
+    };
+
+    /**
+     * @deprecated is_indicate_success_when_any_track_is_not_error() 를 대신 사용하라.
+     * @public
+     * @description 트랙 하나라도 정상일 때 성공으로 간주할지 여부를 확인합니다.
+     * @returns {boolean} true: msr 의 하나의 track 이라도 정상이면 성공 표시(LED, Buzzer), false: 모두 정상이어야 성공 표시(LED, Buzzer).
      */
     public get_indicate_success_when_any_not_error = (): boolean => {
         return (this._c_blank[1] & 0x01) !== 0;
-    }
+    };
 
     /**
      * @public
@@ -4905,7 +5143,7 @@ export class lpu237 extends hid {
      */
     public get_ignore_iso3 = (): boolean => {
         return (this._c_blank[1] & 0x04) !== 0;
-    }
+    };
 
     /**
      * @public
@@ -4914,7 +5152,7 @@ export class lpu237 extends hid {
      */
     public get_remove_colon = (): boolean => {
         return (this._c_blank[1] & 0x08) !== 0;
-    }
+    };
 
     /**
      * @public
@@ -4923,7 +5161,7 @@ export class lpu237 extends hid {
      */
     public get_device_is_mmd1000 = (): boolean => {
         return this._b_device_is_mmd1000;
-    }
+    };
 
     /**
      * @public
@@ -4932,7 +5170,7 @@ export class lpu237 extends hid {
      */
     public get_manufacture = (): number => {
         return this._n_manufacture;
-    }
+    };
 
     /**
      * @public
@@ -4945,7 +5183,7 @@ export class lpu237 extends hid {
 
         // 1. UID 데이터가 유효한 문자열인지 확인
         if (typeof this._s_uid === 'string') {
-            const max_len = this._const_the_size_of_uid * 2;
+            const max_len = lpu237._const_the_size_of_uid * 2;
 
             // 2. Hex 문자열이므로 바이트 크기의 2배를 기준으로 길이를 제한
             if (this._s_uid.length > max_len) {
@@ -4956,7 +5194,7 @@ export class lpu237 extends hid {
         }
 
         return s_uid;
-    }
+    };
 
     /**
      * @description 장치의 지원 기능을 확인합니다.
@@ -4964,7 +5202,7 @@ export class lpu237 extends hid {
      */
     public get_device_function = (): number => {
         return this._n_device_function;
-    }
+    };
 
     /**
      * @description 장치의 시스템 펌웨어 버전을 가져옵니다.
@@ -4972,7 +5210,7 @@ export class lpu237 extends hid {
      */
     public get_system_version = (): number[] => {
         return this._version;
-    }
+    };
 
     /**
      * @description 장치의 설정 데이터 구조 버전을 가져옵니다.
@@ -4980,7 +5218,7 @@ export class lpu237 extends hid {
      */
     public get_structure_version = (): number[] => {
         return this._version_structure;
-    }
+    };
 
     /**
      * @description 키 맵 테이블 저장 방식(메모리 절약 모드)을 확인합니다.
@@ -4988,7 +5226,7 @@ export class lpu237 extends hid {
      */
     public get_removed_key_map_table = (): boolean => {
         return this._b_removed_key_map_table;
-    }
+    };
 
     /**
      * @description 부트로더의 종류를 확인합니다.
@@ -4996,7 +5234,7 @@ export class lpu237 extends hid {
      */
     public get_hid_boot = (): boolean => {
         return this._b_is_hid_boot;
-    }
+    };
 
     /**
      * @description i-button 전용 모델 여부를 확인합니다.
@@ -5004,7 +5242,7 @@ export class lpu237 extends hid {
      */
     public get_device_is_ibutton_only = (): boolean => {
         return this._b_device_is_ibutton_only;
-    }
+    };
 
     /**
      * @description 하드웨어 타입(Standard 여부)을 확인합니다.
@@ -5012,7 +5250,7 @@ export class lpu237 extends hid {
      */
     public get_device_is_standard = (): boolean => {
         return this._b_device_is_standard;
-    }
+    };
 
     /**
      * @description 시스템 인터페이스 설정을 가져옵니다.
@@ -5020,14 +5258,25 @@ export class lpu237 extends hid {
      */
     public get_interface = (): number => {
         return this._n_interface;
-    }
+    };
+
+    /**
+     * @description 카드 읽기 성공 시 부저(비프음) 상태를 가져옵니다.
+     * @returns {boolean} true : buzzer on, false : buzzer off
+     */
+    public get_buzzer_count_boolean = (): boolean => {
+        if( this._dw_buzzer_count <= lpu237._const_default_buzzer_count_for_off )
+            return false;
+        else
+            return true;
+    };
 
     /**
      * @description 카드 읽기 성공 시 부저(비프음) 횟수를 가져옵니다.
      */
     public get_buzzer_count = (): number => {
         return this._dw_buzzer_count;
-    }
+    };
 
     /**
      * @description MSD 부트로더가 실행되는 시간(대기 시간)을 가져옵니다.
@@ -5035,7 +5284,7 @@ export class lpu237 extends hid {
      */
     public get_boot_run_time = (): number => {
         return this._dw_boot_run_time;
-    }
+    };
 
     /**
      * @description 키보드 언어 레이아웃 설정을 가져옵니다.
@@ -5043,7 +5292,7 @@ export class lpu237 extends hid {
      */
     public get_language = (): number => {
         return this._n_language_index;
-    }
+    };
 
     /**
      * @public
@@ -5056,13 +5305,13 @@ export class lpu237 extends hid {
         if (
             typeof n_track !== 'number' ||
             !Array.isArray(this._b_enable_iso) ||
-            this._b_enable_iso.length !== this._const_the_number_of_track
+            this._b_enable_iso.length !== lpu237._const_the_number_of_track
         ) {
             return false;
         }
 
         return this._b_enable_iso[n_track] ?? false;
-    }
+    };
 
     /**
      * @public
@@ -5074,7 +5323,7 @@ export class lpu237 extends hid {
         const default_dir = type_direction.dir_bidectional;
 
         // 기본 배열 유효성 검사
-        if (!Array.isArray(this._n_direction) || this._n_direction.length !== this._const_the_number_of_track) {
+        if (!Array.isArray(this._n_direction) || this._n_direction.length !== lpu237._const_the_number_of_track) {
             return default_dir;
         }
 
@@ -5084,12 +5333,12 @@ export class lpu237 extends hid {
         }
 
         // n_track이 숫자가 아니거나 범위를 벗어난 경우 처리
-        if (typeof n_track !== 'number' || n_track < 0 || n_track >= this._const_the_number_of_track) {
+        if (typeof n_track !== 'number' || n_track < 0 || n_track >= lpu237._const_the_number_of_track) {
             return default_dir;
         }
 
         return this._n_direction[n_track];
-    }
+    };
 
     /**
      * @public
@@ -5098,7 +5347,7 @@ export class lpu237 extends hid {
      */
     public get_global_prefix = (): string | null => {
         return this._s_global_prefix;
-    }
+    };
 
     /**
      * @public
@@ -5107,7 +5356,7 @@ export class lpu237 extends hid {
      */
     public get_global_postfix = (): string | null => {
         return this._s_global_postfix;
-    }
+    };
 
     /**
      * @public
@@ -5116,11 +5365,11 @@ export class lpu237 extends hid {
      */
     public get_number_combination = (n_track: number): number => {
         if (typeof n_track !== 'number' || !Array.isArray(this._n_number_combination) ||
-            this._n_number_combination.length !== this._const_the_number_of_track) {
+            this._n_number_combination.length !== lpu237._const_the_number_of_track) {
             return 0;
         }
         return this._n_number_combination[n_track];
-    }
+    };
 
     /**
      * @public
@@ -5129,9 +5378,9 @@ export class lpu237 extends hid {
      * @param {number} n_combi 조합 인덱스 (0~2)
      */
     public get_max_size = (n_track: number, n_combi: number): number => {
-        if (this._is_invalid_track_combi(n_track, this._n_max_size)) return 0;
+        if (lpu237._is_invalid_track_combi(n_track, this._n_max_size)) return 0;
         return this._n_max_size[n_track][n_combi];
-    }
+    };
 
     /**
      * @public
@@ -5140,27 +5389,27 @@ export class lpu237 extends hid {
      * @param {number} n_combi 조합 인덱스 (0~2)
      */
     public get_bit_size = (n_track: number, n_combi: number): number => {
-        if (this._is_invalid_track_combi(n_track, this._n_bit_size)) return 0;
+        if (lpu237._is_invalid_track_combi(n_track, this._n_bit_size)) return 0;
         return this._n_bit_size[n_track][n_combi];
-    }
+    };
 
     /**
      * @public
      * @description 데이터 추출 시 사용할 비트 마스크 패턴을 가져옵니다.
      */
     public get_data_mask = (n_track: number, n_combi: number): number => {
-        if (this._is_invalid_track_combi(n_track, this._c_data_mask)) return 0;
+        if (lpu237._is_invalid_track_combi(n_track, this._c_data_mask)) return 0;
         return this._c_data_mask[n_track][n_combi];
-    }
+    };
 
     /**
      * @public
      * @description 패리티(Parity) 비트 사용 여부를 확인합니다.
      */
     public get_use_parity = (n_track: number, n_combi: number): boolean => {
-        if (this._is_invalid_track_combi(n_track, this._b_use_parity)) return false;
+        if (lpu237._is_invalid_track_combi(n_track, this._b_use_parity)) return false;
         return this._b_use_parity[n_track][n_combi];
-    }
+    };
 
     /**
      * @public
@@ -5168,9 +5417,9 @@ export class lpu237 extends hid {
      * @returns {number} 0: Even(짝수), 1: Odd(홀수)
      */
     public get_parity_type = (n_track: number, n_combi: number): number => {
-        if (this._is_invalid_track_combi(n_track, this._n_parity_type)) return 0;
+        if (lpu237._is_invalid_track_combi(n_track, this._n_parity_type)) return 0;
         return this._n_parity_type[n_track][n_combi];
-    }
+    };
 
     /**
      * @public
@@ -5179,9 +5428,9 @@ export class lpu237 extends hid {
      * @param {number} n_combi 조합 인덱스 (0~2)
      */
     public get_stxl = (n_track: number, n_combi: number): number => {
-        if (this._is_invalid_track_combi(n_track, this._c_stxl)) return 0;
+        if (lpu237._is_invalid_track_combi(n_track, this._c_stxl)) return 0;
         return this._c_stxl[n_track][n_combi];
-    }
+    };
 
     /**
      * @public
@@ -5190,18 +5439,18 @@ export class lpu237 extends hid {
      * @param {number} n_combi 조합 인덱스 (0~2)
      */
     public get_etxl = (n_track: number, n_combi: number): number => {
-        if (this._is_invalid_track_combi(n_track, this._c_etxl)) return 0;
+        if (lpu237._is_invalid_track_combi(n_track, this._c_etxl)) return 0;
         return this._c_etxl[n_track][n_combi];
-    }
+    };
 
     /**
      * @public
      * @description 에러 교정 모드(ECM) 사용 여부를 확인합니다.
      */
     public get_use_ecm = (n_track: number, n_combi: number): boolean => {
-        if (this._is_invalid_track_combi(n_track, this._b_use_ecm)) return false;
+        if (lpu237._is_invalid_track_combi(n_track, this._b_use_ecm)) return false;
         return this._b_use_ecm[n_track][n_combi];
-    }
+    };
 
     /**
      * @public
@@ -5209,18 +5458,18 @@ export class lpu237 extends hid {
      * @returns {number} 0: LRC, 1: Inversion LRC, 2: CRC
      */
     public get_ecm_type = (n_track: number, n_combi: number): number => {
-        if (this._is_invalid_track_combi(n_track, this._n_ecm_type)) return 0;
+        if (lpu237._is_invalid_track_combi(n_track, this._n_ecm_type)) return 0;
         return this._n_ecm_type[n_track][n_combi];
-    }
+    };
 
     /**
      * @public
      * @description 비트 데이터를 ASCII 문자로 변환할 때 더해지는 오프셋 값을 가져옵니다.
      */
     public get_add_value = (n_track: number, n_combi: number): number => {
-        if (this._is_invalid_track_combi(n_track, this._n_add_value)) return 0;
+        if (lpu237._is_invalid_track_combi(n_track, this._n_add_value)) return 0;
         return this._n_add_value[n_track][n_combi];
-    }
+    };
 
     /**
      * @public
@@ -5230,12 +5479,12 @@ export class lpu237 extends hid {
      * @returns {string | null} Hex 문자열 형태의 전첨자, 유효하지 않으면 null 반환
      */
     public get_private_prefix = (n_track: number, n_combi: number): string | null => {
-        if (this._is_invalid_track_combi(n_track, this._s_private_prefix)) {
+        if (lpu237._is_invalid_track_combi(n_track, this._s_private_prefix)) {
             return null;
         }
 
         return this._s_private_prefix[n_track][n_combi];
-    }
+    };
 
     /**
      * @public
@@ -5245,12 +5494,12 @@ export class lpu237 extends hid {
      * @returns {string | null} Hex 문자열 형태의 후첨자, 유효하지 않으면 null 반환
      */
     public get_private_postfix = (n_track: number, n_combi: number): string | null => {
-        if (this._is_invalid_track_combi(n_track, this._s_private_postfix)) {
+        if (lpu237._is_invalid_track_combi(n_track, this._s_private_postfix)) {
             return null;
         }
 
         return this._s_private_postfix[n_track][n_combi];
-    }
+    };
 
     /**
      * @public
@@ -5259,7 +5508,7 @@ export class lpu237 extends hid {
      */
     public get_prefix_ibutton = (): string | null => {
         return this._s_prefix_ibutton;
-    }
+    };
 
     /**
      * @public
@@ -5267,7 +5516,7 @@ export class lpu237 extends hid {
      */
     public get_postfix_ibutton = (): string | null => {
         return this._s_postfix_ibutton;
-    }
+    };
 
     /**
      * @public
@@ -5275,7 +5524,7 @@ export class lpu237 extends hid {
      */
     public get_ibutton_remove = (): string | null => {
         return this._s_ibutton_remove;
-    }
+    };
 
     /**
      * @public
@@ -5283,7 +5532,7 @@ export class lpu237 extends hid {
      */
     public get_prefix_ibutton_remove = (): string | null => {
         return this._s_prefix_ibutton_remove;
-    }
+    };
 
     /**
      * @public
@@ -5291,7 +5540,7 @@ export class lpu237 extends hid {
      */
     public get_postfix_ibutton_remove = (): string | null => {
         return this._s_postfix_ibutton_remove;
-    }
+    };
 
     /**
      * @public
@@ -5299,7 +5548,7 @@ export class lpu237 extends hid {
      */
     public get_prefix_uart = (): string | null => {
         return this._s_prefix_uart;
-    }
+    };
 
     /**
      * @public
@@ -5307,7 +5556,7 @@ export class lpu237 extends hid {
      */
     public get_postfix_uart = (): string | null => {
         return this._s_postfix_uart;
-    }
+    };
 
     /**
      * @public
@@ -5322,8 +5571,28 @@ export class lpu237 extends hid {
 
         ar_pos[1] = this._c_blank[0] & 0x0F;    
         return ar_pos;
-    }
+    };
 
+    /**
+     * @public
+     * @description get i-button the start pos of range
+     * @returns {number} 0~15
+     */    
+    public get_ibutton_range_start = (): number => {
+        let n_pos = this._c_blank[0] & 0xF0;
+        n_pos = n_pos >> 4;
+        return n_pos;
+    };
+
+    /**
+     * @public
+     * @description get i-button the end pos of range
+     * @returns {number} 0~15
+     */    
+    public get_ibutton_range_end = (): number => {
+        let n_pos = this._c_blank[0] & 0x0F;
+        return n_pos;
+    };
 
     /**
      * @public
@@ -5332,7 +5601,7 @@ export class lpu237 extends hid {
      */
     public get_enable_f12_ibutton = (): boolean => {
         return (this._c_blank[2] & 0x01) !== 0;
-    }
+    };
 
     /**
      * @public
@@ -5342,7 +5611,7 @@ export class lpu237 extends hid {
     public get_enable_zeros_ibutton = (): boolean => {
         // 원본 로직 유지: 0x02 비트가 세팅되어 있으면 false 반환
         return (this._c_blank[2] & 0x02) === 0;
-    }
+    };
 
     /**
      * @public
@@ -5351,7 +5620,7 @@ export class lpu237 extends hid {
      */
     public get_enable_zeros_7times_ibutton = (): boolean => {
         return (this._c_blank[2] & 0x04) !== 0;
-    }
+    };
 
     /**
      * @public
@@ -5360,7 +5629,7 @@ export class lpu237 extends hid {
      */
     public get_enable_addmit_code_stick_ibutton = (): boolean => {
         return (this._c_blank[2] & 0x08) !== 0;
-    }
+    };
 
     /**
      * @public
@@ -5369,7 +5638,7 @@ export class lpu237 extends hid {
      */
     public get_enable_none_ibutton = (): boolean => {
         return (this._c_blank[2] & 0x0F) === 0x02;
-    }
+    };
 
     /**
      * @public
@@ -5380,7 +5649,7 @@ export class lpu237 extends hid {
         // 0xF0(1111 0000)으로 비트 마스킹하여 상위 4비트 값만 추출
         const n_interval = this._c_blank[1] & 0xF0;
         return n_interval;
-    }
+    };
 
     /**
      * @public
@@ -5394,7 +5663,7 @@ export class lpu237 extends hid {
 
         // shift()는 배열의 첫 번째 요소를 제거하고 그 요소를 반환합니다.
         return this._dequeu_s_tx.shift() || null;
-    }
+    };
 
     /**
      * @public
@@ -5409,7 +5678,7 @@ export class lpu237 extends hid {
 
         this._dequeu_s_rx.push(s_response);
         return true;
-    }
+    };
 
     /**
      * @public
@@ -5450,7 +5719,7 @@ export class lpu237 extends hid {
         }
 
         return this._deque_generated_tx[0];
-    }
+    };
 
     /**
      * @public
@@ -5460,7 +5729,7 @@ export class lpu237 extends hid {
         this._deque_generated_tx.length = 0;
         this._dequeu_s_rx.length = 0;
         this._dequeu_s_tx.length = 0;
-    }
+    };
 
     /**
      * @public
@@ -5512,7 +5781,7 @@ export class lpu237 extends hid {
         }
 
         return this._deque_generated_tx.length;
-    }
+    };
 
     /**
      * @public
@@ -5547,6 +5816,9 @@ export class lpu237 extends hid {
 
             if (!this._generate_get_global_pre_postfix_send_condition(this._dequeu_s_tx)) continue;
             this._deque_generated_tx.push(_type_generated_tx_type.gt_get_global_prepostfix_send_condition);
+
+            if (!this._generate_get_track_order(this._dequeu_s_tx)) continue;
+            this._deque_generated_tx.push(_type_generated_tx_type.gt_get_track_order);
 
             if (!this._generate_get_device_support_mmd1000(this._dequeu_s_tx)) continue;
             this._deque_generated_tx.push(_type_generated_tx_type.gt_support_mmd1000);
@@ -5599,7 +5871,7 @@ export class lpu237 extends hid {
             this._deque_generated_tx.push(_type_generated_tx_type.gt_get_global_postfix);
 
             let trackSuccess = true;
-            for (let i = 0; i < this._const_the_number_of_track; i++) {
+            for (let i = 0; i < lpu237._const_the_number_of_track; i++) {
                 if (!this._generate_get_enable_track(this._dequeu_s_tx, i)) { trackSuccess = false; break; }
                 this._deque_generated_tx.push(_type_generated_tx_type.gt_get_enable_iso1 + i);
             }
@@ -5620,7 +5892,7 @@ export class lpu237 extends hid {
             
             trackSuccess = true;
 
-            for (let i = 0; i < this._const_the_number_of_track; i++) {
+            for (let i = 0; i < lpu237._const_the_number_of_track; i++) {
                 if (!this._generate_get_number_combi(this._dequeu_s_tx, i)) { trackSuccess = false; break; }
                 this._deque_generated_tx.push(_type_generated_tx_type.gt_get_iso1_number_combi + i);
 
@@ -5631,40 +5903,40 @@ export class lpu237 extends hid {
                 for (let j = 0; j < lpu237._const_the_number_of_combination; j++) {
                     // 조합별 상세 파라미터 (BitSize, Mask, Parity, ECM, STX/ETX 등) 요청 생성...
                     if (!this._generate_get_max_size(this._dequeu_s_tx, i,j)) { comboSuccess = false; break; }
-                    this._deque_generated_tx.push(_type_generated_tx_type.gt_get_iso1_Combi0_MaxSize+ i*this._const_the_number_of_track + j);
+                    this._deque_generated_tx.push(_type_generated_tx_type.gt_get_iso1_Combi0_MaxSize+ i*lpu237._const_the_number_of_track + j);
 
                     if (!this._generate_get_bit_size(this._dequeu_s_tx, i,j)) { comboSuccess = false; break; }
-                    this._deque_generated_tx.push(_type_generated_tx_type.gt_get_iso1_Combi0_BitSize+ i*this._const_the_number_of_track + j);
+                    this._deque_generated_tx.push(_type_generated_tx_type.gt_get_iso1_Combi0_BitSize+ i*lpu237._const_the_number_of_track + j);
 
                     if (!this._generate_get_data_mask(this._dequeu_s_tx, i,j)) { comboSuccess = false; break; }
-                    this._deque_generated_tx.push(_type_generated_tx_type.gt_get_iso1_Combi0_DataMask+ i*this._const_the_number_of_track + j);
+                    this._deque_generated_tx.push(_type_generated_tx_type.gt_get_iso1_Combi0_DataMask+ i*lpu237._const_the_number_of_track + j);
 
                     if (!this._generate_get_use_parity(this._dequeu_s_tx, i,j)) { comboSuccess = false; break; }
-                    this._deque_generated_tx.push(_type_generated_tx_type.gt_get_iso1_Combi0_UseParity+ i*this._const_the_number_of_track + j);
+                    this._deque_generated_tx.push(_type_generated_tx_type.gt_get_iso1_Combi0_UseParity+ i*lpu237._const_the_number_of_track + j);
 
                     if (!this._generate_get_parity_type(this._dequeu_s_tx, i,j)) { comboSuccess = false; break; }
-                    this._deque_generated_tx.push(_type_generated_tx_type.gt_get_iso1_Combi0_ParityType+ i*this._const_the_number_of_track + j);
+                    this._deque_generated_tx.push(_type_generated_tx_type.gt_get_iso1_Combi0_ParityType+ i*lpu237._const_the_number_of_track + j);
 
                     if (!this._generate_get_stxl(this._dequeu_s_tx, i,j)) { comboSuccess = false; break; }
-                    this._deque_generated_tx.push(_type_generated_tx_type.gt_get_iso1_Combi0_STX_L+ i*this._const_the_number_of_track + j);
+                    this._deque_generated_tx.push(_type_generated_tx_type.gt_get_iso1_Combi0_STX_L+ i*lpu237._const_the_number_of_track + j);
 
                     if (!this._generate_get_etxl(this._dequeu_s_tx, i,j)) { comboSuccess = false; break; }
-                    this._deque_generated_tx.push(_type_generated_tx_type.gt_get_iso1_Combi0_ETX_L+ i*this._const_the_number_of_track + j);
+                    this._deque_generated_tx.push(_type_generated_tx_type.gt_get_iso1_Combi0_ETX_L+ i*lpu237._const_the_number_of_track + j);
 
                     if (!this._generate_get_use_error_correct(this._dequeu_s_tx, i,j)) { comboSuccess = false; break; }
-                    this._deque_generated_tx.push(_type_generated_tx_type.gt_get_iso1_Combi0_UseErrorCorrect+ i*this._const_the_number_of_track + j);
+                    this._deque_generated_tx.push(_type_generated_tx_type.gt_get_iso1_Combi0_UseErrorCorrect+ i*lpu237._const_the_number_of_track + j);
 
                     if (!this._generate_get_ecm_type(this._dequeu_s_tx, i,j)) { comboSuccess = false; break; }
-                    this._deque_generated_tx.push(_type_generated_tx_type.gt_get_iso1_Combi0_ECMType+ i*this._const_the_number_of_track + j);
+                    this._deque_generated_tx.push(_type_generated_tx_type.gt_get_iso1_Combi0_ECMType+ i*lpu237._const_the_number_of_track + j);
 
                     if (!this._generate_get_add_value(this._dequeu_s_tx, i,j)) { comboSuccess = false; break; }
-                    this._deque_generated_tx.push(_type_generated_tx_type.gt_get_iso1_Combi0_AddValue+ i*this._const_the_number_of_track + j);
+                    this._deque_generated_tx.push(_type_generated_tx_type.gt_get_iso1_Combi0_AddValue+ i*lpu237._const_the_number_of_track + j);
 
                     if (!this._generate_get_private_prefix(this._dequeu_s_tx, i,j)) { comboSuccess = false; break; }
-                    this._deque_generated_tx.push(_type_generated_tx_type.gt_get_private_prefix10+ i*this._const_the_number_of_track + j);
+                    this._deque_generated_tx.push(_type_generated_tx_type.gt_get_private_prefix10+ i*lpu237._const_the_number_of_track + j);
 
                     if (!this._generate_get_private_postfix(this._dequeu_s_tx, i,j)) { comboSuccess = false; break; }
-                    this._deque_generated_tx.push(_type_generated_tx_type.gt_get_private_postfix10+ i*this._const_the_number_of_track + j);
+                    this._deque_generated_tx.push(_type_generated_tx_type.gt_get_private_postfix10+ i*lpu237._const_the_number_of_track + j);
 
                 }
                 if (!comboSuccess) continue;
@@ -5684,7 +5956,7 @@ export class lpu237 extends hid {
         }
 
         return this._deque_generated_tx.length;
-    }
+    };
 
     /**
      * @public
@@ -5717,7 +5989,7 @@ export class lpu237 extends hid {
         }
 
         return this._deque_generated_tx.length;
-    }
+    };
 
     /**
      * @public
@@ -5800,7 +6072,7 @@ export class lpu237 extends hid {
             // 파일을 ArrayBuffer 형태로 읽기 시작
             reader.readAsArrayBuffer(file_rom);
         });
-    }
+    };
 
     /**
      * @public
@@ -5853,7 +6125,7 @@ export class lpu237 extends hid {
         ss.setItem(`${s_key_p}_c_blank`, JSON.stringify(this._c_blank));
         ss.setItem(`${s_key_p}_s_prefix_uart`, JSON.stringify(this._s_prefix_uart));
         ss.setItem(`${s_key_p}_s_postfix_uart`, JSON.stringify(this._s_postfix_uart));
-    }
+    };
 
     /**
      * @public
@@ -5909,7 +6181,7 @@ export class lpu237 extends hid {
         this._c_blank = getStoredValue('_c_blank');
         this._s_prefix_uart = getStoredValue('_s_prefix_uart');
         this._s_postfix_uart = getStoredValue('_s_postfix_uart');
-    }
+    };
 
     /**
      * @public
@@ -5927,11 +6199,11 @@ export class lpu237 extends hid {
         }
 
         // 2. 특정 트랙 초기화 (유효성 검사)
-        if (typeof n_track === 'number' && n_track >= 0 && n_track < this._const_the_number_of_track) {
+        if (typeof n_track === 'number' && n_track >= 0 && n_track < lpu237._const_the_number_of_track) {
             this._array_s_card_data[n_track] = "";
             this._array_n_card_error_code[n_track] = 0;
         }
-    }
+    };
 
     /**
      * @public
@@ -5940,7 +6212,7 @@ export class lpu237 extends hid {
     public reset_ibutton_data = (): void => {
         this._s_ibutton_data = "";
         this._n_ibutton_error_code = 0;
-    }
+    };
 
     /**
      * @public
@@ -5951,7 +6223,7 @@ export class lpu237 extends hid {
         if (typeof b_ignore === 'boolean') {
             this._b_ignore_ibutton_data = b_ignore;
         }
-    }
+    };
 
     /**
      * @public
@@ -5966,7 +6238,7 @@ export class lpu237 extends hid {
             // 1. 기본 유효성 검사
             if (typeof s_rx !== 'string') break;
             if (s_rx.length % 2 !== 0) break; // 바이트 단위(2글자)여야 함
-            if (s_rx.length < 2 * this._const_the_number_of_track) break; // 헤더(길이 정보) 부족
+            if (s_rx.length < 2 * lpu237._const_the_number_of_track) break; // 헤더(길이 정보) 부족
 
             let s_src = s_rx;
             let s_char = "";
@@ -5974,7 +6246,7 @@ export class lpu237 extends hid {
             let n_len_error = 0;
 
             // 2. 헤더 파싱: 각 트랙의 데이터 길이 또는 에러 코드 추출
-            for (let i = 0; i < this._const_the_number_of_track; i++) {
+            for (let i = 0; i < lpu237._const_the_number_of_track; i++) {
                 this._array_s_card_data[i] = ""; // 버퍼 초기화
                 this._array_n_card_error_code[i] = 0;
 
@@ -5992,7 +6264,7 @@ export class lpu237 extends hid {
             }
 
             // 3. 본문 파싱: 실제 카드 데이터 복원
-            for (let i = 0; i < this._const_the_number_of_track; i++) {
+            for (let i = 0; i < lpu237._const_the_number_of_track; i++) {
                 if (n_len[i] <= 0) continue;
 
                 // 해당 트랙의 데이터 길이만큼 잘라냄
@@ -6024,7 +6296,7 @@ export class lpu237 extends hid {
         } while (false);
 
         return b_result;
-    }
+    };
 
     /**
      * @public
@@ -6079,7 +6351,7 @@ export class lpu237 extends hid {
         } while (false);
 
         return b_result;
-    }
+    };
 
     /**
      * @public
@@ -6097,13 +6369,13 @@ export class lpu237 extends hid {
             s_description += `System UID : ${this._s_uid}\n`;
 
             s_description += `Used bootloader : ${this._b_is_hid_boot ? "Hid" : "MSD"}.\n`;
-            s_description += `System interface : ${this._get_system_inferface_string(this._n_interface)}\n`;
-            s_description += `Language : ${this._get_keyboard_language_index_string(this._n_language_index)}\n`;
+            s_description += `System interface : ${this.get_interface_string()}\n`;
+            s_description += `Language : ${this.get_keyboard_language_index_string()}\n`;
             s_description += `Manufacture : ${this._get_manufacturer_string(this._n_manufacture)}\n`;
             s_description += `MSD bootloader running time : ${this._dw_boot_run_time}\n`;
 
             // 2. 하드웨어 세부 사양 (Buzzer, Decoder 등)
-            const buzzerKHz = (this._get_freqency_from_timer_count(this._dw_buzzer_count) / 1000).toFixed(0);
+            const buzzerKHz = (lpu237._get_freqency_from_timer_count(this._dw_buzzer_count) / 1000).toFixed(0);
             s_description += `Buzzer frequency : ${buzzerKHz} KHz(${this._dw_buzzer_count})\n`;
             s_description += `The supported functions : ${this._get_function_string(this._n_device_function, this._version)}\n`;
 
@@ -6112,7 +6384,7 @@ export class lpu237 extends hid {
             else if (this._b_device_is_mmd1000) decoderName = "MMD1100";
             s_description += `Msr decoder : ${decoderName}\n`;
 
-            s_description += `i-Button mode : ${this._get_ibutton_mode_string(this._c_blank[2] & 0x0F)}\n`;
+            s_description += `i-Button mode : ${this.get_ibutton_mode_string()}\n`;
 
             // 3. MSR 전송 및 오류 처리 조건
             const prePostCondition = this._b_global_pre_postfix_send_condition
@@ -6158,11 +6430,11 @@ export class lpu237 extends hid {
             s_description += `Uart postfixs : ${this._s_postfix_uart}\n`;
 
             // 7. 트랙 및 조합별 상세 디코딩 정보 (Nested Loop)
-            for (let i = 0; i < this._const_the_number_of_track; i++) {
+            for (let i = 0; i < lpu237._const_the_number_of_track; i++) {
                 s_description += "==================================================\n";
                 s_description += `.......ISO track ${i + 1} Information.\n`;
                 s_description += `MSR enabled track ${i + 1} : ${this._b_enable_iso[i] ? "enabled" : "disabled"}.\n`;
-                s_description += `MSR reading direction track ${i + 1} : ${this._get_direction_string(this._n_direction[i])}\n`;
+                s_description += `MSR reading direction track ${i + 1} : ${this.get_direction_string(i)}\n`;
                 s_description += `the number of combination track ${i + 1} : ${this._n_number_combination[i]}\n`;
 
                 for (let j = 0; j < lpu237._const_the_number_of_combination; j++) {
@@ -6187,7 +6459,7 @@ export class lpu237 extends hid {
         }
 
         return s_description;
-    }
+    };
 
     /**
      * @public
@@ -6198,7 +6470,7 @@ export class lpu237 extends hid {
     public get_tag_by_ascii_hex_string = (s_tag: string): string[] => {
         // 내부 헬퍼 함수를 호출하며 현재 객체의 언어 설정(_n_language_index)을 전달합니다.
         return this._get_tag_by_ascii_hex_string(this._n_language_index, s_tag);
-    }
+    };
 
     /**
      * @public
@@ -6209,7 +6481,7 @@ export class lpu237 extends hid {
     public is_success_enter_opos_mode = (s_response: string): boolean => {
         // 응답 패킷의 상태 코드를 분석하는 공용 함수를 호출합니다.
         return this._is_success_response(s_response);
-    }
+    };
 
     /**
      * @public
@@ -6217,7 +6489,7 @@ export class lpu237 extends hid {
      */
     public get_tag_by_ascii_code = (s_tag: string): number[] => {
         return this._get_tag_by_ascii_code(this._n_language_index, s_tag);
-    }
+    };
 
     /**
      * @public
@@ -6225,7 +6497,7 @@ export class lpu237 extends hid {
      */
     public get_tag_by_ascii_string = (s_tag: string): string[] => {
         return this._get_tag_by_ascii_string(this._n_language_index, s_tag);
-    }
+    };
 
     /**
      * @public
@@ -6233,7 +6505,7 @@ export class lpu237 extends hid {
      */
     public get_error_message = (s_error_name: string): string => {
         return this._get_error_message(s_error_name);
-    }
+    };
 
     /**
      * @public
@@ -6252,7 +6524,7 @@ export class lpu237 extends hid {
         if (/&switch\d+$/.test(path)) return 'compositive_switch';
 
         return 'primitive';
-    }
+    };
 
     /**
      * Returns a string containing the system parameters in an HTML table format.
@@ -6317,11 +6589,11 @@ export class lpu237 extends hid {
                 //
                 ++n_count;
                 as_name[n_count] = "System interface";
-                as_value[n_count] = this._get_system_inferface_string(this._n_interface);
+                as_value[n_count] = this.get_interface_string();
                 //
                 ++n_count;
                 as_name[n_count] = "Language";
-                as_value[n_count] = this._get_keyboard_language_index_string(this._n_language_index);
+                as_value[n_count] = this.get_keyboard_language_index_string();
                 //
                 ++n_count;
                 as_name[n_count] = "Manufacture";
@@ -6333,7 +6605,7 @@ export class lpu237 extends hid {
                 //
                 ++n_count;
                 as_name[n_count] = "Buzzer frequency";
-                as_value[n_count] = (this._get_freqency_from_timer_count(this._dw_buzzer_count) / 1000).toFixed(0) + " KHz(" + String(this._dw_buzzer_count) + ")";
+                as_value[n_count] = (lpu237._get_freqency_from_timer_count(this._dw_buzzer_count) / 1000).toFixed(0) + " KHz(" + String(this._dw_buzzer_count) + ")";
                 //
                 ++n_count;
                 as_name[n_count] = "The supported functions";
@@ -6353,7 +6625,7 @@ export class lpu237 extends hid {
                 //
                 ++n_count;
                 as_name[n_count] = "i-Button mode";
-                as_value[n_count] = this._get_ibutton_mode_string(this._c_blank[2] & 0x0F);
+                as_value[n_count] = this.get_ibutton_mode_string();
                 //
                 ++n_count;
                 as_name[n_count] = "blank data";
@@ -6479,7 +6751,7 @@ export class lpu237 extends hid {
             }//system section
             ////////////////////////////////////////////////////
 
-            for (let i = 0; i < this._const_the_number_of_track; i++) {
+            for (let i = 0; i < lpu237._const_the_number_of_track; i++) {
                 as_n.push([]);
                 as_n[i].push("ISO track " + String(i + 1) + " Information");
                 as_v.push([]);
@@ -6493,7 +6765,7 @@ export class lpu237 extends hid {
                 }
                 //
                 as_n[i].push("MSR reading direction");
-                as_v[i].push(this._get_direction_string(this._n_direction[i]));
+                as_v[i].push(this.get_direction_string(i));
                 //
                 as_n[i].push("the number of combination");
                 as_v[i].push(String(this._n_number_combination[i]));
@@ -6596,7 +6868,7 @@ export class lpu237 extends hid {
 
         } while (false);
         return s_description;
-    }
+    };
 
     /**
      * @public
@@ -7212,7 +7484,7 @@ export class lpu237 extends hid {
                 }
 
                 let ii: number = 0, jj: number = 0;
-                for (ii = 0; ii < this._const_the_number_of_track; ii++) {
+                for (ii = 0; ii < lpu237._const_the_number_of_track; ii++) {
                     //.cp_ISO1_NumberCombi~cp_ISO3_NumberCombi
                     if (util.find_from_set(this._set_change_parameter,
                         _type_change_parameter.cp_ISO1_NumberCombi + ii) >= 0) {
@@ -7380,7 +7652,7 @@ export class lpu237 extends hid {
                     }
                 }//end for ii
 
-                if (ii < this._const_the_number_of_track || jj < lpu237._const_the_number_of_combination) {
+                if (ii < lpu237._const_the_number_of_track || jj < lpu237._const_the_number_of_combination) {
                     continue;//error
                 }
             }
@@ -7401,7 +7673,7 @@ export class lpu237 extends hid {
         }
 
         return this._deque_generated_tx.length;
-    }
+    };
 
 
     /**
@@ -8181,7 +8453,7 @@ export class lpu237 extends hid {
             }//end switch
         } while (false);
         return b_result;
-    }
+    };
 
 
     /**
@@ -8268,7 +8540,7 @@ export class lpu237 extends hid {
                             s_attr_name = "interface";
                             if (ele.hasAttribute(s_attr_name)) {
                                 s_attr = ele.getAttribute(s_attr_name)!;
-                                n_interface = this_device._get_interface_from_string(s_attr);
+                                n_interface = lpu237._get_interface_from_string(s_attr);
                                 if (n_interface < 0) {
                                     continue;//error
                                 }
@@ -8277,7 +8549,7 @@ export class lpu237 extends hid {
                             s_attr_name = "buzzer";
                             if (ele.hasAttribute(s_attr_name)) {
                                 s_attr = ele.getAttribute(s_attr_name)!;
-                                n_buzzer = this_device._get_buzzer_count_from_string(s_attr);
+                                n_buzzer = lpu237._get_buzzer_count_from_string(s_attr);
                                 if (n_buzzer === null) {
                                     continue;
                                 }
@@ -8286,7 +8558,7 @@ export class lpu237 extends hid {
                             s_attr_name = "language";
                             if (ele.hasAttribute(s_attr_name)) {
                                 s_attr = ele.getAttribute(s_attr_name)!;
-                                n_language = this_device._get_language_from_string(s_attr);
+                                n_language = lpu237._get_language_from_string(s_attr);
                                 if (n_language < 0) {
                                     continue;
                                 }
@@ -8322,7 +8594,7 @@ export class lpu237 extends hid {
                             s_attr_name = "condition";
                             if (ele.hasAttribute(s_attr_name)) {
                                 s_attr = ele.getAttribute(s_attr_name)!;
-                                b_condition = this_device._get_global_pre_postfix_send_condition_from_string(s_attr);
+                                b_condition = lpu237._get_global_pre_postfix_send_condition_from_string(s_attr);
                                 if (b_condition === null) {
                                     continue;
                                 }
@@ -8331,7 +8603,7 @@ export class lpu237 extends hid {
                             s_attr_name = "track_order";
                             if (ele.hasAttribute(s_attr_name)) {
                                 s_attr = ele.getAttribute(s_attr_name)!;
-                                n_order = this_device._get_track_order_from_string(s_attr);
+                                n_order = lpu237._get_track_order_from_string(s_attr);
                                 if (n_order === null) {
                                     continue;
                                 }
@@ -8341,7 +8613,7 @@ export class lpu237 extends hid {
                             s_attr_name = "indication";
                             if (ele.hasAttribute(s_attr_name)) {
                                 s_attr = ele.getAttribute(s_attr_name)!;
-                                b_indicate_all_success_is_success = this_device._get_indicate_error_condition_from_string(s_attr);
+                                b_indicate_all_success_is_success = lpu237._get_indicate_error_condition_from_string(s_attr);
                                 if (b_indicate_all_success_is_success === null) {
                                     continue;
                                 }
@@ -8399,7 +8671,7 @@ export class lpu237 extends hid {
                             s_attr_name = "direction";
                             if (ele.hasAttribute(s_attr_name)) {
                                 s_attr = ele.getAttribute(s_attr_name)!;
-                                n_direction = this_device._get_direction_from_string(s_attr);
+                                n_direction = lpu237._get_direction_from_string(s_attr);
                                 if (n_direction < 0) {
                                     continue;
                                 }
@@ -8434,7 +8706,7 @@ export class lpu237 extends hid {
                         //iso1~iso3 element
                         let n_track: number = 0;
                         let s_track: string = "iso";
-                        for (n_track = 0; n_track < this_device._const_the_number_of_track; n_track++) {
+                        for (n_track = 0; n_track < lpu237._const_the_number_of_track; n_track++) {
                             s_track = "iso" + String(n_track + 1);
                             array_ele = xml_doc.getElementsByTagName(s_track);
                             if (array_ele.length > 0) {
@@ -8826,63 +9098,63 @@ export class lpu237 extends hid {
                             }
                         }
                         if (s_gpre !== null) {
-                            if (!this_device._is_equal_tag((this as any)._s_global_prefix, s_gpre)) {
+                            if (!lpu237._is_equal_tag((this as any)._s_global_prefix, s_gpre)) {
                                 util.insert_to_set((this as any)._device._set_change_parameter, _type_change_parameter.cp_GlobalPrefix);
                                 (this as any)._device._s_global_prefix = s_gpre;
                             }
                         }
                         if (s_gpost !== null) {
-                            if (!this_device._is_equal_tag((this as any)._device._s_global_postfix, s_gpost)) {
+                            if (!lpu237._is_equal_tag((this as any)._device._s_global_postfix, s_gpost)) {
                                 util.insert_to_set((this as any)._device._set_change_parameter, _type_change_parameter.cp_GlobalPostfix);
                                 (this as any)._device._s_global_postfix = s_gpost;
                             }
                         }
                         if (s_ipre !== null) {
-                            if (!this_device._is_equal_tag((this as any)._device._s_prefix_ibutton, s_ipre)) {
+                            if (!lpu237._is_equal_tag((this as any)._device._s_prefix_ibutton, s_ipre)) {
                                 util.insert_to_set((this as any)._device._set_change_parameter, _type_change_parameter.cp_Prefix_iButton);
                                 (this as any)._device._s_prefix_ibutton = s_ipre;
                             }
                         }
                         if (s_ipost !== null) {
-                            if (!this_device._is_equal_tag((this as any)._device._s_postfix_ibutton, s_ipost)) {
+                            if (!lpu237._is_equal_tag((this as any)._device._s_postfix_ibutton, s_ipost)) {
                                 util.insert_to_set((this as any)._device._set_change_parameter, _type_change_parameter.cp_Postfix_iButton);
                                 (this as any)._device._s_postfix_ibutton = s_ipost;
                             }
                         }
 
                         if (s_iremove !== null) {
-                            if (!this_device._is_equal_tag((this as any)._device._s_ibutton_remove, s_iremove)) {
+                            if (!lpu237._is_equal_tag((this as any)._device._s_ibutton_remove, s_iremove)) {
                                 util.insert_to_set((this as any)._device._set_change_parameter, _type_change_parameter.cp_iButton_Remove);
                                 (this as any)._device._s_ibutton_remove = s_iremove;
                             }
                         }
                         if (s_ipre_remove !== null) {
-                            if (!this_device._is_equal_tag((this as any)._device._s_prefix_ibutton_remove, s_ipre_remove)) {
+                            if (!lpu237._is_equal_tag((this as any)._device._s_prefix_ibutton_remove, s_ipre_remove)) {
                                 util.insert_to_set((this as any)._device._set_change_parameter, _type_change_parameter.cp_Prefix_iButton_Remove);
                                 (this as any)._device._s_prefix_ibutton_remove = s_ipre_remove;
                             }
                         }
                         if (s_ipost_remove !== null) {
-                            if (!this_device._is_equal_tag((this as any)._device._s_postfix_ibutton_remove, s_ipost_remove)) {
+                            if (!lpu237._is_equal_tag((this as any)._device._s_postfix_ibutton_remove, s_ipost_remove)) {
                                 util.insert_to_set((this as any)._device._set_change_parameter, _type_change_parameter.cp_Postfix_iButton_Remove);
                                 (this as any)._device._s_postfix_ibutton_remove = s_ipost_remove;
                             }
                         }
 
                         if (s_upre !== null) {
-                            if (!this_device._is_equal_tag((this as any)._device._s_prefix_uart, s_upre)) {
+                            if (!lpu237._is_equal_tag((this as any)._device._s_prefix_uart, s_upre)) {
                                 util.insert_to_set((this as any)._device._set_change_parameter, _type_change_parameter.cp_Prefix_Uart);
                                 (this as any)._device._s_prefix_uart = s_upre;
                             }
                         }
                         if (s_upost !== null) {
-                            if (!this_device._is_equal_tag((this as any)._device._s_prefix_uart, s_upost)) {
+                            if (!lpu237._is_equal_tag((this as any)._device._s_prefix_uart, s_upost)) {
                                 util.insert_to_set((this as any)._device._set_change_parameter, _type_change_parameter.cp_Postfix_Uart);
                                 (this as any)._device._s_prefix_uart = s_upost;
                             }
                         }
 
-                        for (let i = 0; i < this_device._const_the_number_of_track; i++) {
+                        for (let i = 0; i < lpu237._const_the_number_of_track; i++) {
                             if (n_combination[i] !== null) {
                                 if ((this as any)._device._n_number_combination[i] !== n_combination[i]) {
                                     util.insert_to_set((this as any)._device._set_change_parameter
@@ -8971,14 +9243,14 @@ export class lpu237 extends hid {
                                     }
                                 }
                                 if (s_ppretag[i][j] !== null) {
-                                    if (!this_device._is_equal_tag((this as any)._device._s_private_prefix[i][j], s_ppretag[i][j] ?? "")) {
+                                    if (!lpu237._is_equal_tag((this as any)._device._s_private_prefix[i][j], s_ppretag[i][j] ?? "")) {
                                         util.insert_to_set((this as any)._device._set_change_parameter
                                             , _type_change_parameter.cp_PrivatePrefix10 + i * lpu237._const_the_number_of_combination + j);
                                         (this as any)._device._s_private_prefix[i][j] = s_ppretag[i][j];
                                     }
                                 }
                                 if (s_pposttag[i][j] !== null) {
-                                    if (!this_device._is_equal_tag((this as any)._device._s_private_postfix[i][j], s_pposttag[i][j] ?? "")) {
+                                    if (!lpu237._is_equal_tag((this as any)._device._s_private_postfix[i][j], s_pposttag[i][j] ?? "")) {
                                         util.insert_to_set((this as any)._device._set_change_parameter
                                             , _type_change_parameter.cp_PrivatePostfix10 + i * lpu237._const_the_number_of_combination + j);
                                         (this as any)._device._s_private_postfix[i][j] = s_pposttag[i][j];
@@ -8999,7 +9271,7 @@ export class lpu237 extends hid {
             } while (false);
 
         });//the end of Promise definition.
-    }
+    };
 
     /**
      * @private
@@ -9007,7 +9279,7 @@ export class lpu237 extends hid {
      * @param {number} n_count - 하드웨어 타이머의 카운트 값
      * @returns {number} 주파수 (단위: Hz)
      */
-    private _get_freqency_from_timer_count(n_count: number): number {
+    private static _get_freqency_from_timer_count(n_count: number): number {
         // 유효성 검사 및 0 이하의 값 방지 (나눗셈 오류 방지)
         if (typeof n_count !== 'number' || n_count <= 0) {
             return 0;
@@ -9019,45 +9291,16 @@ export class lpu237 extends hid {
          */
         return n_count / 8.67;
     }
-    /**
-     * @private
-     * @description 인터페이스 타입 코드를 사람이 읽을 수 있는 문자열로 변환합니다.
-     * @param {number} inf - 시스템 인터페이스 타입 코드
-     * @returns {string} 인터페이스 명칭 (알 수 없는 경우 "unknown")
-     */
-    private _get_system_inferface_string(inf: number): string {
-        // 유효성 검사
-        if (typeof inf !== 'number') {
-            return "unknown";
-        }
-
-        switch (inf) {
-            case type_system_interface.system_interface_usb_keyboard:
-                return "Usb Hid keyboard";
-            case type_system_interface.system_interface_usb_msr:
-                return "Usb Hid vendor defined"; // 일반적인 웹 SDK나 OPOS 모드에서 사용
-            case type_system_interface.system_interface_uart:
-                return "Uart";
-            case type_system_interface.system_interface_ps2_stand_alone:
-                return "Standalone PS2";
-            case type_system_interface.system_interface_ps2_bypass:
-                return "Bypass PS2";
-            case type_system_interface.system_interface_by_hw_setting:
-                return "By HW setting";
-            default:
-                return "unknown";
-        }
-    }
-
+    
     /**
      * @private
      * @description 내부 유효성 검사 헬퍼 함수
      */
-    private _is_invalid_track_combi = (n_track: number, targetArray: any[][]): boolean => {
+    private static _is_invalid_track_combi(n_track: number, targetArray: any[][]): boolean {
         return (
             typeof n_track !== 'number' ||
             !Array.isArray(targetArray) ||
-            targetArray.length !== this._const_the_number_of_track
+            targetArray.length !== lpu237._const_the_number_of_track
         );
     }
 
@@ -9065,7 +9308,7 @@ export class lpu237 extends hid {
      * @private
      * @description 숫자 또는 배열 입력을 표준 4자릿수 버전 배열로 변환합니다.
      */
-    private _normalize_version(version: number[] | number): number[] {
+    private static _normalize_version(version: number[] | number): number[] {
         const result = [0, 0, 0, 0];
         if (typeof version === 'number') {
             result[0] = version;
@@ -9081,7 +9324,7 @@ export class lpu237 extends hid {
      * @private
      * @description Hex 문자열을 바이트 숫자 배열로 변환하는 유틸리티 함수
      */
-    private _hex_to_bytes(hex: string): number[] {
+    private static _hex_to_bytes(hex: string): number[] {
         const bytes: number[] = [];
         for (let i = 0; i < hex.length; i += 2) {
             bytes.push(parseInt(hex.substring(i, i + 2), 16));

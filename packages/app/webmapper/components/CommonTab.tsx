@@ -1,6 +1,7 @@
 import React from 'react';
 import { DeviceType, DeviceConfig } from '../types';
 import { Sliders, Volume2, Globe, Keyboard, Save } from 'lucide-react';
+import { lpu237} from '@lib/elpusk.device.usb.hid.lpu237';
 
 interface CommonTabProps {
   deviceType: DeviceType;
@@ -60,10 +61,12 @@ const CommonTab: React.FC<CommonTabProps> = ({ deviceType, config, handlers, onA
                    value={config.interface}
                    onChange={(e) => handlers.onInterfaceChange(e.target.value)}
                  >
-                    <option>USB keyboard mode</option>
-                    <option>USB HID Vendor mode</option>
-                    <option>RS232 mode</option>
-                 </select>
+                    {lpu237.GetInterfaceStringList().map((key) => (
+                        <option>
+                          {key}
+                        </option>
+                      ))}
+                  </select>
                </div>
                <div className="space-y-1">
                  <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
@@ -99,16 +102,11 @@ const CommonTab: React.FC<CommonTabProps> = ({ deviceType, config, handlers, onA
                    value={config.language}
                    onChange={(e) => handlers.onLanguageChange(e.target.value)}
                  >
-                    <option>USA English</option>
-                    <option>Spanish</option>
-                    <option>Danish</option>
-                    <option>French</option>
-                    <option>German</option>
-                    <option>Italian</option>
-                    <option>Norwegian</option>
-                    <option>Swedish</option>
-                    <option>Herbrew</option>
-                    <option>Turkiye</option>
+                    {lpu237.GetLanguageStringList().map((key) => (
+                        <option>
+                          {key}
+                        </option>
+                      ))}
                  </select>
                </div>
             </div>
@@ -129,11 +127,11 @@ const CommonTab: React.FC<CommonTabProps> = ({ deviceType, config, handlers, onA
                       value={config.ibuttonMode}
                       onChange={(e) => handlers.onIButtonModeChange(e.target.value)}
                     >
-                        <option>zero-16 times</option>
-                        <option>F12</option>
-                        <option>zero-7 times</option>
-                        <option>Code stick protocol</option>
-                        <option>user definition</option>
+                        {lpu237.GetiButtonStringList().map((key) => (
+                            <option>
+                              {key}
+                            </option>
+                          ))}
                     </select>
                   </div>
                   
@@ -192,15 +190,17 @@ const CommonTab: React.FC<CommonTabProps> = ({ deviceType, config, handlers, onA
               </div>
               <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-6">
                  <div className="space-y-1">
-                    <label className="text-sm font-medium text-gray-700">Direction</label>
+                    <label className="text-sm font-medium text-gray-700">Read Direction</label>
                     <select 
                       className="w-full border-gray-300 rounded text-sm p-2 bg-gray-50 border"
                       value={config.msrDirection}
                       onChange={(e) => handlers.onMsrDirectionChange(e.target.value)}
                     >
-                        <option>Bidirectional</option>
-                        <option>Forward</option>
-                        <option>Backward</option>
+                        {lpu237.GetDirectionStringList().map((key) => (
+                            <option>
+                              {key}
+                            </option>
+                          ))}
                     </select>
                  </div>
                  <div className="space-y-1">
@@ -210,12 +210,11 @@ const CommonTab: React.FC<CommonTabProps> = ({ deviceType, config, handlers, onA
                       value={config.msrTrackOrder}
                       onChange={(e) => handlers.onMsrTrackOrderChange(e.target.value)}
                     >
-                        <option>123</option>
-                        <option>132</option>
-                        <option>213</option>
-                        <option>231</option>
-                        <option>312</option>
-                        <option>321</option>
+                        {lpu237.GetOrderStringList().map((key) => (
+                            <option>
+                              {key}
+                            </option>
+                          ))}
                     </select>
                  </div>
                  <div className="space-y-1">
@@ -225,22 +224,11 @@ const CommonTab: React.FC<CommonTabProps> = ({ deviceType, config, handlers, onA
                       value={config.msrResetInterval}
                       onChange={(e) => handlers.onMsrResetIntervalChange(e.target.value)}
                     >
-                        <option>0(default, 03:22)</option>
-                        <option>16(06:43)</option>
-                        <option>32(13:27)</option>
-                        <option>48(20:10)</option>
-                        <option>64(26:53)</option>
-                        <option>80(33:36)</option>
-                        <option>96(40:19)</option>
-                        <option>112(47:03)</option>
-                        <option>128(53:46)</option>
-                        <option>144(01:00:29)</option>
-                        <option>160(01:07:12)</option>
-                        <option>176(01:13:55)</option>
-                        <option>192(01:20:39)</option>
-                        <option>208(01:27:22)</option>
-                        <option>224(01:34:05)</option>
-                        <option>240(disable)</option>
+                        {lpu237.GetResetIntervalStringList().map((key) => (
+                            <option>
+                              {key}
+                            </option>
+                          ))}
                     </select>
                  </div>
                  <div className="space-y-1">
@@ -282,19 +270,19 @@ const CommonTab: React.FC<CommonTabProps> = ({ deviceType, config, handlers, onA
                                <input 
                                  type="radio" 
                                  name="global_send" 
-                                 checked={config.msrGlobalSendCondition === 'No Error in all tracks'}
-                                 onChange={() => handlers.onMsrGlobalSendConditionChange('No Error in all tracks')}
+                                 checked={config.msrGlobalSendCondition === lpu237.GLOBAL_TAG_SEND_CONDITION_ARRAY[1]}
+                                 onChange={() => handlers.onMsrGlobalSendConditionChange(lpu237.GLOBAL_TAG_SEND_CONDITION_ARRAY[1])}
                                  className="text-blue-600" 
-                               /> No Error in all tracks
+                               /> {lpu237.GLOBAL_TAG_SEND_CONDITION_ARRAY[1]}
                              </label>
                              <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
                                <input 
                                  type="radio" 
                                  name="global_send" 
-                                 checked={config.msrGlobalSendCondition === 'One more track is normal'}
-                                 onChange={() => handlers.onMsrGlobalSendConditionChange('One more track is normal')}
+                                 checked={config.msrGlobalSendCondition === lpu237.GLOBAL_TAG_SEND_CONDITION_ARRAY[0]}
+                                 onChange={() => handlers.onMsrGlobalSendConditionChange(lpu237.GLOBAL_TAG_SEND_CONDITION_ARRAY[0])}
                                  className="text-blue-600" 
-                               /> One more track is normal
+                               /> {lpu237.GLOBAL_TAG_SEND_CONDITION_ARRAY[0]}
                              </label>
                           </div>
                       </div>
@@ -305,19 +293,19 @@ const CommonTab: React.FC<CommonTabProps> = ({ deviceType, config, handlers, onA
                                <input 
                                  type="radio" 
                                  name="success_ind" 
-                                 checked={config.msrSuccessIndCondition === 'No Error in all tracks'}
-                                 onChange={() => handlers.onMsrSuccessIndConditionChange('No Error in all tracks')}
+                                 checked={config.msrSuccessIndCondition === lpu237.SUCCESS_INDICATE_CONDITION_ARRAY[0]}
+                                 onChange={() => handlers.onMsrSuccessIndConditionChange(lpu237.SUCCESS_INDICATE_CONDITION_ARRAY[0])}
                                  className="text-blue-600" 
-                               /> No Error in all tracks
+                               /> {lpu237.SUCCESS_INDICATE_CONDITION_ARRAY[0]}
                              </label>
                              <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
                                <input 
                                  type="radio" 
                                  name="success_ind" 
-                                 checked={config.msrSuccessIndCondition === 'One more track is normal'}
-                                 onChange={() => handlers.onMsrSuccessIndConditionChange('One more track is normal')}
+                                 checked={config.msrSuccessIndCondition === lpu237.SUCCESS_INDICATE_CONDITION_ARRAY[1]}
+                                 onChange={() => handlers.onMsrSuccessIndConditionChange(lpu237.SUCCESS_INDICATE_CONDITION_ARRAY[1])}
                                  className="text-blue-600" 
-                               /> One more track is normal
+                               /> {lpu237.SUCCESS_INDICATE_CONDITION_ARRAY[1]}
                              </label>
                           </div>
                       </div>

@@ -1,4 +1,3 @@
-
 export enum ConnectionStatus {
   DISCONNECTED = 'not connect',
   CONNECTED = 'connected',
@@ -63,18 +62,18 @@ export const KEYBOARD_LAYOUT = [
 ];
 
 export const DEFAULT_CONFIG: DeviceConfig = {
-  interface: 'USB keyboard mode',
+  interface: 'USB HID Vendor',
   buzzer: true,
   language: 'USA English',
-  ibuttonMode: 'zero-16 times',
+  ibuttonMode: 'Zeros',
   ibuttonRangeStart: 0,
   ibuttonRangeEnd: 15,
   msrDirection: 'Bidirectional',
   msrTrackOrder: '123',
-  msrResetInterval: '0(default, 03:22)',
+  msrResetInterval: 'disable',
   msrEnableISO1: true,
   msrEnableISO2: true,
   msrEnableISO3: true,
-  msrGlobalSendCondition: 'No Error in all tracks',
+  msrGlobalSendCondition: 'One more track is normal',
   msrSuccessIndCondition: 'No Error in all tracks',
 };

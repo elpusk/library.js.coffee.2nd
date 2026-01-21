@@ -17,16 +17,6 @@ let g_ctl: ctl_lpu237 | null = null;
  * MAPPING HELPERS: HW <-> UI
  */
 
-const INTERFACE_MAP: Record<string, number> = {
-  'USB keyboard mode': type_system_interface.system_interface_usb_keyboard,
-  'USB HID Vendor mode': type_system_interface.system_interface_usb_msr,
-  'RS232 mode': type_system_interface.system_interface_uart
-};
-
-const LANGUAGE_LIST = [
-  'USA English', 'Spanish', 'Danish', 'French', 'German', 'Italian', 'Norwegian', 'Swedish', 'UK English', 'Herbrew', 'Turkiye'
-];
-
 const IBUTTON_MODE_MAP: Record<string, number> = {
   'zero-16 times': 0x00,
   'F12': 0x01,
@@ -188,30 +178,22 @@ export const createHandlers = (
 
         // Apply hardware parameters to UI state (CommonTab)
         const hw = g_lpu_device;
-        const currentInterface = Object.keys(INTERFACE_MAP).find(k => INTERFACE_MAP[k] === hw.get_interface()) || 'USB keyboard mode';
-        const currentLanguage = LANGUAGE_LIST[hw.get_language()] || 'USA English';
-        
-        const currentBlank = hw.get_blank(); // Assuming this is the 4-byte array
-        const currentIButtonMode = Object.keys(IBUTTON_MODE_MAP).find(k => IBUTTON_MODE_MAP[k] === (currentBlank[2] & 0x0F)) || 'zero-16 times';
-        const currentResetInterval = hw.get_mmd1100_reset_interval();
-        const isAnyTrackNormalSuccess = hw.get_indicate_success_when_any_not_error();
-        const ar_range = hw.get_ibutton_range();
-
+       
         const newConfig: DeviceConfig = {
-          interface: currentInterface,
-          buzzer: hw.get_buzzer_count() > 5000, 
-          language: currentLanguage,
-          ibuttonMode: currentIButtonMode,
-          ibuttonRangeStart: ar_range[0], 
-          ibuttonRangeEnd: ar_range[1],
+          interface: hw.get_interface_string(),
+          buzzer: hw.get_buzzer_count_boolean(), 
+          language: hw.get_keyboard_language_index_string(),
+          ibuttonMode: hw.get_ibutton_mode_string(),
+          ibuttonRangeStart: hw.get_ibutton_range_start(), 
+          ibuttonRangeEnd: hw.get_ibutton_range_end(),
           msrDirection: hw.get_direction_string(0),
-          msrTrackOrder: hw.get_track_order().map(n => n + 1).join(''),
-          msrResetInterval: hw.get_mmd1100_reset_interval_string(currentResetInterval,true),
+          msrTrackOrder: hw.get_order_string(),
+          msrResetInterval: hw.get_mmd1100_reset_interval_string_cur(),
           msrEnableISO1: hw.get_enable_iso(0),
           msrEnableISO2: hw.get_enable_iso(1),
           msrEnableISO3: hw.get_enable_iso(2),
-          msrGlobalSendCondition: hw.get_global_pre_postfix_send_condition() ? 'No Error in all tracks' : 'One more track is normal',
-          msrSuccessIndCondition: isAnyTrackNormalSuccess ? 'One more track is normal' : 'No Error in all tracks',
+          msrGlobalSendCondition: hw.get_global_pre_postfix_send_condition_string(),
+          msrSuccessIndCondition: hw.get_indicate_success_when_any_not_error_string(),
         };
 
         // Determine DeviceType for UI Logic based on the path string
@@ -345,8 +327,8 @@ export const createHandlers = (
         const hw = g_lpu_device;
 
         // Push UI settings back to LPU237 instance using its set_x methods
-        hw.set_interface(INTERFACE_MAP[ui.interface] as any);
-        hw.set_language_index(LANGUAGE_LIST.indexOf(ui.language) as any);
+        hw.set_interface_by_string(ui.interface);
+        hw.set_language_index_by_string(ui.language);
         hw.set_buzzer_count(ui.buzzer ? 26000 : 5000);
         
         hw.set_global_pre_postfix_send_condition(ui.msrGlobalSendCondition === 'No Error in all tracks');
