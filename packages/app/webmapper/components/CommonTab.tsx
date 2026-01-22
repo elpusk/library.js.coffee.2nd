@@ -1,7 +1,7 @@
 import React from 'react';
 import { DeviceType, DeviceConfig } from '../types';
 import { Sliders, Volume2, Globe, Keyboard, Save } from 'lucide-react';
-import { lpu237} from '@lib/elpusk.device.usb.hid.lpu237';
+import { lpu237 } from '@lib/elpusk.device.usb.hid.lpu237';
 
 interface CommonTabProps {
   deviceType: DeviceType;
@@ -28,85 +28,80 @@ interface CommonTabProps {
 const CommonTab: React.FC<CommonTabProps> = ({ deviceType, config, handlers, onApply }) => {
   const isMSR = deviceType === DeviceType.MSR || deviceType === DeviceType.MSR_IBUTTON;
   const isIButton = deviceType === DeviceType.IBUTTON || deviceType === DeviceType.MSR_IBUTTON;
+  const isUserDef = config.ibuttonMode === "User definition";
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="bg-gray-100 border-b border-gray-300 px-6 py-3 flex justify-between items-center">
-        <h2 className="text-lg font-bold text-gray-700 flex items-center gap-2">
-          <Sliders size={20} className="text-gray-500" />
+    <div className="flex flex-col h-full bg-slate-50">
+      <div className="bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center shadow-sm">
+        <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+          <Sliders size={22} className="text-blue-500" />
           Common Configuration
         </h2>
         <button 
           onClick={onApply}
-          className="px-4 py-1.5 bg-blue-600 text-white rounded border border-blue-700 hover:bg-blue-700 font-semibold text-sm flex items-center gap-2 shadow-sm transition-colors"
+          className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-bold text-sm flex items-center gap-2 shadow-md shadow-blue-200 transition-all active:scale-95"
         >
-          <Save size={16} /> Apply
+          <Save size={18} /> Apply Changes
         </button>
       </div>
 
-      <div className="p-6 overflow-y-auto">
-        <div className="max-w-4xl mx-auto space-y-6">
+      <div className="p-8 overflow-y-auto">
+        <div className="max-w-4xl mx-auto space-y-8">
           {/* SYSTEM SECTION */}
-          <section className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
-            <div className="bg-gray-50 px-4 py-2 border-b border-gray-200 flex items-center gap-2">
-               <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">System Settings</span>
+          <section className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+            <div className="bg-slate-50 px-5 py-3 border-b border-gray-200">
+               <span className="text-xs font-black text-slate-400 uppercase tracking-widest">General System</span>
             </div>
-            <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-6">
-               <div className="space-y-1">
-                 <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                   <Keyboard size={14} /> Interface
+            <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-8">
+               <div className="space-y-2">
+                 <label className="text-sm font-bold text-slate-600 flex items-center gap-2">
+                   <Keyboard size={14} className="text-slate-400" /> Interface Mode
                  </label>
                  <select 
-                   className="w-full border-gray-300 rounded text-sm p-2 bg-gray-50 border"
+                   className="w-full border-gray-300 rounded-lg text-sm p-2.5 bg-white border focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-all outline-none"
                    value={config.interface}
                    onChange={(e) => handlers.onInterfaceChange(e.target.value)}
                  >
-                    {lpu237.GetInterfaceStringList().map((key) => (
-                        <option>
-                          {key}
-                        </option>
-                      ))}
+                    {lpu237.GetInterfaceStringList().map((key) => <option key={key}>{key}</option>)}
                   </select>
                </div>
-               <div className="space-y-1">
-                 <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                   <Volume2 size={14} /> Buzzer
+               <div className="space-y-2">
+                 <label className="text-sm font-bold text-slate-600 flex items-center gap-2">
+                   <Volume2 size={14} className="text-slate-400" /> Audio Feedback (Buzzer)
                  </label>
-                 <div className="flex items-center gap-4 mt-2">
-                   <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
+                 <div className="flex items-center gap-6 mt-1">
+                   <label className="flex items-center gap-2 text-sm font-medium text-slate-700 cursor-pointer group">
                      <input 
                        type="radio" 
                        name="buzzer" 
                        checked={config.buzzer === true}
                        onChange={() => handlers.onBuzzerChange(true)}
-                       className="text-blue-600 focus:ring-blue-500" 
-                     /> ON
+                       className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500" 
+                     /> 
+                     <span className="group-hover:text-blue-600 transition-colors">Enabled</span>
                    </label>
-                   <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
+                   <label className="flex items-center gap-2 text-sm font-medium text-slate-700 cursor-pointer group">
                      <input 
                        type="radio" 
                        name="buzzer" 
                        checked={config.buzzer === false}
                        onChange={() => handlers.onBuzzerChange(false)}
-                       className="text-blue-600 focus:ring-blue-500" 
-                     /> OFF
+                       className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500" 
+                     /> 
+                     <span className="group-hover:text-blue-600 transition-colors">Disabled</span>
                    </label>
                  </div>
                </div>
-               <div className="space-y-1">
-                 <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                   <Globe size={14} /> Language
+               <div className="space-y-2">
+                 <label className="text-sm font-bold text-slate-600 flex items-center gap-2">
+                   <Globe size={14} className="text-slate-400" /> Keyboard Language
                  </label>
                  <select 
-                   className="w-full border-gray-300 rounded text-sm p-2 bg-gray-50 border"
+                   className="w-full border-gray-300 rounded-lg text-sm p-2.5 bg-white border focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-all outline-none"
                    value={config.language}
                    onChange={(e) => handlers.onLanguageChange(e.target.value)}
                  >
-                    {lpu237.GetLanguageStringList().map((key) => (
-                        <option>
-                          {key}
-                        </option>
-                      ))}
+                    {lpu237.GetLanguageStringList().map((key) => <option key={key}>{key}</option>)}
                  </select>
                </div>
             </div>
@@ -114,67 +109,54 @@ const CommonTab: React.FC<CommonTabProps> = ({ deviceType, config, handlers, onA
 
           {/* I-BUTTON SECTION */}
           {isIButton && (
-            <section className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
-               <div className="bg-gray-50 px-4 py-2 border-b border-gray-200 flex items-center gap-2">
-                 <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">i-Button / Code Sticks</span>
+            <section className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+               <div className="bg-slate-50 px-5 py-3 border-b border-gray-200">
+                 <span className="text-xs font-black text-slate-400 uppercase tracking-widest">i-Button Configuration</span>
               </div>
-              <div className="p-4 grid grid-cols-1 gap-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div className="space-y-1">
-                    <label className="text-sm font-medium text-gray-700">Mode</label>
+              <div className="p-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                  <div className="space-y-2">
+                    <label className="text-sm font-bold text-slate-600">Operating Mode</label>
                     <select 
-                      className="w-full border-gray-300 rounded text-sm p-2 bg-gray-50 border"
+                      className="w-full border-gray-300 rounded-lg text-sm p-2.5 bg-white border focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-all outline-none"
                       value={config.ibuttonMode}
                       onChange={(e) => handlers.onIButtonModeChange(e.target.value)}
                     >
-                        {lpu237.GetiButtonStringList().map((key) => (
-                            <option>
-                              {key}
-                            </option>
-                          ))}
+                        {lpu237.GetiButtonStringList().map((key) => <option key={key}>{key}</option>)}
                     </select>
                   </div>
                   
-                  {/* Touch Friendly Range Selection */}
-                  <div className="space-y-4">
+                  <div className={`space-y-6 transition-opacity duration-200 ${!isUserDef ? 'opacity-40 pointer-events-none' : 'opacity-100'}`}>
                     <div className="space-y-2">
                       <div className="flex justify-between items-center">
-                        <label className="text-sm font-medium text-gray-700">Key Range Start</label>
-                        <span className="text-xs font-bold bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">{config.ibuttonRangeStart}</span>
+                        <label className="text-sm font-bold text-slate-600">Key Range Start</label>
+                        <span className={`text-xs font-black px-2 py-0.5 rounded shadow-sm transition-colors ${isUserDef ? 'bg-blue-600 text-white' : 'bg-slate-300 text-slate-600'}`}>
+                          {config.ibuttonRangeStart}
+                        </span>
                       </div>
                       <input 
-                        type="range" 
-                        min="0" 
-                        max="15" 
-                        step="1"
+                        type="range" min="0" max="15" step="1"
+                        disabled={!isUserDef}
                         value={config.ibuttonRangeStart} 
                         onChange={(e) => handlers.onIButtonRangeStartChange(parseInt(e.target.value))}
-                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className={`w-full h-1.5 bg-slate-200 rounded-lg appearance-none transition-all accent-blue-600 ${isUserDef ? 'cursor-pointer' : 'cursor-not-allowed'}`}
                       />
-                      <div className="flex justify-between text-[10px] text-gray-400 px-1">
-                        <span>0</span>
-                        <span>15</span>
-                      </div>
                     </div>
                     
                     <div className="space-y-2">
                       <div className="flex justify-between items-center">
-                        <label className="text-sm font-medium text-gray-700">Key Range End</label>
-                        <span className="text-xs font-bold bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">{config.ibuttonRangeEnd}</span>
+                        <label className="text-sm font-bold text-slate-600">Key Range End</label>
+                        <span className={`text-xs font-black px-2 py-0.5 rounded shadow-sm transition-colors ${isUserDef ? 'bg-blue-600 text-white' : 'bg-slate-300 text-slate-600'}`}>
+                          {config.ibuttonRangeEnd}
+                        </span>
                       </div>
                       <input 
-                        type="range" 
-                        min="0" 
-                        max="15" 
-                        step="1"
+                        type="range" min="0" max="15" step="1"
+                        disabled={!isUserDef}
                         value={config.ibuttonRangeEnd} 
                         onChange={(e) => handlers.onIButtonRangeEndChange(parseInt(e.target.value))}
-                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className={`w-full h-1.5 bg-slate-200 rounded-lg appearance-none transition-all accent-blue-600 ${isUserDef ? 'cursor-pointer' : 'cursor-not-allowed'}`}
                       />
-                      <div className="flex justify-between text-[10px] text-gray-400 px-1">
-                        <span>0</span>
-                        <span>15</span>
-                      </div>
                     </div>
                   </div>
                 </div>
@@ -184,132 +166,97 @@ const CommonTab: React.FC<CommonTabProps> = ({ deviceType, config, handlers, onA
 
           {/* MSR SECTION */}
           {isMSR && (
-            <section className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
-              <div className="bg-gray-50 px-4 py-2 border-b border-gray-200 flex items-center gap-2">
-                 <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">MSR Settings</span>
+            <section className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+              <div className="bg-slate-50 px-5 py-3 border-b border-gray-200">
+                 <span className="text-xs font-black text-slate-400 uppercase tracking-widest">MSR Data Handling</span>
               </div>
-              <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-6">
-                 <div className="space-y-1">
-                    <label className="text-sm font-medium text-gray-700">Read Direction</label>
+              <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-8">
+                 <div className="space-y-2">
+                    <label className="text-sm font-bold text-slate-600">Read Direction</label>
                     <select 
-                      className="w-full border-gray-300 rounded text-sm p-2 bg-gray-50 border"
+                      className="w-full border-gray-300 rounded-lg text-sm p-2.5 bg-white border focus:ring-2 focus:ring-blue-100 focus:border-blue-500 outline-none"
                       value={config.msrDirection}
                       onChange={(e) => handlers.onMsrDirectionChange(e.target.value)}
                     >
-                        {lpu237.GetDirectionStringList().map((key) => (
-                            <option>
-                              {key}
-                            </option>
-                          ))}
+                        {lpu237.GetDirectionStringList().map((key) => <option key={key}>{key}</option>)}
                     </select>
                  </div>
-                 <div className="space-y-1">
-                    <label className="text-sm font-medium text-gray-700">Track Order</label>
+                 <div className="space-y-2">
+                    <label className="text-sm font-bold text-slate-600">Track Priority Order</label>
                     <select 
-                      className="w-full border-gray-300 rounded text-sm p-2 bg-gray-50 border"
+                      className="w-full border-gray-300 rounded-lg text-sm p-2.5 bg-white border focus:ring-2 focus:ring-blue-100 focus:border-blue-500 outline-none"
                       value={config.msrTrackOrder}
                       onChange={(e) => handlers.onMsrTrackOrderChange(e.target.value)}
                     >
-                        {lpu237.GetOrderStringList().map((key) => (
-                            <option>
-                              {key}
-                            </option>
-                          ))}
+                        {lpu237.GetOrderStringList().map((key) => <option key={key}>{key}</option>)}
                     </select>
                  </div>
-                 <div className="space-y-1">
-                    <label className="text-sm font-medium text-gray-700">Reset Interval</label>
+                 <div className="space-y-2">
+                    <label className="text-sm font-bold text-slate-600">MMD1100 Reset Interval</label>
                     <select 
-                      className="w-full border-gray-300 rounded text-sm p-2 bg-gray-50 border"
+                      className="w-full border-gray-300 rounded-lg text-sm p-2.5 bg-white border focus:ring-2 focus:ring-blue-100 focus:border-blue-500 outline-none"
                       value={config.msrResetInterval}
                       onChange={(e) => handlers.onMsrResetIntervalChange(e.target.value)}
                     >
-                        {lpu237.GetResetIntervalStringList().map((key) => (
-                            <option>
-                              {key}
-                            </option>
-                          ))}
+                        {lpu237.GetResetIntervalStringList().map((key) => <option key={key}>{key}</option>)}
                     </select>
                  </div>
-                 <div className="space-y-1">
-                   <label className="text-sm font-medium text-gray-700 block mb-2">Enable ISO Tracks</label>
-                   <div className="flex flex-wrap gap-4">
-                     <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
-                        <input 
-                          type="checkbox" 
-                          checked={config.msrEnableISO1} 
-                          onChange={(e) => handlers.onMsrISO1Toggle(e.target.checked)}
-                          className="rounded text-blue-600 focus:ring-blue-500" 
-                        /> ISO1
-                     </label>
-                     <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
-                        <input 
-                          type="checkbox" 
-                          checked={config.msrEnableISO2} 
-                          onChange={(e) => handlers.onMsrISO2Toggle(e.target.checked)}
-                          className="rounded text-blue-600 focus:ring-blue-500" 
-                        /> ISO2
-                     </label>
-                     <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
-                        <input 
-                          type="checkbox" 
-                          checked={config.msrEnableISO3} 
-                          onChange={(e) => handlers.onMsrISO3Toggle(e.target.checked)}
-                          className="rounded text-blue-600 focus:ring-blue-500" 
-                        /> ISO3
-                     </label>
+                 <div className="space-y-2">
+                   <label className="text-sm font-bold text-slate-600 block">Active ISO Tracks</label>
+                   <div className="flex flex-wrap gap-6 mt-3">
+                     {[1, 2, 3].map(t => (
+                       <label key={t} className="flex items-center gap-3 text-sm font-bold text-slate-700 cursor-pointer select-none group">
+                          <input 
+                            type="checkbox" 
+                            checked={(t === 1 ? config.msrEnableISO1 : t === 2 ? config.msrEnableISO2 : config.msrEnableISO3)} 
+                            onChange={(e) => {
+                              if (t === 1) handlers.onMsrISO1Toggle(e.target.checked);
+                              if (t === 2) handlers.onMsrISO2Toggle(e.target.checked);
+                              if (t === 3) handlers.onMsrISO3Toggle(e.target.checked);
+                            }}
+                            className="w-5 h-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer" 
+                          /> 
+                          <span className="group-hover:text-blue-600 transition-colors">ISO {t}</span>
+                       </label>
+                     ))}
                    </div>
                  </div>
 
-                 <div className="space-y-2 md:col-span-2 border-t pt-4 mt-2">
-                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="bg-gray-50 p-3 rounded border border-gray-200">
-                          <label className="text-xs font-bold text-gray-500 uppercase block mb-2 text-wrap leading-tight">Global pre/suffix sending condition</label>
-                          <div className="space-y-2">
-                             <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
-                               <input 
-                                 type="radio" 
-                                 name="global_send" 
-                                 checked={config.msrGlobalSendCondition === lpu237.GLOBAL_TAG_SEND_CONDITION_ARRAY[1]}
-                                 onChange={() => handlers.onMsrGlobalSendConditionChange(lpu237.GLOBAL_TAG_SEND_CONDITION_ARRAY[1])}
-                                 className="text-blue-600" 
-                               /> {lpu237.GLOBAL_TAG_SEND_CONDITION_ARRAY[1]}
-                             </label>
-                             <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
-                               <input 
-                                 type="radio" 
-                                 name="global_send" 
-                                 checked={config.msrGlobalSendCondition === lpu237.GLOBAL_TAG_SEND_CONDITION_ARRAY[0]}
-                                 onChange={() => handlers.onMsrGlobalSendConditionChange(lpu237.GLOBAL_TAG_SEND_CONDITION_ARRAY[0])}
-                                 className="text-blue-600" 
-                               /> {lpu237.GLOBAL_TAG_SEND_CONDITION_ARRAY[0]}
-                             </label>
-                          </div>
-                      </div>
-                      <div className="bg-gray-50 p-3 rounded border border-gray-200">
-                          <label className="text-xs font-bold text-gray-500 uppercase block mb-2 text-wrap leading-tight">Success indication condition</label>
-                          <div className="space-y-2">
-                             <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
-                               <input 
-                                 type="radio" 
-                                 name="success_ind" 
-                                 checked={config.msrSuccessIndCondition === lpu237.SUCCESS_INDICATE_CONDITION_ARRAY[0]}
-                                 onChange={() => handlers.onMsrSuccessIndConditionChange(lpu237.SUCCESS_INDICATE_CONDITION_ARRAY[0])}
-                                 className="text-blue-600" 
-                               /> {lpu237.SUCCESS_INDICATE_CONDITION_ARRAY[0]}
-                             </label>
-                             <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
-                               <input 
-                                 type="radio" 
-                                 name="success_ind" 
-                                 checked={config.msrSuccessIndCondition === lpu237.SUCCESS_INDICATE_CONDITION_ARRAY[1]}
-                                 onChange={() => handlers.onMsrSuccessIndConditionChange(lpu237.SUCCESS_INDICATE_CONDITION_ARRAY[1])}
-                                 className="text-blue-600" 
-                               /> {lpu237.SUCCESS_INDICATE_CONDITION_ARRAY[1]}
-                             </label>
-                          </div>
-                      </div>
-                   </div>
+                 <div className="md:col-span-2 space-y-4 pt-4 border-t border-slate-100">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                       <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                           <label className="text-xs font-black text-slate-400 uppercase block mb-3 leading-tight tracking-wider">Sending Condition (Global)</label>
+                           <div className="space-y-2.5">
+                              {lpu237.GLOBAL_TAG_SEND_CONDITION_ARRAY.map(cond => (
+                                <label key={cond} className="flex items-center gap-2 text-sm font-medium text-slate-700 cursor-pointer group">
+                                  <input 
+                                    type="radio" name="global_send" 
+                                    checked={config.msrGlobalSendCondition === cond}
+                                    onChange={() => handlers.onMsrGlobalSendConditionChange(cond)}
+                                    className="w-4 h-4 text-blue-600" 
+                                  /> 
+                                  <span className="group-hover:text-blue-600 transition-colors">{cond}</span>
+                                </label>
+                              ))}
+                           </div>
+                       </div>
+                       <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                           <label className="text-xs font-black text-slate-400 uppercase block mb-3 leading-tight tracking-wider">Success Indicator Logic</label>
+                           <div className="space-y-2.5">
+                              {lpu237.SUCCESS_INDICATE_CONDITION_ARRAY.map(cond => (
+                                <label key={cond} className="flex items-center gap-2 text-sm font-medium text-slate-700 cursor-pointer group">
+                                  <input 
+                                    type="radio" name="success_ind" 
+                                    checked={config.msrSuccessIndCondition === cond}
+                                    onChange={() => handlers.onMsrSuccessIndConditionChange(cond)}
+                                    className="w-4 h-4 text-blue-600" 
+                                  /> 
+                                  <span className="group-hover:text-blue-600 transition-colors">{cond}</span>
+                                </label>
+                              ))}
+                           </div>
+                       </div>
+                    </div>
                  </div>
               </div>
             </section>
