@@ -15,6 +15,7 @@ const App: React.FC = () => {
     status: ConnectionStatus.DISCONNECTED,
     serverStatus: ConnectionStatus.DISCONNECTED,
     devicePath: '',
+    deviceUid: '', // Initialize deviceUid
     deviceType: DeviceType.MSR_IBUTTON,
     devicePaths: [], // Initially empty
     activeTab: 'device',
@@ -149,6 +150,7 @@ const App: React.FC = () => {
         status={state.status} 
         serverStatus={state.serverStatus}
         devicePath={state.devicePath} 
+        deviceUid={state.deviceUid} // Pass deviceUid to Header
         onToggleServer={() => {
           if (state.serverStatus === ConnectionStatus.CONNECTED) {
             handlers.onDisconnectServer();

@@ -1,3 +1,4 @@
+
 export enum ConnectionStatus {
   DISCONNECTED = 'not connect',
   CONNECTED = 'connected',
@@ -44,6 +45,7 @@ export interface AppState {
   status: ConnectionStatus;
   serverStatus: ConnectionStatus;
   devicePath: string;
+  deviceUid: string; // Added field for hardware identifier
   deviceType: DeviceType;
   devicePaths: string[]; // List of available device paths from server
   activeTab: string;

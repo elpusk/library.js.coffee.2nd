@@ -7,11 +7,13 @@ interface HeaderProps {
   status: ConnectionStatus;
   serverStatus: ConnectionStatus;
   devicePath: string;
+  deviceUid: string; // Added prop
   onToggleServer: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ status, serverStatus, devicePath, onToggleServer }) => {
+const Header: React.FC<HeaderProps> = ({ status, serverStatus, deviceUid, onToggleServer }) => {
   const isServerConnected = serverStatus === ConnectionStatus.CONNECTED;
+  const isDeviceConnected = status === ConnectionStatus.CONNECTED;
 
   return (
     <header className="bg-white border-b border-gray-300 px-6 py-4 flex flex-col md:flex-row md:items-center justify-between shadow-sm z-10">
@@ -28,16 +30,17 @@ const Header: React.FC<HeaderProps> = ({ status, serverStatus, devicePath, onTog
       <div className="mt-3 md:mt-0 flex flex-wrap items-center gap-4">
         {/* Device Status Section */}
         <div className="flex items-center gap-2 text-sm bg-gray-100 px-3 py-1.5 rounded border border-gray-200">
-          <HardDrive size={16} className={status === ConnectionStatus.CONNECTED ? "text-green-600" : "text-gray-400"} />
+          <HardDrive size={16} className={isDeviceConnected ? "text-green-600" : "text-gray-400"} />
           <span className="font-semibold text-gray-600">Device :</span>
-          <span className={`font-bold ${status === ConnectionStatus.CONNECTED ? 'text-green-600' : 'text-red-500'}`}>
+          <span className={`font-bold ${isDeviceConnected ? 'text-green-600' : 'text-red-500'}`}>
             {status}
           </span>
-          {devicePath && (
+          {isDeviceConnected && deviceUid && (
             <>
               <span className="text-gray-400 mx-1">:</span>
-              <span className="text-gray-500 font-mono text-xs truncate max-w-[120px]" title={devicePath}>
-                {devicePath.slice(-8)}
+              <span className="text-gray-400 text-[10px] font-bold uppercase tracking-tight">UID</span>
+              <span className="text-gray-600 font-mono text-xs font-bold" title={`Device UID: ${deviceUid}`}>
+                {deviceUid}
               </span>
             </>
           )}
