@@ -3240,6 +3240,12 @@ export const sASCToPS2KeyMap = [
     ]
 ];
 
+/***
+ * @description get hid key code from ASCII code.
+ * @param {number} n_language - lanugage index : type_keyboard_language_index (0~10)
+ * @param {number} n_ascii - ascii code : 0~127
+ * @param {number} n_item - 0 : modifier code. 1 : Hid key code
+ */
 export function get_ascii_to_hid_key_map_value(n_language : number, n_ascii : number, n_item : number): string{
     return sASCToHIDKeyMap[n_language][n_ascii][n_item];
 }
