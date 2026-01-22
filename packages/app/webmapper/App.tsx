@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { ConnectionStatus, DeviceType, AppState, KeyMapEntry, DEFAULT_CONFIG } from './types';
 import { createHandlers } from './handlers';
@@ -21,12 +20,12 @@ const App: React.FC = () => {
     activeTab: 'device',
     logs: ['Welcome to Web Tools 1.0'],
     config: { ...DEFAULT_CONFIG },
+    keyMaps: {}, // Centralized keyMaps within state
     loading: null, // Initialize loading as null
   });
 
   // Track the string currently selected in the dropdown
   const [selectedPath, setSelectedPath] = useState<string>('');
-  const [keyMaps, setKeyMaps] = useState<Record<string, KeyMapEntry[]>>({});
 
   // Helper to add logs to state
   const addLog = (message: string) => {
@@ -68,9 +67,12 @@ const App: React.FC = () => {
   }, [state.serverStatus, state.status]);
 
   const handleKeyMapChange = (tabId: string, newKeys: KeyMapEntry[]) => {
-    setKeyMaps(prev => ({
+    setState(prev => ({
       ...prev,
-      [tabId]: newKeys
+      keyMaps: {
+        ...prev.keyMaps,
+        [tabId]: newKeys
+      }
     }));
     addLog(`Key map updated for ${tabId.replace(/-/g, ' ')} (${newKeys.length} keys)`);
   };
@@ -126,7 +128,7 @@ const App: React.FC = () => {
 
     if (isKeyMapTab) {
       const maxKeys = state.activeTab === 'ibutton-remove-key' ? 20 : 7;
-      const currentKeys = keyMaps[state.activeTab] || [];
+      const currentKeys = state.keyMaps[state.activeTab] || [];
 
       return (
         <KeyMapTab 

@@ -1,4 +1,3 @@
-
 export enum ConnectionStatus {
   DISCONNECTED = 'not connect',
   CONNECTED = 'connected',
@@ -51,6 +50,7 @@ export interface AppState {
   activeTab: string;
   logs: string[];
   config: DeviceConfig;
+  keyMaps: Record<string, KeyMapEntry[]>; // Unified key mapping state
   loading: LoadingState | null; // Added loading state
 }
 

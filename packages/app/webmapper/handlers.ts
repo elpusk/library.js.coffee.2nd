@@ -1,7 +1,7 @@
 
 // Fix for line 22: Import React to provide the React namespace for Dispatch and SetStateAction types
 import React from 'react';
-import { AppState, ConnectionStatus, DeviceType, DeviceConfig } from './types';
+import { AppState, ConnectionStatus, DeviceType, DeviceConfig, KeyMapEntry } from './types';
 import { coffee } from '@lib/elpusk.framework.coffee';
 import { lpu237, type_function, type_system_interface, type_keyboard_language_index, type_direction } from '@lib/elpusk.device.usb.hid.lpu237';
 import { ctl_lpu237 } from '@lib/elpusk.framework.coffee.ctl_lpu237';
@@ -20,6 +20,47 @@ const IBUTTON_MODE_MAP: Record<string, number> = {
   'zero-7 times': 0x04,
   'Code stick protocol': 0x08,
   'user definition': 0x02
+};
+
+const HID_REVERSE_MAP: Record<string, string> = {
+  "04": "A", "05": "B", "06": "C", "07": "D", "08": "E", "09": "F", "0a": "G", "0b": "H", "0c": "I", "0d": "J",
+  "0e": "K", "0f": "L", "10": "M", "11": "N", "12": "O", "13": "P", "14": "Q", "15": "R", "16": "S", "17": "T",
+  "18": "U", "19": "V", "1a": "W", "1b": "X", "1c": "Y", "1d": "Z",
+  "1e": "1", "1f": "2", "20": "3", "21": "4", "22": "5", "23": "6", "24": "7", "25": "8", "26": "9", "27": "0",
+  "28": "Enter", "29": "Esc", "2a": "Bksp", "2b": "Tab", "2c": "Space", "2d": "-", "2e": "=",
+  "2f": "[", "30": "]", "31": "\\", "33": ";", "34": "'", "35": "`", "36": ",", "37": ".", "38": "/",
+  "3a": "F1", "3b": "F2", "3c": "F3", "3d": "F4", "3e": "F5", "3f": "F6", "40": "F7", "41": "F8", "42": "F9", "43": "F10", "44": "F11", "45": "F12"
+};
+
+/**
+ * Helper to parse LPU237 hex tag format (length + modifier/keycode pairs) into KeyMapEntry array.
+ */
+const parseHexToKeyMap = (hex: string | null): KeyMapEntry[] => {
+  if (!hex || hex === '00' || hex === '') return [];
+  
+  const bytes: number[] = [];
+  for (let i = 0; i < hex.length; i += 2) {
+    bytes.push(parseInt(hex.substr(i, 2), 16));
+  }
+  
+  const length = bytes[0]; // First byte is data length in bytes
+  if (length === 0) return [];
+  
+  const entries: KeyMapEntry[] = [];
+  // Each pair is 2 bytes (modifier, keycode)
+  for (let i = 1; i <= length && i + 1 < bytes.length; i += 2) {
+    const mod = bytes[i];
+    const code = bytes[i + 1].toString(16).padStart(2, '0').toLowerCase();
+    
+    entries.push({
+      id: Date.now() + Math.random(), // Unique ID for table mapping
+      shift: (mod & 0x02) !== 0,
+      ctrl: (mod & 0x01) !== 0,
+      alt: (mod & 0x04) !== 0,
+      keyValue: `[${HID_REVERSE_MAP[code] || code}] key`
+    });
+  }
+  return entries;
 };
 
 /**
@@ -125,6 +166,23 @@ export const createHandlers = (
           msrSuccessIndCondition: hw.get_indicate_success_when_any_not_error_string(),
         };
 
+        // Extract and parse all key mapping configurations
+        const keyMaps: Record<string, KeyMapEntry[]> = {
+          'msr-global-prefix': parseHexToKeyMap(hw.get_global_prefix()),
+          'msr-global-suffix': parseHexToKeyMap(hw.get_global_postfix()),
+          'msr-iso1-prefix': parseHexToKeyMap(hw.get_private_prefix(0, 0)),
+          'msr-iso1-suffix': parseHexToKeyMap(hw.get_private_postfix(0, 0)),
+          'msr-iso2-prefix': parseHexToKeyMap(hw.get_private_prefix(1, 0)),
+          'msr-iso2-suffix': parseHexToKeyMap(hw.get_private_postfix(1, 0)),
+          'msr-iso3-prefix': parseHexToKeyMap(hw.get_private_prefix(2, 0)),
+          'msr-iso3-suffix': parseHexToKeyMap(hw.get_private_postfix(2, 0)),
+          'ibutton-key-prefix': parseHexToKeyMap(hw.get_prefix_ibutton()),
+          'ibutton-key-suffix': parseHexToKeyMap(hw.get_postfix_ibutton()),
+          'ibutton-remove-key': parseHexToKeyMap(hw.get_ibutton_remove()),
+          'ibutton-remove-prefix': parseHexToKeyMap(hw.get_prefix_ibutton_remove()),
+          'ibutton-remove-suffix': parseHexToKeyMap(hw.get_postfix_ibutton_remove()),
+        };
+
         let type = DeviceType.MSR_IBUTTON;
         const dt = hw.get_device_function();
         if (dt === type_function.fun_msr) type = DeviceType.MSR;
@@ -137,6 +195,7 @@ export const createHandlers = (
           deviceUid: hw.get_uid() || 'Unknown', // Store device UID
           deviceType: type,
           config: newConfig,
+          keyMaps: keyMaps, // Populate the UI key maps from hardware
           loading: null,
           logs: [...prev.logs, `Hardware ready: ${hw.get_name()}`]
         }));
@@ -160,6 +219,7 @@ export const createHandlers = (
         devicePath: '',
         deviceUid: '', // Reset device UID
         activeTab: 'device',
+        keyMaps: {}, // Clear key maps
         logs: [...prev.logs, 'Disconnected.']
       }));
     },
