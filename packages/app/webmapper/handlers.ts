@@ -184,6 +184,20 @@ export const createHandlers = (
     },
 
     onDisconnectServer: async () => {
+      if (g_ctl) {
+        await g_ctl.close_with_promise();
+        g_ctl = null;
+        g_lpu_device = null;
+      }
+      setState(prev => ({
+        ...prev,
+        status: ConnectionStatus.DISCONNECTED,
+        devicePath: '',
+        deviceUid: '', // Reset device UID
+        activeTab: 'device',
+        logs: [...prev.logs, 'Disconnected.']
+      }));
+
       await g_coffee.disconnect();
       setState(prev => ({
         ...prev,
