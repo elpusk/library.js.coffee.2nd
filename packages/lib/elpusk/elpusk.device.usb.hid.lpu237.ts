@@ -3999,28 +3999,6 @@ export class lpu237 extends hid {
     }
   };
 
-  /**
-   * @private
-   * @function _get_ibutton_mode_from_string
-   * @description 문자열 입력을 바탕으로 iButton 동작 모드 번호를 가져옵니다.
-   * @param {string} s_string - "none", "zeros", "f12", "zeros7" 또는 "addimat"
-   * @returns {number} iButton 모드 번호, 에러 시 음수(-1) 반환
-   */
-  private _get_ibutton_mode_from_string(s_string: string): number {
-    if (typeof s_string !== "string") return -1;
-
-    // 매핑 객체를 사용하여 다중 if문을 깔끔하게 처리
-    const modeMap: Record<string, number> = {
-      none: _type_ibutton_mode.ibutton_none,
-      zeros: _type_ibutton_mode.ibutton_zeros,
-      f12: _type_ibutton_mode.ibutton_f12,
-      zeros7: _type_ibutton_mode.ibutton_zeros7,
-      addimat: _type_ibutton_mode.ibutton_addmit, // 원본 속성명(addmit) 유지
-    };
-
-    // 매핑된 값이 있으면 반환, 없으면 -1 반환
-    return modeMap[s_string] ?? -1;
-  }
 
   /**
    * @private
@@ -11275,7 +11253,7 @@ export class lpu237 extends hid {
               s_attr_name = "ibutton";
               if (ele.hasAttribute(s_attr_name)) {
                 s_attr = ele.getAttribute(s_attr_name)!;
-                n_ibutton = this_device._get_ibutton_mode_from_string(s_attr);
+                n_ibutton = lpu237._get_ibutton_mode_from_string(s_attr);
                 if (n_ibutton < 0) {
                   continue;
                 }
