@@ -1238,8 +1238,24 @@ export class lpu237 extends hid {
     }
   };
 
+  /***
+   * @description 부저 주파수 카운터 값을 가지고, 부저 상태를 얻는다.
+   *  
+   *  부저 온상태의 주파수 값은 펨웨에 따라 수정된 적이 있어서, 오프 상태 주파수 카운터 값을 기준으로 판단한다. 
+   * 
+   * @param {number} dw_buzzer_count : frequency number
+   * @returns {boolean} true : buzzer on, false : off
+   */
+  private static _get_buzzer_status(dw_buzzer_count: number): boolean{
+    let b_on : boolean = true;
+    if(dw_buzzer_count == lpu237._const_default_buzzer_count_for_off ){
+      b_on = false;
+    }
+    return b_on;
+
+  }
   public set_buzzer_count = (dw_buzzer_count: number): void => {
-    if (this._dw_buzzer_count !== dw_buzzer_count) {
+    if (lpu237._get_buzzer_status(this._dw_buzzer_count) !== lpu237._get_buzzer_status(dw_buzzer_count)) {
       util.insert_to_set(
         this._set_change_parameter,
         _type_change_parameter.cp_BuzzerFrequency,
@@ -1247,6 +1263,50 @@ export class lpu237 extends hid {
       this._dw_buzzer_count = dw_buzzer_count;
     }
   };
+
+  public set_buzzer_count_by_boolean = (b_on:boolean):void =>{
+      if (lpu237._get_buzzer_status(this._dw_buzzer_count) !== b_on) {
+        util.insert_to_set(
+          this._set_change_parameter,
+          _type_change_parameter.cp_BuzzerFrequency,
+        );
+
+        if(b_on){
+          this._dw_buzzer_count = lpu237._const_default_buzzer_count;
+        }
+        else{
+          this._dw_buzzer_count = lpu237._const_default_buzzer_count_for_off;
+        }
+      }
+
+  }
+
+  public set_buzzer_count_by_string = (s_string:string):void => {
+    let n_freq : number = 0;
+
+    if (s_string === "on" || s_string === "true") {
+      n_freq = lpu237._const_default_buzzer_count;
+    }
+    else if (s_string === "off" || s_string === "false") {
+      n_freq = lpu237._const_default_buzzer_count_for_off;
+    }
+    else{
+      n_freq = parseInt(s_string, 10);
+      if (isNaN(n_freq)) {
+        n_freq = -1;
+      }
+    }
+
+    if( n_freq > 0){
+      if (lpu237._get_buzzer_status(this._dw_buzzer_count) !== lpu237._get_buzzer_status(n_freq)) {
+        util.insert_to_set(
+          this._set_change_parameter,
+          _type_change_parameter.cp_BuzzerFrequency,
+        );
+        this._dw_buzzer_count = n_freq;
+      }
+    }
+  }
 
   public set_boot_run_time = (dw_boot_run_time: number): void => {
     if (this._dw_boot_run_time !== dw_boot_run_time) {
@@ -1341,6 +1401,13 @@ export class lpu237 extends hid {
       }
     }
   };
+
+  public set_order_by_string = (s_order:string):void => {
+    const ar_order = lpu237._get_track_order_from_string(s_order);
+    if(ar_order && ar_order.length == 3){
+      this.set_order(ar_order);
+    }
+  }
 
   public set_global_prefix = (s_tag: string | null): void => {
     if (this._s_global_prefix !== s_tag) {
@@ -3735,10 +3802,10 @@ export class lpu237 extends hid {
   private static _get_buzzer_count_from_string(
     s_string: string,
   ): number | null {
-    if (s_string === "on") {
+    if (s_string === "on" || s_string === "true") {
       return lpu237._const_default_buzzer_count;
     }
-    if (s_string === "off") {
+    if (s_string === "off" || s_string === "false") {
       return lpu237._const_default_buzzer_count_for_off;
     }
 

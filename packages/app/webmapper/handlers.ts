@@ -383,11 +383,9 @@ export const createHandlers = (
         const hw = g_lpu_device;
         hw.set_interface_by_string(ui.interface);
         hw.set_language_index_by_string(ui.language);
-        hw.set_buzzer_count(ui.buzzer ? 26000 : 5000);
-        hw.set_global_pre_postfix_send_condition(
-          ui.msrGlobalSendCondition === "No Error in all tracks",
-        );
-        hw.set_order(ui.msrTrackOrder.split("").map((c) => parseInt(c) - 1));
+        hw.set_buzzer_count_by_boolean(ui.buzzer);
+        hw.set_global_pre_postfix_send_condition_by_string(ui.msrGlobalSendCondition);
+        hw.set_order_by_string(ui.msrTrackOrder);
         for (let i = 0; i < 3; i++) {
           hw.set_enable_iso(
             i,
