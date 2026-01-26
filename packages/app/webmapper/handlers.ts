@@ -386,27 +386,14 @@ export const createHandlers = (
         hw.set_buzzer_count_by_boolean(ui.buzzer);
         hw.set_global_pre_postfix_send_condition_by_string(ui.msrGlobalSendCondition);
         hw.set_order_by_string(ui.msrTrackOrder);
-        for (let i = 0; i < 3; i++) {
-          hw.set_enable_iso(
-            i,
-            i === 0
-              ? ui.msrEnableISO1
-              : i === 1
-                ? ui.msrEnableISO2
-                : ui.msrEnableISO3,
-          );
-          hw.set_direction_by_string(i, ui.msrDirection);
-        }
-        const blank = hw.get_blank();
-        if (ui.msrSuccessIndCondition === "One more track is normal")
-          blank[1] |= 0x01;
-        else blank[1] &= ~0x01;
-        blank[1] =
-          (blank[1] & 0x0f) |
-          (parseInt(ui.msrResetInterval.split("(")[0]) & 0xf0);
-        blank[2] =
-          (blank[2] & 0xf0) | (IBUTTON_MODE_MAP[ui.ibuttonMode] & 0x0f);
-        hw.set_blank(blank);
+        hw.set_enable_iso_read(ui.msrEnableISO1,ui.msrEnableISO2,ui.msrEnableISO3);
+        hw.set_direction_read_by_string(ui.msrDirection);
+        hw.set_ibutton_range(ui.ibuttonRangeStart,ui.ibuttonRangeEnd );
+
+        //blank part
+        hw.set_success_indicate_when_one_more_track_is_normal_by_string(ui.msrSuccessIndCondition);
+        hw.set_mmd1100_reset_interval_by_string(ui.msrResetInterval);
+        hw.set_ibutton_mode_by_string(ui.ibuttonMode);
 
         await g_ctl.save_parameter_to_device_with_promise((idx, total, cur) => {
           setState((prev) => ({

@@ -579,6 +579,8 @@ const _type_system_offset = {
   SYS_OFFSET_BOOT_RUN_TIME: 51,
   SYS_OFFSET_ENABLE_TRACK: [171, 358, 545],
   SYS_OFFSET_DIRECTION: [201, 388, 575],
+  SYS_OFFSET_TAG_PRE: 111,
+  SYS_OFFSET_TAG_POST: 126,
   SYS_OFFSET_G_PRE: 141,
   SYS_OFFSET_G_POST: 156,
   SYS_OFFSET_COMBINATION: [172, 359, 546],
@@ -672,7 +674,9 @@ const _type_system_size = {
   SYS_SIZE_BUZZER_FREQ: 4,
   SYS_SIZE_BOOT_RUN_TIME: 4,
   SYS_SIZE_ENABLE_TRACK: [1, 1, 1],
-  SYS_SIZE_DIRECTION: [1, 1, 1],
+  SYS_SIZE_DIRECTION: [1, 1, 1], // 3개의 combination 이 사용되지만, 기존 mapper 가 0 번 combination 만을 사용해서, 0 번 값을 전부 복사.
+  SYS_SIZE_TAG_PRE: 15,
+  SYS_SIZE_TAG_POST: 15,
   SYS_SIZE_G_PRE: 15,
   SYS_SIZE_G_POST: 15,
   SYS_SIZE_COMBINATION: [1, 1, 1],
@@ -897,18 +901,19 @@ enum _type_msr_track_Numer {
   iso_global = 10,
 }
 
-/** * @private
+/** * @public
  * @readonly
  * @description the definition of i-button reading mode.
  * 
  * _blank[2] & 0x0F 한 값
  */
-enum _type_ibutton_mode {
+export enum type_ibutton_mode {
   ibutton_none = 0x02,
   ibutton_zeros = 0x00,
   ibutton_f12 = 0x03,
   ibutton_zeros7 = 0x06,
   ibutton_addmit = 0x0a,
+  ibutton_unknown = 0xff // 에러표시를 위한 정의
 }
 
 export class lpu237 extends hid {
@@ -1113,11 +1118,11 @@ export class lpu237 extends hid {
 
   public static readonly IBUTTON_MODE_MAP: Record<string, number> = {
     // 왜 3개만 있지 다른 것들은 5개씩 있는데.?
-    Zeros: _type_ibutton_mode.ibutton_zeros, // 16 times zeroes
-    F12: _type_ibutton_mode.ibutton_f12,
-    "Zero-7 times": _type_ibutton_mode.ibutton_zeros7,
-    "Addmit Code stick": _type_ibutton_mode.ibutton_addmit,
-    "User definition": _type_ibutton_mode.ibutton_none,
+    Zeros: type_ibutton_mode.ibutton_zeros, // 16 times zeroes
+    F12: type_ibutton_mode.ibutton_f12,
+    "Zero-7 times": type_ibutton_mode.ibutton_zeros7,
+    "Addmit Code stick": type_ibutton_mode.ibutton_addmit,
+    "User definition": type_ibutton_mode.ibutton_none,
   };
 
   public static GetiButtonStringList(): string[] {
@@ -1355,6 +1360,32 @@ export class lpu237 extends hid {
     }
   };
 
+  public set_enable_iso_read = (b_enable_iso1: boolean,b_enable_iso2: boolean,b_enable_iso3: boolean): void => {
+    if (this._b_enable_iso[0] !== b_enable_iso1) {
+      util.insert_to_set(
+        this._set_change_parameter,
+        _type_change_parameter.cp_EnableISO1,
+      );
+      this._b_enable_iso[0] = b_enable_iso1;
+    }
+
+    if (this._b_enable_iso[1] !== b_enable_iso2) {
+      util.insert_to_set(
+        this._set_change_parameter,
+        _type_change_parameter.cp_EnableISO2,
+      );
+      this._b_enable_iso[1] = b_enable_iso2;
+    }
+
+    if (this._b_enable_iso[2] !== b_enable_iso3) {
+      util.insert_to_set(
+        this._set_change_parameter,
+        _type_change_parameter.cp_EnableISO3,
+      );
+      this._b_enable_iso[2] = b_enable_iso3;
+    }
+  };
+
   public set_direction = (
     n_track: number,
     n_direction: type_direction,
@@ -1372,7 +1403,7 @@ export class lpu237 extends hid {
 
   public set_direction_by_string = (
     n_track: number,
-    s_direction: string,
+    s_direction: string
   ): void => {
     if (n_track >= 0 && n_track <= 2) {
       let t = lpu237._get_direction_from_string(s_direction);
@@ -1383,6 +1414,23 @@ export class lpu237 extends hid {
             _type_change_parameter.cp_Direction1 + n_track,
           );
           this._n_direction[n_track] = t;
+        }
+      }
+    }
+  };
+
+  public set_direction_read_by_string = (
+    s_direction: string
+  ): void => {
+    const t = lpu237._get_direction_from_string(s_direction);
+    if (t != -1) {
+      for( let i=0; i<3; i++ ){
+        if (this._n_direction[i] !== t) {
+          util.insert_to_set(
+            this._set_change_parameter,
+            _type_change_parameter.cp_Direction1 + i,
+          );
+          this._n_direction[i] = t;
         }
       }
     }
@@ -1759,6 +1807,83 @@ export class lpu237 extends hid {
       }
     }
   };
+
+  public set_ibutton_range = (n_start:number,n_end:number):void => {
+    do{
+      if(n_start<0 || n_start>15){
+        continue;
+      }
+      if(n_end<0 || n_end>15){
+        continue;
+      }
+      if(n_start>n_end){
+        continue;
+      }
+
+      if(n_start === 0 && n_end === 0){
+          n_end = 15;//this is dregon
+      }
+      else if(n_start === 0 && n_end === 15){
+          n_end = 0;//this is dregon
+      }
+
+      let n_pos = 0;
+      n_pos |= (n_start<<4);
+      n_pos |= n_end;
+
+      if(n_pos !== this._c_blank[0]){
+        util.insert_to_set(this._set_change_parameter,_type_change_parameter.cp_Blank_4bytes);
+      }
+
+    }while(false);
+  }
+  /**
+   * @description 주어진 문자열로 하나 이상의 특랙에 에러가 없을때, 성공으로 부저와 LED 를 표시 할지 설정.
+   * @param {string} "No Error in all tracks" or "true": 모든 트랙에 에러가 없을때만 성공으로 처리.
+   * 
+   *  "One more track is normal" or "false": 하나 이상의 특랙에 에러가 없을때, 성공으로 처리
+   * 
+   */
+  public set_success_indicate_when_one_more_track_is_normal_by_string = (s_cond:string):void =>{
+    if( s_cond === lpu237.SUCCESS_INDICATE_CONDITION_ARRAY[1] || s_cond === "true" ){
+      if( (this._c_blank[1]&0x01) === 0){
+        this._c_blank[1] |= 0x01;
+        util.insert_to_set(this._set_change_parameter,_type_change_parameter.cp_Blank_4bytes);
+      }
+    }
+    else if( s_cond === lpu237.SUCCESS_INDICATE_CONDITION_ARRAY[0] || s_cond === "false"){
+      if( (this._c_blank[1]&0x01) === 1){
+        this._c_blank[1] &= ~0x01;
+        util.insert_to_set(this._set_change_parameter,_type_change_parameter.cp_Blank_4bytes);
+      }
+    }
+  }
+
+  public set_mmd1100_reset_interval_by_string = (s_interval:string):void =>{
+    const validDirectionKeys = Object.keys(lpu237.RESET_INTERVAL_MAP);
+    if (validDirectionKeys.includes(s_interval)) {
+      const c_interval =  lpu237.RESET_INTERVAL_MAP[s_interval];
+      const s_cur = this.get_mmd1100_reset_interval_string_cur();
+      if(s_cur !== s_interval){
+        this._c_blank[1] &= 0x0f;
+        this._c_blank[1] |= c_interval;
+        util.insert_to_set(this._set_change_parameter,_type_change_parameter.cp_Blank_4bytes);
+      }
+    }
+  }
+
+  public set_ibutton_mode_by_string = (s_mode:string):void =>{
+    const validDirectionKeys = Object.keys(lpu237.IBUTTON_MODE_MAP);
+    if (validDirectionKeys.includes(s_mode)) {
+      const c_m =  lpu237.IBUTTON_MODE_MAP[s_mode];
+      const s_cur = this.get_ibutton_mode_string();
+      if(s_cur !== s_mode){
+        this._c_blank[2] &= 0xf0;
+        this._c_blank[2] |= c_m;
+        util.insert_to_set(this._set_change_parameter,_type_change_parameter.cp_Blank_4bytes);
+      }
+    }
+  }
 
   /** * @description get error message with error name
    * @param errorName error name
@@ -2276,13 +2401,31 @@ export class lpu237 extends hid {
   };
 
   /**
+   * @public
+   * @description i-button 읽기 모드 값반환.
+   * @returns 현재 i-button 읽기 모드
+   */
+  public get_ibutton_mode = (): type_ibutton_mode => {
+    switch(this._c_blank[2] & 0x0f){
+      case type_ibutton_mode.ibutton_none:
+      case type_ibutton_mode.ibutton_zeros:
+      case type_ibutton_mode.ibutton_f12:
+      case type_ibutton_mode.ibutton_zeros7:
+      case type_ibutton_mode.ibutton_addmit:
+        return this._c_blank[2] & 0x0f;
+      default:
+        return type_ibutton_mode.ibutton_unknown;
+    }//end switch
+  };
+
+  /**
    * @private
    * @description i-button 읽기 모드 값을 기반으로 모드 명칭 문자열을 반환합니다.
-   * @param type_ibutton_mode _type_ibutton_mode 열거형 값
+   * @param type_ibutton_mode type_ibutton_mode 열거형 값
    * @returns i-button 읽기 모드 명칭 (기본값 "unknown")
    */
   private static _get_ibutton_mode_string(
-    type_ibutton_mode: _type_ibutton_mode,
+    type_ibutton_mode: type_ibutton_mode,
   ): string {
     // 1. 타입 유효성 검사
     if (typeof type_ibutton_mode !== "number") {
@@ -2294,6 +2437,38 @@ export class lpu237 extends hid {
       ) || "unknown";
     return s_value;
   }
+
+  /**
+   * @private
+   * @description MMD1100 리셋 간격 값을 문자열로 반환합니다.
+   * @param n_interval 리셋 간격 값 (0~240, 16의 배수)
+   * @param b_device_version_greater_then_5_18 장치 펌웨어 버전이 5.18보다 높은지 여부
+   * @returns {string} 리셋 간격 설명 문자열
+   */
+  private static _get_mmd1100_reset_interval_string(
+    n_interval: number,
+    b_device_version_greater_then_5_18: boolean,
+  ): string {
+    // 1. 유효성 검사 (타입, 범위, 16의 배수 체크)
+    if (typeof n_interval !== "number" || n_interval < 0 || n_interval > 240) {
+      return "unknown";
+    }
+    // 16의 배수가 아니면 unknown 반환
+    if (n_interval % 16 !== 0) {
+      return "unknown";
+    }
+
+    // 2. 특수 케이스 처리 (240)
+    if (n_interval === 240 && !b_device_version_greater_then_5_18) {
+      return "don't use";
+    }
+
+    const s_value =
+      Object.keys(lpu237.RESET_INTERVAL_MAP).find(
+        (k) => lpu237.RESET_INTERVAL_MAP[k] === n_interval,
+      ) || "unknown";
+    return s_value;
+  }  
 
   /**
    * @public
@@ -2321,7 +2496,7 @@ export class lpu237 extends hid {
         this._version,
         [5, 18, 0, 0],
       );
-      return this.get_mmd1100_reset_interval_string(
+      return lpu237._get_mmd1100_reset_interval_string(
         this._c_blank[1] & 0xf0,
         isGreater518,
       );
@@ -2331,6 +2506,7 @@ export class lpu237 extends hid {
   };
 
   /**
+   * @deprecated
    * @public
    * @description MMD1100 리셋 간격 값을 문자열로 반환합니다.
    * @param n_interval 리셋 간격 값 (0~240, 16의 배수)
@@ -2341,25 +2517,7 @@ export class lpu237 extends hid {
     n_interval: number,
     b_device_version_greater_then_5_18: boolean,
   ): string {
-    // 1. 유효성 검사 (타입, 범위, 16의 배수 체크)
-    if (typeof n_interval !== "number" || n_interval < 0 || n_interval > 240) {
-      return "unknown";
-    }
-    // 16의 배수가 아니면 unknown 반환
-    if (n_interval % 16 !== 0) {
-      return "unknown";
-    }
-
-    // 2. 특수 케이스 처리 (240)
-    if (n_interval === 240 && !b_device_version_greater_then_5_18) {
-      return "don't use";
-    }
-
-    const s_value =
-      Object.keys(lpu237.RESET_INTERVAL_MAP).find(
-        (k) => lpu237.RESET_INTERVAL_MAP[k] === n_interval,
-      ) || "unknown";
-    return s_value;
+    return lpu237._get_mmd1100_reset_interval_string(n_interval,b_device_version_greater_then_5_18);
   }
 
   /**
@@ -4044,7 +4202,7 @@ export class lpu237 extends hid {
    * @param {string} s_string - "default", "disable", 또는 "0", "16", ... "240" (16의 배수 문자열)
    * @returns {number} 0~240 사이의 16의 배수, 에러 시 음수(-1)
    */
-  private _get_mmd1100_reset_interval_from_string(s_string: string): number {
+  private static _get_mmd1100_reset_interval_from_string(s_string: string): number {
     if (typeof s_string !== "string") return -1;
 
     // 1. 특수 키워드 처리
@@ -4950,7 +5108,14 @@ export class lpu237 extends hid {
     const n_size = _type_system_size.SYS_SIZE_DIRECTION[n_track];
     const s_data = util.get_byte_hex_string_from_number(n_direction);
 
-    return this._generate_config_set(queue_s_tx, n_offset, n_size, s_data);
+    // 3개의 combination 이 사용되지만, 기존 mapper 가 0 번 combination 만을 사용해서, 0 번 값을 전부 복사.
+    for( let i=0; i<3; i++){
+      if( !this._generate_config_set(queue_s_tx, n_offset+i, n_size, s_data) ){
+        return false;
+      }
+    }
+
+    return true;
   };
 
   /**
@@ -5893,7 +6058,6 @@ export class lpu237 extends hid {
     };
 
   /**
-   * @deprecated is_send_global_pre_postfix_when_none_error_in_all_trace() 를 사용하세요.
    * @public
    * @description 글로벌 전/후첨자(Prefix/Postfix) 전송 조건을 확인합니다.
    * @returns {boolean} true: 모든 트랙에 에러가 없을 때만 msr global tag  전송 , false: 하나라도 정상이면 전송.
@@ -5943,7 +6107,6 @@ export class lpu237 extends hid {
   };
 
   /**
-   * @deprecated is_indicate_success_when_any_track_is_not_error() 를 대신 사용하라.
    * @public
    * @description 트랙 하나라도 정상일 때 성공으로 간주할지 여부를 확인합니다.
    * @returns {boolean} true: msr 의 하나의 track 이라도 정상이면 성공 표시(LED, Buzzer), false: 모두 정상이어야 성공 표시(LED, Buzzer).
@@ -5951,6 +6114,33 @@ export class lpu237 extends hid {
   public get_indicate_success_when_any_not_error = (): boolean => {
     return (this._c_blank[1] & 0x01) !== 0;
   };
+
+  /**
+   * @public
+   * @description iso1, 2 트렉의 데이터가 동일하면, iso2 트랙 데이터만 보내도록 하는가?
+   * @returns true : iso2 만 보냄, false : iso1, 2  모두 보냄.
+   */
+  public is_send_iso2_only_when_iso1_equal_to_iso2 = ():boolean => {
+    return (this._c_blank[1] & 0x02) !== 0;
+  }
+
+  /**
+   * @public
+   * @description iso2, 3 트렉의 데이터가 동일하면, iso2 트랙 데이터만 보내도록 하는가?
+   * @returns true : iso2 만 보냄, false : iso2, 3  모두 보냄.
+   */
+  public is_send_iso2_only_when_iso2_equal_to_iso3 = ():boolean => {
+    return (this._c_blank[1] & 0x04) !== 0;
+  }
+  
+  /**
+   * @public
+   * @description ETXL 값이 0xE0 이고, 처음 데이터가 : 로 시작하면, : 을 보내는가?
+   * @returns true : colon 미 전송, false : colon 전송.
+   */
+  public is_not_send_colon_if_etxl_is_e0_and_first_code_is_colon = ():boolean => {
+    return (this._c_blank[1] & 0x08) !== 0;
+  }
 
   /**
    * @public
@@ -7504,7 +7694,7 @@ export class lpu237 extends hid {
           this._version,
           [5, 18, 0, 0],
         );
-        s_description += `mmd1100 reset interval : ${this.get_mmd1100_reset_interval_string(this._c_blank[1] & 0xf0, isGreater518)}\n`;
+        s_description += `mmd1100 reset interval : ${this.get_mmd1100_reset_interval_string_cur()}\n`;
       }
 
       // 6. 접두사/접미사 정보
@@ -8956,6 +9146,7 @@ export class lpu237 extends hid {
 
   /**
    * @public
+   * @description 설정 기능한 모든 system parameter 설정을 위한 request packet 를 생성한다.
    * @return {number} the number of generated requests.
    * <br /> 0 - error
    */
@@ -9566,23 +9757,6 @@ export class lpu237 extends hid {
       }
 
       if (b_run_combination) {
-        //.cp_Blank_4bytes
-        if (
-          util.find_from_set(
-            this._set_change_parameter,
-            _type_change_parameter.cp_Blank_4bytes,
-          ) >= 0
-        ) {
-          if (
-            !this._generate_set_blank_4byets(this._dequeu_s_tx, this._c_blank)
-          ) {
-            continue;
-          }
-          this._deque_generated_tx.push(
-            _type_generated_tx_type.gt_set_blank_4byets,
-          );
-        }
-
         let ii: number = 0,
           jj: number = 0;
         for (ii = 0; ii < lpu237._const_the_number_of_track; ii++) {
@@ -11264,7 +11438,7 @@ export class lpu237 extends hid {
               if (ele.hasAttribute(s_attr_name)) {
                 s_attr = ele.getAttribute(s_attr_name)!;
                 n_reset_interval =
-                  this_device._get_mmd1100_reset_interval_from_string(s_attr);
+                  lpu237._get_mmd1100_reset_interval_from_string(s_attr);
                 if (n_reset_interval < 0) {
                   continue;
                 }
