@@ -1832,6 +1832,7 @@ export class lpu237 extends hid {
       n_pos |= n_end;
 
       if(n_pos !== this._c_blank[0]){
+        this._c_blank[0] = n_pos;
         util.insert_to_set(this._set_change_parameter,_type_change_parameter.cp_Blank_4bytes);
       }
 
