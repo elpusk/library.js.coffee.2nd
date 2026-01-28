@@ -15,6 +15,7 @@ export interface KeyMapEntry {
   ctrl: boolean;
   alt: boolean;
   keyValue: string;
+  hidCode: string; // Added field for USB HID Scan Code
 }
 
 export interface LoadingState {

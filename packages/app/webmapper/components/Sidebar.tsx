@@ -23,11 +23,11 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange, deviceType, i
     ];
 
     const ibuttonItems = [
-      { id: 'ibutton-key-prefix', label: 'i-button key private prefix', icon: Key },
-      { id: 'ibutton-key-suffix', label: 'i-button key private suffix', icon: Key },
+      { id: 'ibutton-key-prefix', label: 'i-button key prefix', icon: Key },
+      { id: 'ibutton-key-suffix', label: 'i-button key suffix', icon: Key },
       { id: 'ibutton-remove-key', label: 'i-button remove key', icon: Key },
-      { id: 'ibutton-remove-prefix', label: 'i-button remove key private prefix', icon: Key },
-      { id: 'ibutton-remove-suffix', label: 'i-button remove key private suffix', icon: Key },
+      { id: 'ibutton-remove-prefix', label: 'i-button remove key prefix', icon: Key },
+      { id: 'ibutton-remove-suffix', label: 'i-button remove key suffix', icon: Key },
     ];
 
     const msrItems = [

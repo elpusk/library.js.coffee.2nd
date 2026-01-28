@@ -1458,22 +1458,32 @@ export class lpu237 extends hid {
   }
 
   public set_global_prefix = (s_tag: string | null): void => {
-    if (this._s_global_prefix !== s_tag) {
+    if ( !lpu237._is_eqaul_tag_field(this._s_global_prefix,s_tag)) {
       util.insert_to_set(
         this._set_change_parameter,
         _type_change_parameter.cp_GlobalPrefix,
       );
-      this._s_global_prefix = s_tag;
+      if(s_tag === null || s_tag === "00"){
+        this._s_global_prefix = '0'.repeat((lpu237._const_max_size_tag_byte+1)*2);
+      }
+      else{
+        this._s_global_prefix = s_tag;
+      }
     }
   };
 
   public set_global_postfix = (s_tag: string | null): void => {
-    if (this._s_global_postfix !== s_tag) {
+    if ( !lpu237._is_eqaul_tag_field(this._s_global_postfix, s_tag)) {
       util.insert_to_set(
         this._set_change_parameter,
         _type_change_parameter.cp_GlobalPostfix,
       );
-      this._s_global_postfix = s_tag;
+      if(s_tag === null || s_tag === "00"){
+        this._s_global_postfix = '0'.repeat((lpu237._const_max_size_tag_byte+1)*2);
+      }
+      else{
+        this._s_global_postfix = s_tag;
+      }
     }
   };
 
@@ -1695,12 +1705,17 @@ export class lpu237 extends hid {
   ): void => {
     if (n_track >= 0 && n_track <= 2) {
       if (n_combi >= 0 && n_combi <= 2) {
-        if (this._s_private_prefix[n_track][n_combi] !== s_tag) {
+        if ( !lpu237._is_eqaul_tag_field(this._s_private_prefix[n_track][n_combi],s_tag)) {
           util.insert_to_set(
             this._set_change_parameter,
             _type_change_parameter.cp_PrivatePrefix10 + n_track * 3 + n_combi,
           );
-          this._s_private_prefix[n_track][n_combi] = s_tag;
+          if(s_tag === null || s_tag === "00"){
+            this._s_private_prefix[n_track][n_combi] = '0'.repeat((lpu237._const_max_size_tag_byte+1)*2);
+          }
+          else{
+            this._s_private_prefix[n_track][n_combi] = s_tag;
+          }
         }
       }
     }
@@ -1713,84 +1728,108 @@ export class lpu237 extends hid {
   ): void => {
     if (n_track >= 0 && n_track <= 2) {
       if (n_combi >= 0 && n_combi <= 2) {
-        if (this._s_private_postfix[n_track][n_combi] !== s_tag) {
+        if ( !lpu237._is_eqaul_tag_field(this._s_private_postfix[n_track][n_combi], s_tag)) {
           util.insert_to_set(
             this._set_change_parameter,
             _type_change_parameter.cp_PrivatePostfix10 + n_track * 3 + n_combi,
           );
-          this._s_private_postfix[n_track][n_combi] = s_tag;
+          if(s_tag === null || s_tag === "00"){
+            this._s_private_postfix[n_track][n_combi] = '0'.repeat((lpu237._const_max_size_tag_byte+1)*2);
+          }
+          else{
+            this._s_private_postfix[n_track][n_combi] = s_tag;
+          }
         }
       }
     }
   };
 
   public set_prefix_ibutton = (
-    n_track: number,
-    n_combi: number,
     s_tag: string | null,
   ): void => {
-    if (this._s_prefix_ibutton !== s_tag) {
+    if ( !lpu237._is_eqaul_tag_field(this._s_prefix_ibutton, s_tag)) {
       util.insert_to_set(
         this._set_change_parameter,
         _type_change_parameter.cp_Prefix_iButton,
       );
-      this._s_prefix_ibutton = s_tag;
+      if(s_tag === null || s_tag === "00"){
+        this._s_prefix_ibutton = '0'.repeat((lpu237._const_max_size_tag_byte+1)*2);
+      }
+      else{
+        this._s_prefix_ibutton = s_tag;
+      }
     }
   };
 
   public set_postfix_ibutton = (
-    n_track: number,
-    n_combi: number,
     s_tag: string | null,
   ): void => {
-    if (this._s_postfix_ibutton !== s_tag) {
+    if ( !lpu237._is_eqaul_tag_field(this._s_postfix_ibutton, s_tag)) {
       util.insert_to_set(
         this._set_change_parameter,
         _type_change_parameter.cp_Postfix_iButton,
       );
-      this._s_postfix_ibutton = s_tag;
+      if(s_tag === null || s_tag === "00"){
+        this._s_postfix_ibutton = '0'.repeat((lpu237._const_max_size_tag_byte+1)*2);
+      }
+      else{
+        this._s_postfix_ibutton = s_tag;
+      }
+
     }
   };
 
   public set_ibutton_remove = (
-    n_track: number,
-    n_combi: number,
     s_tag: string | null,
   ): void => {
-    if (this._s_ibutton_remove !== s_tag) {
+    if ( !lpu237._is_eqaul_tag_field(this._s_ibutton_remove, s_tag)) {
       util.insert_to_set(
         this._set_change_parameter,
         _type_change_parameter.cp_iButton_Remove,
       );
-      this._s_ibutton_remove = s_tag;
+      if(s_tag === null || s_tag === "00"){
+        this._s_ibutton_remove = '0'.repeat((lpu237._const_max_size_tag_remove_byte+1)*2);
+      }
+      else{
+        this._s_ibutton_remove = s_tag;
+      }
+
     }
   };
 
   public set_prefix_ibutton_remove = (
-    n_track: number,
-    n_combi: number,
     s_tag: string | null,
   ): void => {
-    if (this._s_prefix_ibutton_remove !== s_tag) {
+    if ( !lpu237._is_eqaul_tag_field(this._s_prefix_ibutton_remove, s_tag)) {
       util.insert_to_set(
         this._set_change_parameter,
         _type_change_parameter.cp_Prefix_iButton_Remove,
       );
-      this._s_prefix_ibutton_remove = s_tag;
+      if(s_tag === null || s_tag === "00"){
+        this._s_prefix_ibutton_remove = '0'.repeat((lpu237._const_max_size_tag_byte+1)*2);
+      }
+      else{
+        this._s_prefix_ibutton_remove = s_tag;
+      }
+
     }
   };
 
   public set_postfix_ibutton_remove = (
-    n_track: number,
-    n_combi: number,
     s_tag: string | null,
   ): void => {
-    if (this._s_postfix_ibutton_remove !== s_tag) {
+    if ( !lpu237._is_eqaul_tag_field(this._s_postfix_ibutton_remove, s_tag)) {
       util.insert_to_set(
         this._set_change_parameter,
         _type_change_parameter.cp_Postfix_iButton_Remove,
       );
-      this._s_postfix_ibutton_remove = s_tag;
+      if(s_tag === null || s_tag === "00"){
+        this._s_postfix_ibutton_remove = '0'.repeat((lpu237._const_max_size_tag_byte+1)*2);
+      }
+      else{
+        this._s_postfix_ibutton_remove = s_tag;
+      }
+
     }
   };
 
@@ -1957,13 +1996,35 @@ export class lpu237 extends hid {
   };
 
   /**
+   * @description get usb key modifier code with the keyboard state
+   * @param {boolean} b_shift : true - pressed left shift key.
+   * @param {boolean} b_ctl : true - pressed left control key.
+   * @param {boolean} b_alt : true - pressed left alt key.
+   * @returns {number} usb key modifier code
+   */
+  private static _get_modifier_code_by_key_status(b_shift:boolean,b_ctl:boolean,b_alt:boolean):number{
+    let c_modifier_code = 0;
+    if(b_shift){//left shift
+      c_modifier_code |= 0x02;
+    }
+    if(b_ctl){//left control
+      c_modifier_code |= 0x01;
+    }
+    if(b_alt){//left alt
+      c_modifier_code |= 0x04;
+    }
+    return c_modifier_code;
+  }
+
+
+  /**
    * @description HID Modifier 숫자를 해석하여 해당하는 키 심볼 문자열을 반환합니다.
    * @param hidModifierCode HID Modifier 상태를 나타내는 숫자 (0~255)
    * @returns 조합된 심볼 문자열 (예: "left_shiftleft_control")
    */
-  private _get_key_symbol_string_by_hid_modifier_code_number = (
+  private static _get_key_symbol_string_by_hid_modifier_code_number(
     hidModifierCode: number,
-  ): string => {
+  ): string{
     // 1. 유효성 검사
     if (typeof hidModifierCode !== "number") {
       return "";
@@ -2095,9 +2156,9 @@ export class lpu237 extends hid {
    * @param hidKeyCode HID 키코드 숫자 (예: 0x04)
    * @returns 키 심볼 (예: "a", "enter"), 찾지 못할 경우 빈 문자열 ""
    */
-  private _get_key_symbol_string_by_hid_key_code_number = (
-    hidKeyCode: number,
-  ): string => {
+  private static _get_key_symbol_string_by_hid_key_code_number(
+    hidKeyCode: number
+  ): string{
     // 1. 유효성 검사
     if (typeof hidKeyCode !== "number") return "";
 
@@ -2184,7 +2245,7 @@ export class lpu237 extends hid {
    * @param type 제조사 타입 코드 (ManufacturerType)
    * @returns 제조사 이름 (기본값 "unknown")
    */
-  private _get_manufacturer_string = (type: number): string => {
+  private static _get_manufacturer_string(type: number): string{
     // 1. 유효성 검사
     if (typeof type !== "number") {
       return "unknown";
@@ -5632,10 +5693,10 @@ export class lpu237 extends hid {
    * @param s_len_tag_hex 장치에서 읽어온 태그 데이터 (첫 바이트는 길이 정보)
    * @returns {number[]} ASCII 코드 값들이 담긴 배열
    */
-  private _get_tag_by_ascii_code = (
+  private static _get_tag_by_ascii_code(
     n_language: number,
     s_len_tag_hex: string,
-  ): number[] => {
+  ): number[]{
     const n_hex_result: number[] = [];
 
     // 1. 기본 유효성 검사
@@ -5699,13 +5760,13 @@ export class lpu237 extends hid {
    * @param n_language 언어 인덱스
    * @param s_len_tag_hex 장치에서 수신한 원시 Hex 문자열
    */
-  private _get_tag_by_ascii_hex_string = (
+  private static _get_tag_by_ascii_hex_string(
     n_language: number,
     s_len_tag_hex: string,
-  ): string[] => {
+  ): string[]{
     const s_hex_result: string[] = [];
     // 1. 먼저 HID 코드를 ASCII 숫자 배열로 변환
-    const n_ascii_codes = this._get_tag_by_ascii_code(
+    const n_ascii_codes = lpu237._get_tag_by_ascii_code(
       n_language,
       s_len_tag_hex,
     );
@@ -5724,13 +5785,13 @@ export class lpu237 extends hid {
    * @param n_language 언어 인덱스
    * @param s_len_tag_hex 장치에서 수신한 원시 Hex 문자열
    */
-  private _get_tag_by_ascii_string = (
+  private static _get_tag_by_ascii_string(
     n_language: number,
     s_len_tag_hex: string,
-  ): string[] => {
+  ): string[]{
     const s_char_result: string[] = [];
     // 1. 먼저 HID 코드를 ASCII 숫자 배열로 변환
-    const n_ascii_codes = this._get_tag_by_ascii_code(
+    const n_ascii_codes = lpu237._get_tag_by_ascii_code(
       n_language,
       s_len_tag_hex,
     );
@@ -5750,10 +5811,10 @@ export class lpu237 extends hid {
    * @param s_len_tag_hex 장치에서 수신한 원시 Hex 문자열
    * @returns {string | null} 심볼 문자열, 오류 시 null 반환
    */
-  private _get_tag_by_symbol = (
+  private static _get_tag_by_symbol(
     n_language: number,
     s_len_tag_hex: string,
-  ): string | null => {
+  ): string | null{
     let s_symbols: string | null = null;
 
     // 1. 유효성 검사 및 초기화
@@ -5799,9 +5860,9 @@ export class lpu237 extends hid {
       } else {
         // 일반 케이스: HID 키보드 코드 (Modifier + KeyCode)
         const mod_symbol =
-          this._get_key_symbol_string_by_hid_modifier_code_number(modifier);
+          lpu237._get_key_symbol_string_by_hid_modifier_code_number(modifier);
         const key_symbol =
-          this._get_key_symbol_string_by_hid_key_code_number(key_code);
+          lpu237._get_key_symbol_string_by_hid_key_code_number(key_code);
         s_symbols += `[${mod_symbol}][${key_symbol}]`;
       }
     }
@@ -5816,10 +5877,10 @@ export class lpu237 extends hid {
    * @param s_len_tag_hex 장치에서 수신한 원시 Hex 문자열
    * @returns {string | null} 심볼 문자열, 오류 시 null 반환
    */
-  private _get_tag_remove_by_symbol = (
+  private static _get_tag_remove_by_symbol(
     n_language: number,
     s_len_tag_hex: string,
-  ): string | null => {
+  ): string | null{
     let s_symbols: string | null = null;
 
     // 1. 유효성 검사
@@ -5865,15 +5926,113 @@ export class lpu237 extends hid {
       } else {
         // HID 키보드 스캔 코드 방식
         const mod_symbol =
-          this._get_key_symbol_string_by_hid_modifier_code_number(modifier);
+          lpu237._get_key_symbol_string_by_hid_modifier_code_number(modifier);
         const key_symbol =
-          this._get_key_symbol_string_by_hid_key_code_number(key_code);
+          lpu237._get_key_symbol_string_by_hid_key_code_number(key_code);
         s_symbols += `[${mod_symbol}][${key_symbol}]`;
       }
     }
 
     return s_symbols;
   };
+
+  /**
+   * @description whether tag_field0 is equal to tag_field1.
+   * @param {string|null} 16진수 문자열 처음 두 문자는 다음에 따라오는 16진수 문자열을 바이트 배열로 변경시의 길이를 의미. 
+   * @param {string|null} 상동.
+   * @return {boolean} true : tag_field0 is identical to tag_field1.
+  */
+  private static _is_eqaul_tag_field(s_tag0:string|null, s_tag1:string|null ):boolean{
+    let b_equal = false;
+    let ar_empty = [false,false];
+    let s_tag_field : string[] = ["",""];
+    do{
+      if(s_tag0 !== null){
+        s_tag_field[0] = s_tag0;
+      }
+      if(s_tag1 !== null){
+        s_tag_field[1] = s_tag1;
+      }
+
+      if(s_tag_field[0].length%2 !== 0){
+        continue; //error
+      }
+      if(s_tag_field[1].length%2 !== 0){
+        continue; //error
+      }
+      // tag 길이가 0 인 경우.
+      if( s_tag_field[0].length === 0 ){
+        ar_empty[0] = true;
+      }
+      else{
+        const n = Number.parseInt(s_tag_field[0].slice(0, 2), 16);
+        if (Number.isNaN(n)) {
+          continue; // error
+        }
+
+        if( n === 0){
+          ar_empty[0] = true;
+        }
+      }
+      if( s_tag_field[1].length === 0 ){
+        ar_empty[1] = true;
+      }
+      else{
+        const n = Number.parseInt(s_tag_field[1].slice(0, 2), 16);
+        if (Number.isNaN(n)) {
+          continue; // error
+        }
+
+        if( n === 0){
+          ar_empty[1] = true;
+        }
+      }
+
+      if( ar_empty[0] && ar_empty[1]){
+        b_equal = true;
+        continue; // 둘다 tag 없어서 같음.
+      }
+
+      if( ar_empty[0] !== ar_empty[1] ){
+        continue; // 한 쪽만 빈 경우
+      }
+      // 두개다 값이 있음.
+      //
+      let ar_len = [Number.parseInt(s_tag_field[0].slice(0, 2),16),Number.parseInt(s_tag_field[1].slice(0, 2),16)];
+      if(ar_len[0] !== ar_len[1]){
+        continue;// tag 개수가 다름.
+      }
+
+      let ar2_n_num : number[][] = [[], []];
+      
+      for( let i=0; i<ar_len.length; i++ ){
+        for( let j=0; j<ar_len[i]; j++ ){
+          ar2_n_num[i].push(Number.parseInt(s_tag_field[i].slice(2+j*2, 2+j*2+2),16));
+        }//end for j
+      }//end for i
+
+      let ar2_n_cv : number[][] = [[], []];
+      let c_mod = 0;
+      let c_key = 0;
+      for (let i=0; i<ar2_n_num[0].length/2; i++){
+        for( let j=0; j<2; j++ ){
+          if(ar2_n_num[j][2*i] === 0xff){
+            //다음 코드는 ASCII. 비교만 하는 것이므로 language index 가 같지만 하면 오케이.
+            ar2_n_cv[j].push(parseInt( elpusk_util_keyboard_map.get_ascii_to_hid_key_map_value(0,ar2_n_num[j][2*i+1],0),16));
+            ar2_n_cv[j].push(parseInt( elpusk_util_keyboard_map.get_ascii_to_hid_key_map_value(0,ar2_n_num[j][2*i+1],1),16));
+          }
+          else{
+            ar2_n_cv[j].push(ar2_n_num[j][2*i]); // modifier 키 저장.
+            ar2_n_cv[j].push(ar2_n_num[j][2*i+1]); // HID 키 저장.
+          }
+        }
+      }//end for
+
+      b_equal = ar2_n_cv[0].every((v, i) => v === ar2_n_cv[1][i]);
+    }while(false);
+
+    return b_equal;
+  }
 
   /**
    * @constructor
@@ -7638,7 +7797,7 @@ export class lpu237 extends hid {
       s_description += `Used bootloader : ${this._b_is_hid_boot ? "Hid" : "MSD"}.\n`;
       s_description += `System interface : ${this.get_interface_string()}\n`;
       s_description += `Language : ${this.get_keyboard_language_index_string()}\n`;
-      s_description += `Manufacture : ${this._get_manufacturer_string(this._n_manufacture)}\n`;
+      s_description += `Manufacture : ${lpu237._get_manufacturer_string(this._n_manufacture)}\n`;
       s_description += `MSD bootloader running time : ${this._dw_boot_run_time}\n`;
 
       // 2. 하드웨어 세부 사양 (Buzzer, Decoder 등)
@@ -7759,7 +7918,7 @@ export class lpu237 extends hid {
    */
   public get_tag_by_ascii_hex_string = (s_tag: string): string[] => {
     // 내부 헬퍼 함수를 호출하며 현재 객체의 언어 설정(_n_language_index)을 전달합니다.
-    return this._get_tag_by_ascii_hex_string(this._n_language_index, s_tag);
+    return lpu237._get_tag_by_ascii_hex_string(this._n_language_index, s_tag);
   };
 
   /**
@@ -7778,7 +7937,7 @@ export class lpu237 extends hid {
    * @description 장치 태그를 현재 설정된 언어 레이아웃에 맞게 ASCII 숫자 배열로 변환합니다.
    */
   public get_tag_by_ascii_code = (s_tag: string): number[] => {
-    return this._get_tag_by_ascii_code(this._n_language_index, s_tag);
+    return lpu237._get_tag_by_ascii_code(this._n_language_index, s_tag);
   };
 
   /**
@@ -7786,7 +7945,7 @@ export class lpu237 extends hid {
    * @description 장치 태그를 현재 설정된 언어 레이아웃에 맞게 ASCII 문자 배열(string[])로 변환합니다.
    */
   public get_tag_by_ascii_string = (s_tag: string): string[] => {
-    return this._get_tag_by_ascii_string(this._n_language_index, s_tag);
+    return lpu237._get_tag_by_ascii_string(this._n_language_index, s_tag);
   };
 
   /**
@@ -7889,7 +8048,7 @@ export class lpu237 extends hid {
         //
         ++n_count;
         as_name[n_count] = "Manufacture";
-        as_value[n_count] = this._get_manufacturer_string(this._n_manufacture);
+        as_value[n_count] = lpu237._get_manufacturer_string(this._n_manufacture);
         //
         ++n_count;
         as_name[n_count] = "MSD bootloader running time";
@@ -8035,7 +8194,7 @@ export class lpu237 extends hid {
         as_name[n_count] = "MSR global prefixs";
         as_value[n_count] = this._s_global_prefix ?? "";
         as_value[n_count] += "<br/>";
-        as_value[n_count] += this._get_tag_by_symbol(
+        as_value[n_count] += lpu237._get_tag_by_symbol(
           this._n_language_index,
           this._s_global_prefix ?? "",
         );
@@ -8044,7 +8203,7 @@ export class lpu237 extends hid {
         as_name[n_count] = "MSR global postfixs";
         as_value[n_count] = this._s_global_postfix ?? "";
         as_value[n_count] += "<br/>";
-        as_value[n_count] += this._get_tag_by_symbol(
+        as_value[n_count] += lpu237._get_tag_by_symbol(
           this._n_language_index,
           this._s_global_postfix ?? "",
         );
@@ -8053,7 +8212,7 @@ export class lpu237 extends hid {
         as_name[n_count] = "i-button prefixs";
         as_value[n_count] = this._s_prefix_ibutton ?? "";
         as_value[n_count] += "<br/>";
-        as_value[n_count] += this._get_tag_by_symbol(
+        as_value[n_count] += lpu237._get_tag_by_symbol(
           this._n_language_index,
           this._s_prefix_ibutton ?? "",
         );
@@ -8062,7 +8221,7 @@ export class lpu237 extends hid {
         as_name[n_count] = "i-button postfixs";
         as_value[n_count] = this._s_postfix_ibutton ?? "";
         as_value[n_count] += "<br/>";
-        as_value[n_count] += this._get_tag_by_symbol(
+        as_value[n_count] += lpu237._get_tag_by_symbol(
           this._n_language_index,
           this._s_postfix_ibutton ?? "",
         );
@@ -8079,7 +8238,7 @@ export class lpu237 extends hid {
           as_name[n_count] = "i-button remove";
           as_value[n_count] = this._s_ibutton_remove ?? "";
           as_value[n_count] += "<br/>";
-          as_value[n_count] += this._get_tag_remove_by_symbol(
+          as_value[n_count] += lpu237._get_tag_remove_by_symbol(
             this._n_language_index,
             this._s_ibutton_remove ?? "",
           );
@@ -8088,7 +8247,7 @@ export class lpu237 extends hid {
           as_name[n_count] = "i-button prefixs remove";
           as_value[n_count] = this._s_prefix_ibutton_remove ?? "";
           as_value[n_count] += "<br/>";
-          as_value[n_count] += this._get_tag_by_symbol(
+          as_value[n_count] += lpu237._get_tag_by_symbol(
             this._n_language_index,
             this._s_prefix_ibutton_remove ?? "",
           );
@@ -8097,7 +8256,7 @@ export class lpu237 extends hid {
           as_name[n_count] = "i-button postfixs remove";
           as_value[n_count] = this._s_postfix_ibutton_remove ?? "";
           as_value[n_count] += "<br/>";
-          as_value[n_count] += this._get_tag_by_symbol(
+          as_value[n_count] += lpu237._get_tag_by_symbol(
             this._n_language_index,
             this._s_postfix_ibutton_remove ?? "",
           );
@@ -8107,7 +8266,7 @@ export class lpu237 extends hid {
         as_name[n_count] = "Uart prefixs";
         as_value[n_count] = this._s_prefix_uart ?? "";
         as_value[n_count] += "<br/>";
-        as_value[n_count] += this._get_tag_by_symbol(
+        as_value[n_count] += lpu237._get_tag_by_symbol(
           this._n_language_index,
           this._s_prefix_uart ?? "",
         );
@@ -8116,7 +8275,7 @@ export class lpu237 extends hid {
         as_name[n_count] = "Uart postfixs";
         as_value[n_count] = this._s_postfix_uart ?? "";
         as_value[n_count] += "<br/>";
-        as_value[n_count] += this._get_tag_by_symbol(
+        as_value[n_count] += lpu237._get_tag_by_symbol(
           this._n_language_index,
           this._s_postfix_uart ?? "",
         );
@@ -8206,7 +8365,7 @@ export class lpu237 extends hid {
           s_tag =
             this._s_private_prefix[i][j] +
             "<br/>" +
-            this._get_tag_by_symbol(
+            lpu237._get_tag_by_symbol(
               this._n_language_index,
               this._s_private_prefix[i][j] ?? "",
             );
@@ -8216,7 +8375,7 @@ export class lpu237 extends hid {
           s_tag =
             this._s_private_postfix[i][j] +
             "<br/>" +
-            this._get_tag_by_symbol(
+            lpu237._get_tag_by_symbol(
               this._n_language_index,
               this._s_private_postfix[i][j] ?? "",
             );

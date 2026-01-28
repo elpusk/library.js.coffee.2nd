@@ -2,6 +2,7 @@ import React from 'react';
 import { KeyMapEntry } from '../types';
 import VirtualKeyboard from './VirtualKeyboard';
 import { Trash2, Keyboard, Save } from 'lucide-react';
+import { getHidCodeByLabel } from '../handlers';
 
 interface KeyMapTabProps {
   title: string;
@@ -32,7 +33,8 @@ const KeyMapTab: React.FC<KeyMapTabProps> = ({ title, maxKeys, keys, onKeysChang
       shift: modifiers.shift,
       ctrl: modifiers.ctrl,
       alt: modifiers.alt,
-      keyValue: `[${key}] key`
+      keyValue: `[${key}] key`,
+      hidCode: getHidCodeByLabel(key) // Resolve HID scan code from key label
     };
     onKeysChange([...keys, newEntry]);
   };
@@ -93,13 +95,14 @@ const KeyMapTab: React.FC<KeyMapTabProps> = ({ title, maxKeys, keys, onKeysChang
                   <th className="px-4 py-2 w-16 text-center">Ctrl</th>
                   <th className="px-4 py-2 w-16 text-center">Alt</th>
                   <th className="px-4 py-2">Key Value</th>
+                  <th className="px-4 py-2 w-24 text-center">HID Code</th>
                   <th className="px-4 py-2 w-16">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {keys.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-4 py-8 text-center text-gray-400 italic">
+                    <td colSpan={7} className="px-4 py-8 text-center text-gray-400 italic">
                       No keys configured. Use the virtual keyboard below to add keys.
                     </td>
                   </tr>
@@ -111,6 +114,7 @@ const KeyMapTab: React.FC<KeyMapTabProps> = ({ title, maxKeys, keys, onKeysChang
                       <td className="px-4 py-2 text-center text-gray-600">{key.ctrl ? '✓' : ''}</td>
                       <td className="px-4 py-2 text-center text-gray-600">{key.alt ? '✓' : ''}</td>
                       <td className="px-4 py-2 font-mono text-blue-700 font-medium">{key.keyValue}</td>
+                      <td className="px-4 py-2 text-center font-mono text-xs text-slate-500 bg-slate-50/50">0x{key.hidCode.toUpperCase()}</td>
                       <td className="px-4 py-2 text-center">
                         <button 
                           type="button"

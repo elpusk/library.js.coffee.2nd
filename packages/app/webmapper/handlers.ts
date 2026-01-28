@@ -10,13 +10,11 @@ import {
 import { coffee } from "@lib/elpusk.framework.coffee";
 import {
   lpu237,
-  type_function,
-  type_system_interface,
-  type_keyboard_language_index,
-  type_direction,
+  type_function
 } from "@lib/elpusk.device.usb.hid.lpu237";
 import { ctl_lpu237 } from "@lib/elpusk.framework.coffee.ctl_lpu237";
 import * as elpusk_util_keyboard_map from "@lib/elpusk.util.keyboard.map";
+import * as elpusk_util_keyboard_const from "@lib/elpusk.util.keyboard.const"
 
 // Global instances for library management
 let g_coffee = coffee.get_instance();
@@ -34,72 +32,107 @@ const IBUTTON_MODE_MAP: Record<string, number> = {
   "user definition": 0x02,
 };
 
-const HID_REVERSE_MAP: Record<string, string> = {
-  "04": "A",
-  "05": "B",
-  "06": "C",
-  "07": "D",
-  "08": "E",
-  "09": "F",
-  "0a": "G",
-  "0b": "H",
-  "0c": "I",
-  "0d": "J",
-  "0e": "K",
-  "0f": "L",
-  "10": "M",
-  "11": "N",
-  "12": "O",
-  "13": "P",
-  "14": "Q",
-  "15": "R",
-  "16": "S",
-  "17": "T",
-  "18": "U",
-  "19": "V",
-  "1a": "W",
-  "1b": "X",
-  "1c": "Y",
-  "1d": "Z",
-  "1e": "1",
-  "1f": "2",
-  "20": "3",
-  "21": "4",
-  "22": "5",
-  "23": "6",
-  "24": "7",
-  "25": "8",
-  "26": "9",
-  "27": "0",
-  "28": "Enter",
-  "29": "Esc",
-  "2a": "Bksp",
-  "2b": "Tab",
-  "2c": "Space",
-  "2d": "-",
-  "2e": "=",
-  "2f": "[",
-  "30": "]",
-  "31": "\\",
-  "33": ";",
-  "34": "'",
-  "35": "`",
-  "36": ",",
-  "37": ".",
-  "38": "/",
-  "3a": "F1",
-  "3b": "F2",
-  "3c": "F3",
-  "3d": "F4",
-  "3e": "F5",
-  "3f": "F6",
-  "40": "F7",
-  "41": "F8",
-  "42": "F9",
-  "43": "F10",
-  "44": "F11",
-  "45": "F12",
+// HID key code 값에 대응하는 키보드 키 심볼 저장.
+export const HID_REVERSE_MAP: Record<string, string> = {
+  [elpusk_util_keyboard_const.HIDKEY____a____A]: "A",
+  [elpusk_util_keyboard_const.HIDKEY____b____B]: "B",
+  [elpusk_util_keyboard_const.HIDKEY____c____C]: "C",
+  [elpusk_util_keyboard_const.HIDKEY____d____D]: "D",
+  [elpusk_util_keyboard_const.HIDKEY____e____E]: "E",
+  [elpusk_util_keyboard_const.HIDKEY____f____F]: "F",
+  [elpusk_util_keyboard_const.HIDKEY____g____G]: "G",
+  [elpusk_util_keyboard_const.HIDKEY____h____H]: "H",
+  [elpusk_util_keyboard_const.HIDKEY____i____I]: "I",
+  [elpusk_util_keyboard_const.HIDKEY____j____J]: "J",
+  [elpusk_util_keyboard_const.HIDKEY____k____K]: "K",
+  [elpusk_util_keyboard_const.HIDKEY____l____L]: "L",
+  [elpusk_util_keyboard_const.HIDKEY____m____M]: "M",
+  [elpusk_util_keyboard_const.HIDKEY____n____N]: "N",
+  [elpusk_util_keyboard_const.HIDKEY____o____O]: "O",
+  [elpusk_util_keyboard_const.HIDKEY____p____P]: "P",
+  [elpusk_util_keyboard_const.HIDKEY____q____Q]: "Q",
+  [elpusk_util_keyboard_const.HIDKEY____r____R]: "R",
+  [elpusk_util_keyboard_const.HIDKEY____s____S]: "S",
+  [elpusk_util_keyboard_const.HIDKEY____t____T]: "T",
+  [elpusk_util_keyboard_const.HIDKEY____u____U]: "U",
+  [elpusk_util_keyboard_const.HIDKEY____v____V]: "V",
+  [elpusk_util_keyboard_const.HIDKEY____w____W]: "W",
+  [elpusk_util_keyboard_const.HIDKEY____x____X]: "X",
+  [elpusk_util_keyboard_const.HIDKEY____y____Y]: "Y",
+  [elpusk_util_keyboard_const.HIDKEY____z____Z]: "Z",
+  [elpusk_util_keyboard_const.HIDKEY____1_EXCL]: "1",
+  [elpusk_util_keyboard_const.HIDKEY____2_QUOT]: "2",
+  [elpusk_util_keyboard_const.HIDKEY____3_SHAR]: "3",
+  [elpusk_util_keyboard_const.HIDKEY____4_DOLL]: "4",
+  [elpusk_util_keyboard_const.HIDKEY____5_PERC]: "5",
+  [elpusk_util_keyboard_const.HIDKEY____6_CIRC]: "6",
+  [elpusk_util_keyboard_const.HIDKEY____7_AMPE]: "7",
+  [elpusk_util_keyboard_const.HIDKEY____8_ASTE]: "8",
+  [elpusk_util_keyboard_const.HIDKEY____9_L_PA]: "9",
+  [elpusk_util_keyboard_const.HIDKEY____0_R_PA]: "0",
+  [elpusk_util_keyboard_const.HIDKEY____RETURN]: "Enter",
+  [elpusk_util_keyboard_const.HIDKEY____ESCAPE]: "Esc",
+  [elpusk_util_keyboard_const.HIDKEY_BACKSPACE]: "Bksp",
+  [elpusk_util_keyboard_const.HIDKEY_______TAB]: "Tab",
+  [elpusk_util_keyboard_const.HIDKEY_____SPACE]: "Space",
+  [elpusk_util_keyboard_const.HIDKEY_MIN_UNDER]: "-",
+  [elpusk_util_keyboard_const.HIDKEY_EQU__PLUS]: "=",
+  [elpusk_util_keyboard_const.HIDKEY_LBT___LBR]: "[",
+  [elpusk_util_keyboard_const.HIDKEY_RBT___RBR]: "]",
+  [elpusk_util_keyboard_const.HIDKEY_BSLA_VBAR]: "\\",
+  [elpusk_util_keyboard_const.HIDKEY_SEMI__COL]: ";",
+  [elpusk_util_keyboard_const.HIDKEY_APOS_QUOT]: "'",
+  [elpusk_util_keyboard_const.HIDKEY_GRAV_TILD]: "`",
+  [elpusk_util_keyboard_const.HIDKEY_COMA___LT]: ",",
+  [elpusk_util_keyboard_const.HIDKEY_PERIOD_GT]: ".",
+  [elpusk_util_keyboard_const.HIDKEY_SLASH__QM]: "/",
+  //caplock 사용 안함.
+  [elpusk_util_keyboard_const.HIDKEY________F1]: "F1",
+  [elpusk_util_keyboard_const.HIDKEY________F2]: "F2",
+  [elpusk_util_keyboard_const.HIDKEY________F3]: "F3",
+  [elpusk_util_keyboard_const.HIDKEY________F4]: "F4",
+  [elpusk_util_keyboard_const.HIDKEY________F5]: "F5",
+  [elpusk_util_keyboard_const.HIDKEY________F6]: "F6",
+  [elpusk_util_keyboard_const.HIDKEY________F7]: "F7",
+  [elpusk_util_keyboard_const.HIDKEY________F8]: "F8",
+  [elpusk_util_keyboard_const.HIDKEY________F9]: "F9",
+  [elpusk_util_keyboard_const.HIDKEY_______F10]: "F10",
+  [elpusk_util_keyboard_const.HIDKEY_______F11]: "F11",
+  [elpusk_util_keyboard_const.HIDKEY_______F12]: "F12",
 };
+
+/**
+ * Utility to map a human-readable key label back to a USB HID scan code.
+ */
+export const getHidCodeByLabel = (label: string): string => {
+  const normalized = label.toLowerCase();
+  for (const [code, symbol] of Object.entries(HID_REVERSE_MAP)) {
+    if (symbol.toLowerCase() === normalized) return code;
+  }
+  return "00";
+};
+
+const _get_tag_string = (b_shift:boolean, b_ctl:boolean, b_alt:boolean, s_hex_hid_key_code:string): string =>{
+  let s_hex_tag ="";
+
+  if(s_hex_hid_key_code.length == 2){
+    let c_modifier_code = 0;
+    if(b_shift){//left shift
+      c_modifier_code |= 0x02;
+    }
+    if(b_ctl){//left control
+      c_modifier_code |= 0x01;
+    }
+    if(b_alt){//left alt
+      c_modifier_code |= 0x04;
+    }
+
+    const s_m = c_modifier_code.toString(16).padStart(2, "0").toLowerCase();
+    s_hex_tag = s_m+s_hex_hid_key_code;
+  }
+
+  return s_hex_tag;
+}
 
 /**
  * Helper to parse LPU237 hex tag format (length + modifier/keycode pairs) into KeyMapEntry array.
@@ -128,6 +161,8 @@ const parseHexToKeyMap = (n_lang: number,hex: string | null): KeyMapEntry[] => {
       c_mod = parseInt(s_mod,16);
       c_code = parseInt(s_code,16);
     }
+
+    //c_code 는 여기에서 1byte HID keycode .
     const code = c_code.toString(16).padStart(2, "0").toLowerCase();
 
     entries.push({
@@ -135,7 +170,8 @@ const parseHexToKeyMap = (n_lang: number,hex: string | null): KeyMapEntry[] => {
       shift: (c_mod & 0x02) !== 0,
       ctrl: (c_mod & 0x01) !== 0,
       alt: (c_mod & 0x04) !== 0,
-      keyValue: `[${HID_REVERSE_MAP[code] || code}] key`,
+      keyValue: `[${HID_REVERSE_MAP[code] || code}] key`, //HID keycode 에 대응하는 키보드 키 심볼이 있으면, 심볼을 없으면, HID 키코드 값 자체를 저장.
+      hidCode: code, // Store standard HID scan code
     });
   }
   return entries;
@@ -395,6 +431,256 @@ export const createHandlers = (
         hw.set_mmd1100_reset_interval_by_string(ui.msrResetInterval);
         hw.set_ibutton_mode_by_string(ui.ibuttonMode);
 
+        const km = state.keyMaps;
+
+        let s_tab = "msr-global-prefix";
+        let s_hex_key = "";
+        let s_hex_mode_and_key = "";
+        let s_tags = "";
+        let s : boolean = false;
+        let c : boolean = false;
+        let a : boolean = false;
+        let s_len = (km[s_tab].length*2).toString(16).padStart(2, "0").toLowerCase();
+
+        for( let i=0; i<km[s_tab].length; i++ ){
+          s = km[s_tab][i].shift;
+          c = km[s_tab][i].ctrl;
+          a = km[s_tab][i].alt;
+          s_hex_key = km[s_tab][i].hidCode;
+          s_hex_mode_and_key += _get_tag_string(s,c,a,s_hex_key);
+        }//end for
+        s_tags = s_len + s_hex_mode_and_key;
+        hw.set_global_prefix(s_tags);
+        //
+        s_tab = "msr-global-suffix";
+        s_hex_key = "";
+        s_hex_mode_and_key = "";
+        s_tags = "";
+        s = false;
+        c = false;
+        a = false;
+        s_len = (km[s_tab].length*2).toString(16).padStart(2, "0").toLowerCase();
+
+        for( let i=0; i<km[s_tab].length; i++ ){
+          s = km[s_tab][i].shift;
+          c = km[s_tab][i].ctrl;
+          a = km[s_tab][i].alt;
+          s_hex_key = km[s_tab][i].hidCode;
+          s_hex_mode_and_key += _get_tag_string(s,c,a,s_hex_key);
+        }//end for
+        s_tags = s_len + s_hex_mode_and_key;
+        hw.set_global_postfix(s_tags);
+        //
+        s_tab = "msr-iso1-prefix";
+        s_hex_key = "";
+        s_hex_mode_and_key = "";
+        s_tags = "";
+        s = false;
+        c = false;
+        a = false;
+        s_len = (km[s_tab].length*2).toString(16).padStart(2, "0").toLowerCase();
+
+        for( let i=0; i<km[s_tab].length; i++ ){
+          s = km[s_tab][i].shift;
+          c = km[s_tab][i].ctrl;
+          a = km[s_tab][i].alt;
+          s_hex_key = km[s_tab][i].hidCode;
+          s_hex_mode_and_key += _get_tag_string(s,c,a,s_hex_key);
+        }//end for
+        s_tags = s_len + s_hex_mode_and_key;
+        hw.set_msr_private_prefix(0,0,s_tags);
+        //
+        s_tab = "msr-iso1-suffix";
+        s_hex_key = "";
+        s_hex_mode_and_key = "";
+        s_tags = "";
+        s = false;
+        c = false;
+        a = false;
+        s_len = (km[s_tab].length*2).toString(16).padStart(2, "0").toLowerCase();
+
+        for( let i=0; i<km[s_tab].length; i++ ){
+          s = km[s_tab][i].shift;
+          c = km[s_tab][i].ctrl;
+          a = km[s_tab][i].alt;
+          s_hex_key = km[s_tab][i].hidCode;
+          s_hex_mode_and_key += _get_tag_string(s,c,a,s_hex_key);
+        }//end for
+        s_tags = s_len + s_hex_mode_and_key;
+        hw.set_msr_private_postfix(0,0,s_tags);
+        //
+        s_tab = "msr-iso2-prefix";
+        s_hex_key = "";
+        s_hex_mode_and_key = "";
+        s_tags = "";
+        s = false;
+        c = false;
+        a = false;
+        s_len = (km[s_tab].length*2).toString(16).padStart(2, "0").toLowerCase();
+
+        for( let i=0; i<km[s_tab].length; i++ ){
+          s = km[s_tab][i].shift;
+          c = km[s_tab][i].ctrl;
+          a = km[s_tab][i].alt;
+          s_hex_key = km[s_tab][i].hidCode;
+          s_hex_mode_and_key += _get_tag_string(s,c,a,s_hex_key);
+        }//end for
+        s_tags = s_len + s_hex_mode_and_key;
+        hw.set_msr_private_prefix(1,0,s_tags);
+        //
+        s_tab = "msr-iso2-suffix";
+        s_hex_key = "";
+        s_hex_mode_and_key = "";
+        s_tags = "";
+        s = false;
+        c = false;
+        a = false;
+        s_len = (km[s_tab].length*2).toString(16).padStart(2, "0").toLowerCase();
+
+        for( let i=0; i<km[s_tab].length; i++ ){
+          s = km[s_tab][i].shift;
+          c = km[s_tab][i].ctrl;
+          a = km[s_tab][i].alt;
+          s_hex_key = km[s_tab][i].hidCode;
+          s_hex_mode_and_key += _get_tag_string(s,c,a,s_hex_key);
+        }//end for
+        s_tags = s_len + s_hex_mode_and_key;
+        hw.set_msr_private_postfix(1,0,s_tags);
+        //
+        s_tab = "msr-iso3-prefix";
+        s_hex_key = "";
+        s_hex_mode_and_key = "";
+        s_tags = "";
+        s = false;
+        c = false;
+        a = false;
+        s_len = (km[s_tab].length*2).toString(16).padStart(2, "0").toLowerCase();
+
+        for( let i=0; i<km[s_tab].length; i++ ){
+          s = km[s_tab][i].shift;
+          c = km[s_tab][i].ctrl;
+          a = km[s_tab][i].alt;
+          s_hex_key = km[s_tab][i].hidCode;
+          s_hex_mode_and_key += _get_tag_string(s,c,a,s_hex_key);
+        }//end for
+        s_tags = s_len + s_hex_mode_and_key;
+        hw.set_msr_private_prefix(2,0,s_tags);
+        //
+        s_tab = "msr-iso3-suffix";
+        s_hex_key = "";
+        s_hex_mode_and_key = "";
+        s_tags = "";
+        s = false;
+        c = false;
+        a = false;
+        s_len = (km[s_tab].length*2).toString(16).padStart(2, "0").toLowerCase();
+
+        for( let i=0; i<km[s_tab].length; i++ ){
+          s = km[s_tab][i].shift;
+          c = km[s_tab][i].ctrl;
+          a = km[s_tab][i].alt;
+          s_hex_key = km[s_tab][i].hidCode;
+          s_hex_mode_and_key += _get_tag_string(s,c,a,s_hex_key);
+        }//end for
+        s_tags = s_len + s_hex_mode_and_key;
+        hw.set_msr_private_postfix(2,0,s_tags);
+        //
+        s_tab = "ibutton-key-prefix";
+        s_hex_key = "";
+        s_hex_mode_and_key = "";
+        s_tags = "";
+        s = false;
+        c = false;
+        a = false;
+        s_len = (km[s_tab].length*2).toString(16).padStart(2, "0").toLowerCase();
+
+        for( let i=0; i<km[s_tab].length; i++ ){
+          s = km[s_tab][i].shift;
+          c = km[s_tab][i].ctrl;
+          a = km[s_tab][i].alt;
+          s_hex_key = km[s_tab][i].hidCode;
+          s_hex_mode_and_key += _get_tag_string(s,c,a,s_hex_key);
+        }//end for
+        s_tags = s_len + s_hex_mode_and_key;
+        hw.set_prefix_ibutton(s_tags);
+        //
+        s_tab = "ibutton-key-suffix";
+        s_hex_key = "";
+        s_hex_mode_and_key = "";
+        s_tags = "";
+        s = false;
+        c = false;
+        a = false;
+        s_len = (km[s_tab].length*2).toString(16).padStart(2, "0").toLowerCase();
+
+        for( let i=0; i<km[s_tab].length; i++ ){
+          s = km[s_tab][i].shift;
+          c = km[s_tab][i].ctrl;
+          a = km[s_tab][i].alt;
+          s_hex_key = km[s_tab][i].hidCode;
+          s_hex_mode_and_key += _get_tag_string(s,c,a,s_hex_key);
+        }//end for
+        s_tags = s_len + s_hex_mode_and_key;
+        hw.set_postfix_ibutton(s_tags);
+        //
+        s_tab = "ibutton-remove-key";
+        s_hex_key = "";
+        s_hex_mode_and_key = "";
+        s_tags = "";
+        s = false;
+        c = false;
+        a = false;
+        s_len = (km[s_tab].length*2).toString(16).padStart(2, "0").toLowerCase();
+
+        for( let i=0; i<km[s_tab].length; i++ ){
+          s = km[s_tab][i].shift;
+          c = km[s_tab][i].ctrl;
+          a = km[s_tab][i].alt;
+          s_hex_key = km[s_tab][i].hidCode;
+          s_hex_mode_and_key += _get_tag_string(s,c,a,s_hex_key);
+        }//end for
+        s_tags = s_len + s_hex_mode_and_key;
+        hw.set_ibutton_remove(s_tags);
+        //
+        s_tab = "ibutton-remove-prefix";
+        s_hex_key = "";
+        s_hex_mode_and_key = "";
+        s_tags = "";
+        s = false;
+        c = false;
+        a = false;
+        s_len = (km[s_tab].length*2).toString(16).padStart(2, "0").toLowerCase();
+
+        for( let i=0; i<km[s_tab].length; i++ ){
+          s = km[s_tab][i].shift;
+          c = km[s_tab][i].ctrl;
+          a = km[s_tab][i].alt;
+          s_hex_key = km[s_tab][i].hidCode;
+          s_hex_mode_and_key += _get_tag_string(s,c,a,s_hex_key);
+        }//end for
+        s_tags = s_len + s_hex_mode_and_key;
+        hw.set_prefix_ibutton_remove(s_tags);
+        //
+        s_tab = "ibutton-remove-suffix";
+        s_hex_key = "";
+        s_hex_mode_and_key = "";
+        s_tags = "";
+        s = false;
+        c = false;
+        a = false;
+        s_len = (km[s_tab].length*2).toString(16).padStart(2, "0").toLowerCase();
+
+        for( let i=0; i<km[s_tab].length; i++ ){
+          s = km[s_tab][i].shift;
+          c = km[s_tab][i].ctrl;
+          a = km[s_tab][i].alt;
+          s_hex_key = km[s_tab][i].hidCode;
+          s_hex_mode_and_key += _get_tag_string(s,c,a,s_hex_key);
+        }//end for
+        s_tags = s_len + s_hex_mode_and_key;
+        hw.set_postfix_ibutton_remove(s_tags);
+        //
+        // start saving
         await g_ctl.save_parameter_to_device_with_promise((idx, total, cur) => {
           setState((prev) => ({
             ...prev,
