@@ -813,6 +813,18 @@ const _error_name_message: readonly ErrorDetail[] = [
   { name: "en_e_parameter", message: "invalid parameter" }, // 원본의 'invalied' 오타를 'invalid'로 교정했습니다.
 ] as const;
 
+
+/** * @private
+ * @readonly
+ * @description the definition of ISO7811 magnetic card track number
+ */
+enum _type_msr_track_Numer {
+  iso1_track = 0,
+  iso2_track = 1,
+  iso3_track = 2,
+  iso_global = 10,
+}
+
 /**
  * @description 장치 기능(Functionality)의 정의
  */
@@ -888,17 +900,6 @@ export enum type_error_correct {
   error_correct_inv_lrc = 1,
   /** Cyclic Redundancy Check */
   error_correct_crc = 2,
-}
-
-/** * @private
- * @readonly
- * @description the definition of ISO7811 magnetic card track number
- */
-enum _type_msr_track_Numer {
-  iso1_track = 0,
-  iso2_track = 1,
-  iso3_track = 2,
-  iso_global = 10,
 }
 
 /** * @public
@@ -1929,7 +1930,7 @@ export class lpu237 extends hid {
    * @param errorName error name
    * @returns error message or empty string if none error.
    */
-  private _get_error_message = (errorName?: string): string => {
+  private static _get_error_message(errorName?: string): string{
     if (!errorName) {
       return "";
     }
@@ -1944,9 +1945,9 @@ export class lpu237 extends hid {
    * @param name 에러 이름 (예: 'en_e_parameter')
    * @returns 설정된 name과 message를 가진 Error 객체
    */
-  private _get_error_object = (name: string): Error => {
+  private static _get_error_object(name: string): Error{
     // 1. 이전에 정의한 함수를 통해 메시지를 가져옵니다.
-    const message = this._get_error_message(name);
+    const message = lpu237._get_error_message(name);
 
     // 2. Error 객체를 생성합니다.
     const error = new Error(message);
@@ -1962,9 +1963,9 @@ export class lpu237 extends hid {
    * @param keySymbol "c"(Control), "s"(Shift), "a"(Alt)의 조합 (예: "cs", "sa")
    * @returns 2자리 16진수 문자열 (예: "03", "00")
    */
-  private _get_hid_modifier_code_hex_string_by_key_symbol = (
+  private static _get_hid_modifier_code_hex_string_by_key_symbol(
     keySymbol: string,
-  ): string | null => {
+  ): string | null{
     // 1. 유효성 검사
     if (typeof keySymbol !== "string") {
       return null;
@@ -2058,9 +2059,9 @@ export class lpu237 extends hid {
    * @param keySymbol 키 심볼 (예: "f1", "enter", "a", "0x04")
    * @returns 2자리 hex 문자열 (예: "04"), 실패 시 null
    */
-  private _get_hid_key_code_hex_string_by_key_symbol = (
+  private static _get_hid_key_code_hex_string_by_key_symbol(
     keySymbol: string,
-  ): string | null => {
+  ): string | null{
     // 1. 기본 유효성 검사
     if (typeof keySymbol !== "string") return null;
     if (keySymbol.length === 0) return "00";
@@ -2268,10 +2269,10 @@ export class lpu237 extends hid {
    * @param version 장치 버전 정보 (4개의 숫자로 구성된 배열)
    * @returns 지원 기능 명칭 (예: "MSR and SCR", "MSR and i-button")
    */
-  private _get_function_string = (
+  private static _get_function_string(
     typeFunction: number,
     version: number[],
-  ): string => {
+  ): string{
     // 1. 유효성 검사
     if (typeof typeFunction !== "number") {
       return "unknown";
@@ -2289,7 +2290,7 @@ export class lpu237 extends hid {
         /** * 특정 버전 조건에 따라 iButton 기능이 SCR로 변경됨
          * _is_version_ten 함수가 별도로 정의되어 있어야 합니다.
          */
-        if (this._is_version_ten(version)) {
+        if (lpu237._is_version_ten(version)) {
           return "MSR and SCR";
         }
         return "MSR and i-button";
@@ -2396,7 +2397,7 @@ export class lpu237 extends hid {
    * @param {number} n_count 하드웨어 타이머의 카운트 수
    * @returns {number} 주파수 (단위: Hz), 오류 시 0 반환
    */
-  private _get_frequency_from_timer_count = (n_count: number): number => {
+  private static _get_frequency_from_timer_count(n_count: number): number{
     // 1. 타입 및 유효성 검사 (숫자가 아니거나 0 이하일 경우 0 반환)
     if (typeof n_count !== "number" || n_count <= 0) {
       return 0;
@@ -2542,18 +2543,18 @@ export class lpu237 extends hid {
    */
   public get_mmd1100_reset_interval_string_cur = (): string => {
     if (
-      this._first_version_greater_then_second_version(
+      lpu237._first_version_greater_then_second_version(
         false,
         this._version,
         [5, 15, 0, 0],
       ) &&
-      this._first_version_greater_then_second_version(
+      lpu237._first_version_greater_then_second_version(
         false,
         [6, 0, 0, 0],
         this._version,
       )
     ) {
-      const isGreater518 = this._first_version_greater_then_second_version(
+      const isGreater518 = lpu237._first_version_greater_then_second_version(
         false,
         this._version,
         [5, 18, 0, 0],
@@ -2622,7 +2623,7 @@ export class lpu237 extends hid {
    * @param {number} pt type_parity value.
    * @returns {string} parity type.
    */
-  private _get_parity_type_string(pt: number): string {
+  private static _get_parity_type_string(pt: number): string {
     // 유효성 검사
     if (typeof pt !== "number") {
       return "unknown";
@@ -2645,7 +2646,7 @@ export class lpu237 extends hid {
    * @param {number} et type_error_correct value.
    * @returns {string} error correction type.
    */
-  private _get_error_correct_type_string(et: number): string {
+  private static _get_error_correct_type_string(et: number): string {
     // 유효성 검사
     if (typeof et !== "number") {
       return "unknown";
@@ -2673,7 +2674,7 @@ export class lpu237 extends hid {
    * @param {number[]} version 4개 숫자로 이루어진 배열 (시스템 버전)
    * @returns {string} 버전 문자열 및 하드웨어 모델 정보
    */
-  private _get_version_string(version: number[]): string {
+  private static _get_version_string(version: number[]): string {
     let s_value = "0.0.0.0";
 
     // 유효성 검사: 배열 여부 및 길이 확인
@@ -2702,7 +2703,7 @@ export class lpu237 extends hid {
    * @param {number[]} version 4개 숫자로 이루어진 배열 (구조 버전)
    * @returns {string} 버전 문자열
    */
-  private _get_version_structure_string(version: number[]): string {
+  private static _get_version_structure_string(version: number[]): string {
     let s_value = "0.0.0.0";
 
     if (!Array.isArray(version) || version.length !== 4) {
@@ -2721,7 +2722,7 @@ export class lpu237 extends hid {
    * @param {number[]} version 4개의 숫자로 구성된 배열 (예: [10, 0, 0, 0])
    * @returns {boolean} 메이저 버전이 10이면 true, 아니면 false
    */
-  private _is_version_ten(version: number[]): boolean {
+  private static _is_version_ten(version: number[]): boolean {
     // 유효성 검사: 배열이 아니거나 길이가 4가 아니면 false
     if (!Array.isArray(version) || version.length !== 4) {
       return false;
@@ -2742,11 +2743,11 @@ export class lpu237 extends hid {
    * @param {number[] | number} second_version 비교할 두 번째 버전 (4개 숫자 배열 또는 단일 숫자)
    * @returns {boolean} first_version이 second_version보다 크면 true (b_equal이 true면 같을 때도 true)
    */
-  private _first_version_greater_then_second_version = (
+  private static _first_version_greater_then_second_version(
     b_equal: boolean,
     first_version: number[] | number,
     second_version: number[] | number,
-  ): boolean => {
+  ): boolean{
     // 1. 입력 유효성 검사 및 정규화 (배열로 통일)
     const ar1: number[] = lpu237._normalize_version(first_version);
     const ar2: number[] = lpu237._normalize_version(second_version);
@@ -2767,7 +2768,7 @@ export class lpu237 extends hid {
    * @function _is_success_response
    * @description 응답 패킷이 'Good(0xFF)' 또는 'Negative Good(0x80)'을 포함하는지 확인합니다.
    */
-  private _is_success_response = (s_response: string): boolean => {
+  private static _is_success_response(s_response: string): boolean{
     if (typeof s_response !== "string") return false;
 
     // 헤더 사이즈 체크 (16진수 문자열이므로 헤더 길이에 2를 곱함)
@@ -2790,7 +2791,7 @@ export class lpu237 extends hid {
    * @function _is_good_response
    * @description 응답 패킷이 'Good(0xFF)'만 포함하는지 확인합니다.
    */
-  private _is_good_response = (s_response: string): boolean => {
+  private static _is_good_response(s_response: string): boolean{
     if (typeof s_response !== "string") return false;
     if (s_response.length < 2 * lpu237._const_min_size_response_header)
       return false;
@@ -2803,35 +2804,11 @@ export class lpu237 extends hid {
 
   /**
    * @private
-   * @function _is_success_enter_config_mode
-   */
-  private _is_success_enter_config_mode = (s_response: string): boolean => {
-    return this._is_success_response(s_response);
-  };
-
-  /**
-   * @private
-   * @function _is_success_leave_config_mode
-   */
-  private _is_success_leave_config_mode = (s_response: string): boolean => {
-    return this._is_success_response(s_response);
-  };
-
-  /**
-   * @private
-   * @function _is_success_apply_config_mode
-   */
-  private _is_success_apply_config_mode = (s_response: string): boolean => {
-    return this._is_success_response(s_response);
-  };
-
-  /**
-   * @private
    * @function _get_length_member_of_response
    * @param {string} s_response - lpu237 프로토콜 패킷 (16진수 문자열)
    * @returns {number} 0 이상의 데이터 길이, 오류 시 음수(-1) 반환
    */
-  private _get_length_member_of_response = (s_response: string): number => {
+  private static _get_length_member_of_response(s_response: string): number{
     let n_length = -1;
 
     // 1. 유효성 검사: 타입 확인 및 최소 헤더 길이 체크
@@ -2867,10 +2844,10 @@ export class lpu237 extends hid {
    * @function _get_data_field_member_of_response_by_int_number_array
    * @description Data 필드를 숫자 배열(Int array)로 반환합니다. int 의 크기는 4 bytes.
    */
-  private _get_data_field_member_of_response_by_int_number_array = (
+  private static _get_data_field_member_of_response_by_int_number_array(
     s_response: string,
-  ): number[] | null => {
-    const n_length = this._get_valid_length(s_response);
+  ): number[] | null{
+    const n_length = lpu237._get_valid_length(s_response);
     if (n_length <= 0) return null;
     if (n_length % 4 != 0) return null;
 
@@ -2895,10 +2872,10 @@ export class lpu237 extends hid {
    * @function _get_data_field_member_of_response_by_byte_number_array
    * @description Data 필드를 숫자 배열(byte array)로 반환합니다.
    */
-  private _get_data_field_member_of_response_by_byte_number_array = (
+  private static _get_data_field_member_of_response_by_byte_number_array(
     s_response: string,
-  ): number[] | null => {
-    const n_length = this._get_valid_length(s_response);
+  ): number[] | null{
+    const n_length = lpu237._get_valid_length(s_response);
     if (n_length <= 0) return null;
 
     const n_data: number[] = [];
@@ -2919,10 +2896,10 @@ export class lpu237 extends hid {
    * @function _get_data_field_member_of_response_by_string
    * @description Data 필드를 ASCII 문자열로 반환합니다. (Null 종단 문자 확인)
    */
-  private _get_data_field_member_of_response_by_string = (
+  private static _get_data_field_member_of_response_by_string(
     s_response: string,
-  ): string | null => {
-    const n_length = this._get_valid_length(s_response);
+  ): string | null {
+    const n_length = lpu237._get_valid_length(s_response);
     if (n_length <= 0) return null;
 
     let s_data = "";
@@ -2944,10 +2921,10 @@ export class lpu237 extends hid {
    * @function _get_data_field_member_of_response_by_hex_string
    * @description Data 필드를 16진수 문자열 그대로 반환합니다.
    */
-  private _get_data_field_member_of_response_by_hex_string = (
+  private static _get_data_field_member_of_response_by_hex_string(
     s_response: string,
-  ): string | null => {
-    const n_length = this._get_valid_length(s_response);
+  ): string | null {
+    const n_length = lpu237._get_valid_length(s_response);
     if (n_length <= 0) return null;
 
     const n_offset = 3;
@@ -2959,10 +2936,10 @@ export class lpu237 extends hid {
    * @function _get_data_field_member_of_response_by_boolean
    * @description Data 필드 중 0이 아닌 값이 하나라도 있으면 true를 반환합니다.
    */
-  private _get_data_field_member_of_response_by_boolean = (
+  private static _get_data_field_member_of_response_by_boolean(
     s_response: string,
-  ): boolean | null => {
-    const n_length = this._get_valid_length(s_response);
+  ): boolean | null {
+    const n_length = lpu237._get_valid_length(s_response);
     if (n_length <= 0) return null;
 
     const n_offset = 3;
@@ -2981,10 +2958,10 @@ export class lpu237 extends hid {
    * @function _get_data_field_member_of_response_by_number
    * @description Data 필드를 Little-Endian 방식의 숫자로 변환합니다.
    */
-  private _get_data_field_member_of_response_by_number = (
+  private static _get_data_field_member_of_response_by_number(
     s_response: string,
-  ): number => {
-    const n_length = this._get_valid_length(s_response);
+  ): number{
+    const n_length = lpu237._get_valid_length(s_response);
     if (n_length <= 0) return -1;
 
     const n_offset = 3;
@@ -3001,7 +2978,7 @@ export class lpu237 extends hid {
    * @description 공통 유효성 검사 및 데이터 길이 추출 내부 메서드
    * @return {number} get data length field.( size is byte unit)
    */
-  private _get_valid_length = (s_response: string): number => {
+  private static _get_valid_length(s_response: string): number{
     if (typeof s_response !== "string") return -1;
     if (s_response.length < 2 * lpu237._const_min_size_response_header)
       return -1;
@@ -3016,13 +2993,13 @@ export class lpu237 extends hid {
    * @param {string} s_response - lpu237 프로토콜 패킷 (WebSocket 데이터 필드)
    * @returns {number[] | null} 버전 정보를 담은 4개 숫자 배열, 실패 시 null
    */
-  private _get_version_from_response = (
+  private static _get_version_from_response(
     s_response: string,
-  ): number[] | null => {
+  ): number[] | null{
     let version: number[] | null = null;
 
     // 1. 응답 성공 여부 확인
-    if (!this._is_success_response(s_response)) {
+    if (!lpu237._is_success_response(s_response)) {
       return null;
     }
 
@@ -3031,13 +3008,13 @@ export class lpu237 extends hid {
      * SYS_SIZE_VERSION은 보통 4(Major, Minor, Patch, Build)를 의미합니다.
      */
     const n_size = _type_system_size.SYS_SIZE_VERSION;
-    if (this._get_length_member_of_response(s_response) !== n_size) {
+    if (lpu237._get_length_member_of_response(s_response) !== n_size) {
       return null;
     }
 
     // 3. 데이터 필드에서 버전 숫자 배열 추출
     version =
-      this._get_data_field_member_of_response_by_byte_number_array(s_response);
+      lpu237._get_data_field_member_of_response_by_byte_number_array(s_response);
 
     return version;
   };
@@ -3048,13 +3025,13 @@ export class lpu237 extends hid {
    * @param {string} s_response - lpu237 프로토콜 패킷 (WebSocket 데이터 필드)
    * @returns {number[] | null} 구조 버전 정보를 담은 4개 숫자 배열, 실패 시 null
    */
-  private _get_version_structure_from_response = (
+  private static _get_version_structure_from_response(
     s_response: string,
-  ): number[] | null => {
+  ): number[] | null{
     let version: number[] | null = null;
 
     // 1. 응답 성공 여부 확인 (R prefix 및 결과 코드 검증)
-    if (!this._is_success_response(s_response)) {
+    if (!lpu237._is_success_response(s_response)) {
       return null;
     }
 
@@ -3063,13 +3040,13 @@ export class lpu237 extends hid {
      * SYS_SIZE_VERSION_STRUCTURE 값에 따라 응답 데이터의 길이를 검증합니다.
      */
     const n_size = _type_system_size.SYS_SIZE_VERSION_STRUCTURE;
-    if (this._get_length_member_of_response(s_response) !== n_size) {
+    if (lpu237._get_length_member_of_response(s_response) !== n_size) {
       return null;
     }
 
     // 3. 데이터 필드(Payload)를 숫자 배열로 변환하여 반환
     version =
-      this._get_data_field_member_of_response_by_byte_number_array(s_response);
+      lpu237._get_data_field_member_of_response_by_byte_number_array(s_response);
 
     return version;
   };
@@ -3080,17 +3057,17 @@ export class lpu237 extends hid {
    * @param {string} s_response - lpu237 프로토콜 패킷
    * @returns {string | null} 시스템 이름, 실패 시 null
    */
-  private _get_name_from_response = (s_response: string): string | null => {
-    if (!this._is_success_response(s_response)) {
+  private static _get_name_from_response(s_response: string): string | null{
+    if (!lpu237._is_success_response(s_response)) {
       return null;
     }
 
     const n_size = _type_system_size.SYS_SIZE_NAME;
-    if (this._get_length_member_of_response(s_response) !== n_size) {
+    if (lpu237._get_length_member_of_response(s_response) !== n_size) {
       return null;
     }
 
-    return this._get_data_field_member_of_response_by_string(s_response);
+    return lpu237._get_data_field_member_of_response_by_string(s_response);
   };
 
   /**
@@ -3098,10 +3075,10 @@ export class lpu237 extends hid {
    * @function _get_support_mmd1000_from_response
    * @description MMD1000 디코더 사용 여부를 반환합니다. (Good Response면 true)
    */
-  private _get_support_mmd1000_from_response = (
+  private static _get_support_mmd1000_from_response(
     s_response: string,
-  ): boolean => {
-    return this._is_good_response(s_response);
+  ): boolean{
+    return lpu237._is_good_response(s_response);
   };
 
   /**
@@ -3110,17 +3087,17 @@ export class lpu237 extends hid {
    * @param {string} s_response - lpu237 프로토콜 패킷
    * @returns {string | null} Hex 문자열 형식의 UID, 실패 시 null
    */
-  private _get_uid_from_response = (s_response: string): string | null => {
-    if (!this._is_success_response(s_response)) {
+  private static _get_uid_from_response(s_response: string): string | null {
+    if (!lpu237._is_success_response(s_response)) {
       return null;
     }
 
     const n_size = lpu237._const_the_size_of_uid;
-    if (this._get_length_member_of_response(s_response) !== n_size) {
+    if (lpu237._get_length_member_of_response(s_response) !== n_size) {
       return null;
     }
 
-    return this._get_data_field_member_of_response_by_hex_string(s_response);
+    return lpu237._get_data_field_member_of_response_by_hex_string(s_response);
   };
 
   /**
@@ -3128,8 +3105,8 @@ export class lpu237 extends hid {
    * @function _get_ibutton_type_from_response
    * @description 하드웨어의 i-button 지원 여부를 반환합니다.
    */
-  private _get_ibutton_type_from_response = (s_response: string): boolean => {
-    return this._is_good_response(s_response);
+  private static _get_ibutton_type_from_response(s_response: string): boolean{
+    return lpu237._is_good_response(s_response);
   };
 
   /**
@@ -3137,8 +3114,8 @@ export class lpu237 extends hid {
    * @function _get_type_from_response
    * @description 하드웨어가 표준(Standard) 타입인지 여부를 반환합니다.
    */
-  private _get_type_from_response = (s_response: string): boolean => {
-    return this._is_good_response(s_response);
+  private static _get_type_from_response(s_response: string): boolean{
+    return lpu237._is_good_response(s_response);
   };
 
   /**
@@ -3147,19 +3124,19 @@ export class lpu237 extends hid {
    * @description 모든 트랙에 에러가 없을 때만 전역 Pre/Postfix를 보낼지 여부를 확인합니다.
    * @returns {boolean | null} true(조건부 송신), false(무조건 송신), null(오류)
    */
-  private _get_global_pre_postfix_send_condition_from_response = (
+  private static _get_global_pre_postfix_send_condition_from_response(
     s_response: string,
-  ): boolean | null => {
-    if (!this._is_success_response(s_response)) {
+  ): boolean | null{
+    if (!lpu237._is_success_response(s_response)) {
       return null;
     }
 
     const n_size = _type_system_size.SYS_SIZE_G_TAG_CONDITION;
-    if (this._get_length_member_of_response(s_response) !== n_size) {
+    if (lpu237._get_length_member_of_response(s_response) !== n_size) {
       return null;
     }
 
-    return this._get_data_field_member_of_response_by_boolean(s_response);
+    return lpu237._get_data_field_member_of_response_by_boolean(s_response);
   };
 
   /**
@@ -3168,19 +3145,19 @@ export class lpu237 extends hid {
    * @description 카드 트랙(Track 1, 2, 3)의 출력 순서 설정을 가져옵니다.
    * @returns {number[] | null} 3개의 요소를 가진 숫자 배열 (예: [1, 2, 3]), 실패 시 null
    */
-  private _get_track_order_from_response = (
+  private static _get_track_order_from_response(
     s_response: string,
-  ): number[] | null => {
-    if (!this._is_success_response(s_response)) {
+  ): number[] | null{
+    if (!lpu237._is_success_response(s_response)) {
       return null;
     }
 
     const n_size = _type_system_size.SYS_SIZE_CONTAINER_TRACK_ORDER;
-    if (this._get_length_member_of_response(s_response) !== n_size) {
+    if (lpu237._get_length_member_of_response(s_response) !== n_size) {
       return null;
     }
 
-    return this._get_data_field_member_of_response_by_int_number_array(
+    return lpu237._get_data_field_member_of_response_by_int_number_array(
       s_response,
     );
   };
@@ -3191,19 +3168,19 @@ export class lpu237 extends hid {
    * @description 장치 응답에서 예약된 4바이트 공백 필드 데이터를 가져옵니다.
    * @returns {number[] | null} 4바이트 숫자 배열, 실패 시 null
    */
-  private _get_blank_4bytes_from_response = (
+  private static _get_blank_4bytes_from_response(
     s_response: string,
-  ): number[] | null => {
-    if (!this._is_success_response(s_response)) {
+  ): number[] | null{
+    if (!lpu237._is_success_response(s_response)) {
       return null;
     }
 
     const n_size = _type_system_size.SYS_SIZE_BLANK_4BYTES;
-    if (this._get_length_member_of_response(s_response) !== n_size) {
+    if (lpu237._get_length_member_of_response(s_response) !== n_size) {
       return null;
     }
 
-    return this._get_data_field_member_of_response_by_byte_number_array(
+    return lpu237._get_data_field_member_of_response_by_byte_number_array(
       s_response,
     );
   };
@@ -3214,17 +3191,17 @@ export class lpu237 extends hid {
    * @description 장치의 통신 인터페이스 번호(USB HID, 벤더 모드 등)를 가져옵니다.
    * @returns {number} 인터페이스 번호, 에러 시 음수(-1)
    */
-  private _get_interface_from_response = (s_response: string): number => {
-    if (!this._is_success_response(s_response)) {
+  private static _get_interface_from_response(s_response: string): number{
+    if (!lpu237._is_success_response(s_response)) {
       return -1;
     }
 
     const n_size = _type_system_size.SYS_SIZE_INTERFACE;
-    if (this._get_length_member_of_response(s_response) !== n_size) {
+    if (lpu237._get_length_member_of_response(s_response) !== n_size) {
       return -1;
     }
 
-    return this._get_data_field_member_of_response_by_number(s_response);
+    return lpu237._get_data_field_member_of_response_by_number(s_response);
   };
 
   /**
@@ -3233,17 +3210,17 @@ export class lpu237 extends hid {
    * @description 장치에 설정된 키보드 언어 맵 인덱스를 가져옵니다.
    * @returns {number} 언어 번호, 에러 시 음수(-1)
    */
-  private _get_language_from_response = (s_response: string): number => {
-    if (!this._is_success_response(s_response)) {
+  private static _get_language_from_response(s_response: string): number{
+    if (!lpu237._is_success_response(s_response)) {
       return -1;
     }
 
     const n_size = _type_system_size.SYS_SIZE_CONTAINER_MAP_INDEX;
-    if (this._get_length_member_of_response(s_response) !== n_size) {
+    if (lpu237._get_length_member_of_response(s_response) !== n_size) {
       return -1;
     }
 
-    return this._get_data_field_member_of_response_by_number(s_response);
+    return lpu237._get_data_field_member_of_response_by_number(s_response);
   };
 
   /**
@@ -3252,17 +3229,17 @@ export class lpu237 extends hid {
    * @description 카드 읽기 성공/실패 시 발생하는 부저 횟수 설정을 가져옵니다.
    * @returns {number} 부저 횟수, 에러 시 음수(-1)
    */
-  private _get_buzzer_count_from_response = (s_response: string): number => {
-    if (!this._is_success_response(s_response)) {
+  private static _get_buzzer_count_from_response(s_response: string): number{
+    if (!lpu237._is_success_response(s_response)) {
       return -1;
     }
 
     const n_size = _type_system_size.SYS_SIZE_BUZZER_FREQ;
-    if (this._get_length_member_of_response(s_response) !== n_size) {
+    if (lpu237._get_length_member_of_response(s_response) !== n_size) {
       return -1;
     }
 
-    return this._get_data_field_member_of_response_by_number(s_response);
+    return lpu237._get_data_field_member_of_response_by_number(s_response);
   };
 
   /**
@@ -3271,13 +3248,13 @@ export class lpu237 extends hid {
    * @description MSD 부트로더가 실행되는 시간(msec)을 가져옵니다.
    * @returns {number} 실행 시간(ms), 에러 시 음수(-1)
    */
-  private _get_boot_run_time_from_response = (s_response: string): number => {
-    if (!this._is_success_response(s_response)) return -1;
+  private static _get_boot_run_time_from_response(s_response: string): number{
+    if (!lpu237._is_success_response(s_response)) return -1;
 
     const n_size = _type_system_size.SYS_SIZE_BOOT_RUN_TIME;
-    if (this._get_length_member_of_response(s_response) !== n_size) return -1;
+    if (lpu237._get_length_member_of_response(s_response) !== n_size) return -1;
 
-    return this._get_data_field_member_of_response_by_number(s_response);
+    return lpu237._get_data_field_member_of_response_by_number(s_response);
   };
 
   /**
@@ -3287,10 +3264,10 @@ export class lpu237 extends hid {
    * @param {number} n_track - ISO 트랙 번호 (0~2)
    * @returns {boolean | null} 트랙 읽기 활성화 여부, 에러 시 null
    */
-  private _get_enable_track_from_response = (
+  private static _get_enable_track_from_response(
     s_response: string,
     n_track: number,
-  ): boolean | null => {
+  ): boolean | null{
     // 1. 트랙 번호 유효성 및 해당 트랙의 기대 데이터 크기 확인
     let n_size = 0;
     if (
@@ -3303,10 +3280,10 @@ export class lpu237 extends hid {
     }
 
     // 2. 응답 성공 및 길이 검증
-    if (!this._is_success_response(s_response)) return null;
-    if (this._get_length_member_of_response(s_response) !== n_size) return null;
+    if (!lpu237._is_success_response(s_response)) return null;
+    if (lpu237._get_length_member_of_response(s_response) !== n_size) return null;
 
-    return this._get_data_field_member_of_response_by_boolean(s_response);
+    return lpu237._get_data_field_member_of_response_by_boolean(s_response);
   };
 
   /**
@@ -3316,10 +3293,10 @@ export class lpu237 extends hid {
    * @param {number} n_track - ISO 트랙 번호 (0~2)
    * @returns {number} 읽기 방향 값, 에러 시 음수(-1)
    */
-  private _get_direction_from_response = (
+  private static _get_direction_from_response(
     s_response: string,
     n_track: number,
-  ): number => {
+  ): number{
     // 1. 트랙 번호 유효성 확인
     let n_size = 0;
     if (
@@ -3332,10 +3309,10 @@ export class lpu237 extends hid {
     }
 
     // 2. 응답 성공 및 길이 검증
-    if (!this._is_success_response(s_response)) return -1;
-    if (this._get_length_member_of_response(s_response) !== n_size) return -1;
+    if (!lpu237._is_success_response(s_response)) return -1;
+    if (lpu237._get_length_member_of_response(s_response) !== n_size) return -1;
 
-    return this._get_data_field_member_of_response_by_number(s_response);
+    return lpu237._get_data_field_member_of_response_by_number(s_response);
   };
 
   /**
@@ -3344,15 +3321,15 @@ export class lpu237 extends hid {
    * @description 모든 데이터 송신 시작 시 붙는 전역 접두사를 가져옵니다.
    * @returns {string | null} Hex 문자열 형식의 Prefix, 실패 시 null
    */
-  private _get_global_prefix_from_response = (
+  private static _get_global_prefix_from_response(
     s_response: string,
-  ): string | null => {
-    if (!this._is_success_response(s_response)) return null;
+  ): string | null {
+    if (!lpu237._is_success_response(s_response)) return null;
 
     const n_size = _type_system_size.SYS_SIZE_G_PRE;
-    if (this._get_length_member_of_response(s_response) !== n_size) return null;
+    if (lpu237._get_length_member_of_response(s_response) !== n_size) return null;
 
-    return this._get_data_field_member_of_response_by_hex_string(s_response);
+    return lpu237._get_data_field_member_of_response_by_hex_string(s_response);
   };
 
   /**
@@ -3361,15 +3338,15 @@ export class lpu237 extends hid {
    * @description 모든 데이터 송신 종료 시 붙는 전역 접미사를 가져옵니다.
    * @returns {string | null} Hex 문자열 형식의 Postfix, 실패 시 null
    */
-  private _get_global_postfix_from_response = (
+  private static _get_global_postfix_from_response(
     s_response: string,
-  ): string | null => {
-    if (!this._is_success_response(s_response)) return null;
+  ): string | null{
+    if (!lpu237._is_success_response(s_response)) return null;
 
     const n_size = _type_system_size.SYS_SIZE_G_POST;
-    if (this._get_length_member_of_response(s_response) !== n_size) return null;
+    if (lpu237._get_length_member_of_response(s_response) !== n_size) return null;
 
-    return this._get_data_field_member_of_response_by_hex_string(s_response);
+    return lpu237._get_data_field_member_of_response_by_hex_string(s_response);
   };
 
   /**
@@ -3379,10 +3356,10 @@ export class lpu237 extends hid {
    * @param {number} n_track - ISO 트랙 번호 (0~2)
    * @returns {number} 해당 트랙에서 지원하는 포맷 조합의 수, 에러 시 음수(-1)
    */
-  private _get_number_combi_from_response = (
+  private static _get_number_combi_from_response(
     s_response: string,
     n_track: number,
-  ): number => {
+  ): number {
     // 1. 트랙 번호에 따른 기대 사이즈 결정
     let n_size = 0;
     if (
@@ -3395,10 +3372,10 @@ export class lpu237 extends hid {
     }
 
     // 2. 패킷 유효성 및 길이 검증
-    if (!this._is_success_response(s_response)) return -1;
-    if (this._get_length_member_of_response(s_response) !== n_size) return -1;
+    if (!lpu237._is_success_response(s_response)) return -1;
+    if (lpu237._get_length_member_of_response(s_response) !== n_size) return -1;
 
-    return this._get_data_field_member_of_response_by_number(s_response);
+    return lpu237._get_data_field_member_of_response_by_number(s_response);
   };
 
   /**
@@ -3409,11 +3386,11 @@ export class lpu237 extends hid {
    * @param {number} n_combi - 조합 인덱스 (0~2)
    * @returns {number} 트랙 조합별 최대 데이터 길이 (STX, ETX, LRC 제외), 에러 시 음수(-1)
    */
-  private _get_max_size_from_response = (
+  private static _get_max_size_from_response(
     s_response: string,
     n_track: number,
     n_combi: number,
-  ): number => {
+  ): number{
     // 1. 조합 인덱스 범위 유효성 검사
     if (n_combi < 0 || n_combi > 2) {
       return -1;
@@ -3432,16 +3409,16 @@ export class lpu237 extends hid {
     }
 
     // 3. 응답 성공 여부 및 추출된 길이 정보 검증
-    if (!this._is_success_response(s_response)) {
+    if (!lpu237._is_success_response(s_response)) {
       return -1;
     }
 
-    if (this._get_length_member_of_response(s_response) !== n_size) {
+    if (lpu237._get_length_member_of_response(s_response) !== n_size) {
       return -1;
     }
 
     // 4. 데이터 필드를 숫자로 변환하여 반환
-    return this._get_data_field_member_of_response_by_number(s_response);
+    return lpu237._get_data_field_member_of_response_by_number(s_response);
   };
 
   /**
@@ -3450,11 +3427,11 @@ export class lpu237 extends hid {
    * @description 트랙 조합별 데이터 비트 수(단위: bit)를 가져옵니다.
    * @returns {number} 비트 수, 에러 시 -1
    */
-  private _get_bit_size_from_response = (
+  private static _get_bit_size_from_response(
     s_response: string,
     n_track: number,
     n_combi: number,
-  ): number => {
+  ): number {
     if (n_combi < 0 || n_combi > 2) return -1;
 
     let n_size = 0;
@@ -3467,10 +3444,10 @@ export class lpu237 extends hid {
       return -1;
     }
 
-    if (!this._is_success_response(s_response)) return -1;
-    if (this._get_length_member_of_response(s_response) !== n_size) return -1;
+    if (!lpu237._is_success_response(s_response)) return -1;
+    if (lpu237._get_length_member_of_response(s_response) !== n_size) return -1;
 
-    return this._get_data_field_member_of_response_by_number(s_response);
+    return lpu237._get_data_field_member_of_response_by_number(s_response);
   };
 
   /**
@@ -3479,11 +3456,11 @@ export class lpu237 extends hid {
    * @description 각 데이터의 마스크 패턴을 가져옵니다. (에러 체크 비트 포함, 좌측 정렬)
    * @returns {number} 마스크 패턴 값
    */
-  private _get_data_mask_from_response = (
+  private static _get_data_mask_from_response(
     s_response: string,
     n_track: number,
     n_combi: number,
-  ): number => {
+  ): number{
     if (n_combi < 0 || n_combi > 2) return 0;
 
     let n_size = 0;
@@ -3496,10 +3473,10 @@ export class lpu237 extends hid {
       return 0;
     }
 
-    if (!this._is_success_response(s_response)) return 0;
-    if (this._get_length_member_of_response(s_response) !== n_size) return 0;
+    if (!lpu237._is_success_response(s_response)) return 0;
+    if (lpu237._get_length_member_of_response(s_response) !== n_size) return 0;
 
-    return this._get_data_field_member_of_response_by_number(s_response);
+    return lpu237._get_data_field_member_of_response_by_number(s_response);
   };
 
   /**
@@ -3508,11 +3485,11 @@ export class lpu237 extends hid {
    * @description 패리티 비트 사용 여부를 가져옵니다.
    * @returns {boolean | null} 사용 여부, 에러 시 null
    */
-  private _get_use_parity_from_response = (
+  private static _get_use_parity_from_response(
     s_response: string,
     n_track: number,
     n_combi: number,
-  ): boolean | null => {
+  ): boolean | null{
     if (n_combi < 0 || n_combi > 2) return null;
 
     let n_size = 0;
@@ -3525,10 +3502,10 @@ export class lpu237 extends hid {
       return null;
     }
 
-    if (!this._is_success_response(s_response)) return null;
-    if (this._get_length_member_of_response(s_response) !== n_size) return null;
+    if (!lpu237._is_success_response(s_response)) return null;
+    if (lpu237._get_length_member_of_response(s_response) !== n_size) return null;
 
-    return this._get_data_field_member_of_response_by_boolean(s_response);
+    return lpu237._get_data_field_member_of_response_by_boolean(s_response);
   };
 
   /**
@@ -3537,11 +3514,11 @@ export class lpu237 extends hid {
    * @description 패리티 타입을 가져옵니다. (0: Even, 1: Odd)
    * @returns {number} 패리티 타입 번호, 에러 시 -1
    */
-  private _get_parity_type_from_response = (
+  private static _get_parity_type_from_response(
     s_response: string,
     n_track: number,
     n_combi: number,
-  ): number => {
+  ): number{
     if (n_combi < 0 || n_combi > 2) return -1;
 
     let n_size = 0;
@@ -3554,10 +3531,10 @@ export class lpu237 extends hid {
       return -1;
     }
 
-    if (!this._is_success_response(s_response)) return -1;
-    if (this._get_length_member_of_response(s_response) !== n_size) return -1;
+    if (!lpu237._is_success_response(s_response)) return -1;
+    if (lpu237._get_length_member_of_response(s_response) !== n_size) return -1;
 
-    return this._get_data_field_member_of_response_by_number(s_response);
+    return lpu237._get_data_field_member_of_response_by_number(s_response);
   };
 
   /**
@@ -3568,11 +3545,11 @@ export class lpu237 extends hid {
    * @param {number} n_combi - 조합 인덱스 (0~2)
    * @returns {number} 각 트랙 조합의 Start Sentinel 패턴 (패리티 포함, 좌측 정렬)
    */
-  private _get_stxl_from_response = (
+  private static _get_stxl_from_response(
     s_response: string,
     n_track: number,
     n_combi: number,
-  ): number => {
+  ): number{
     if (n_combi < 0 || n_combi > 2) return 0;
 
     let n_size = 0;
@@ -3585,10 +3562,10 @@ export class lpu237 extends hid {
       return 0;
     }
 
-    if (!this._is_success_response(s_response)) return 0;
-    if (this._get_length_member_of_response(s_response) !== n_size) return 0;
+    if (!lpu237._is_success_response(s_response)) return 0;
+    if (lpu237._get_length_member_of_response(s_response) !== n_size) return 0;
 
-    return this._get_data_field_member_of_response_by_number(s_response);
+    return lpu237._get_data_field_member_of_response_by_number(s_response);
   };
 
   /**
@@ -3599,11 +3576,11 @@ export class lpu237 extends hid {
    * @param {number} n_combi - 조합 인덱스 (0~2)
    * @returns {number} 각 트랙 조합의 End Sentinel 패턴 (패리티 포함, 좌측 정렬)
    */
-  private _get_etxl_from_response = (
+  private static _get_etxl_from_response(
     s_response: string,
     n_track: number,
     n_combi: number,
-  ): number => {
+  ): number{
     if (n_combi < 0 || n_combi > 2) return 0;
 
     let n_size = 0;
@@ -3616,10 +3593,10 @@ export class lpu237 extends hid {
       return 0;
     }
 
-    if (!this._is_success_response(s_response)) return 0;
-    if (this._get_length_member_of_response(s_response) !== n_size) return 0;
+    if (!lpu237._is_success_response(s_response)) return 0;
+    if (lpu237._get_length_member_of_response(s_response) !== n_size) return 0;
 
-    return this._get_data_field_member_of_response_by_number(s_response);
+    return lpu237._get_data_field_member_of_response_by_number(s_response);
   };
 
   /**
@@ -3628,11 +3605,11 @@ export class lpu237 extends hid {
    * @description 특정 트랙 조합에서 에러 교정 사용 여부를 확인합니다.
    * @returns {boolean | null} true(사용), false(미사용), null(에러)
    */
-  private _get_use_error_correct_from_response = (
+  private static _get_use_error_correct_from_response(
     s_response: string,
     n_track: number,
     n_combi: number,
-  ): boolean | null => {
+  ): boolean | null {
     if (n_combi < 0 || n_combi > 2) return null;
 
     let n_size = 0;
@@ -3645,10 +3622,10 @@ export class lpu237 extends hid {
       return null;
     }
 
-    if (!this._is_success_response(s_response)) return null;
-    if (this._get_length_member_of_response(s_response) !== n_size) return null;
+    if (!lpu237._is_success_response(s_response)) return null;
+    if (lpu237._get_length_member_of_response(s_response) !== n_size) return null;
 
-    return this._get_data_field_member_of_response_by_boolean(s_response);
+    return lpu237._get_data_field_member_of_response_by_boolean(s_response);
   };
 
   /**
@@ -3657,11 +3634,11 @@ export class lpu237 extends hid {
    * @description 에러 교정 모드(ECM)의 타입을 가져옵니다. (0: LRC, 1: Inverse LRC, 2: CRC)
    * @returns {number} ECM 타입 번호, 에러 시 음수(-1)
    */
-  private _get_ecm_type_from_response = (
+  private static _get_ecm_type_from_response(
     s_response: string,
     n_track: number,
     n_combi: number,
-  ): number => {
+  ): number {
     if (n_combi < 0 || n_combi > 2) return -1;
 
     let n_size = 0;
@@ -3674,10 +3651,10 @@ export class lpu237 extends hid {
       return -1;
     }
 
-    if (!this._is_success_response(s_response)) return -1;
-    if (this._get_length_member_of_response(s_response) !== n_size) return -1;
+    if (!lpu237._is_success_response(s_response)) return -1;
+    if (lpu237._get_length_member_of_response(s_response) !== n_size) return -1;
 
-    return this._get_data_field_member_of_response_by_number(s_response);
+    return lpu237._get_data_field_member_of_response_by_number(s_response);
   };
 
   /**
@@ -3686,11 +3663,11 @@ export class lpu237 extends hid {
    * @description 비트 데이터를 ASCII 코드로 변환하기 위해 더해지는 보정값을 가져옵니다.
    * @returns {number} 가산값(Add Value), 에러 시 음수(-1)
    */
-  private _get_add_value_from_response = (
+  private static _get_add_value_from_response(
     s_response: string,
     n_track: number,
     n_combi: number,
-  ): number => {
+  ): number{
     if (n_combi < 0 || n_combi > 2) return -1;
 
     let n_size = 0;
@@ -3703,10 +3680,10 @@ export class lpu237 extends hid {
       return -1;
     }
 
-    if (!this._is_success_response(s_response)) return -1;
-    if (this._get_length_member_of_response(s_response) !== n_size) return -1;
+    if (!lpu237._is_success_response(s_response)) return -1;
+    if (lpu237._get_length_member_of_response(s_response) !== n_size) return -1;
 
-    return this._get_data_field_member_of_response_by_number(s_response);
+    return lpu237._get_data_field_member_of_response_by_number(s_response);
   };
 
   /**
@@ -3718,11 +3695,11 @@ export class lpu237 extends hid {
    * @param {number} n_combi - 조합 인덱스 (0~2)
    * @returns {string | null} Hex 문자열 형식의 Prefix, 에러 시 null
    */
-  private _get_private_prefix_from_response = (
+  private static _get_private_prefix_from_response (
     s_response: string,
     n_track: number,
     n_combi: number,
-  ): string | null => {
+  ): string | null{
     // 1. 트랙 번호 유효성 및 해당 필드의 기대 사이즈 확인
     let n_size = 0;
     if (
@@ -3735,11 +3712,11 @@ export class lpu237 extends hid {
     }
 
     // 2. 응답 성공 여부 및 데이터 길이 검증
-    if (!this._is_success_response(s_response)) return null;
-    if (this._get_length_member_of_response(s_response) !== n_size) return null;
+    if (!lpu237._is_success_response(s_response)) return null;
+    if (lpu237._get_length_member_of_response(s_response) !== n_size) return null;
 
     // 3. 헥사 문자열로 변환하여 반환
-    return this._get_data_field_member_of_response_by_hex_string(s_response);
+    return lpu237._get_data_field_member_of_response_by_hex_string(s_response);
   };
 
   /**
@@ -3751,11 +3728,11 @@ export class lpu237 extends hid {
    * @param {number} n_combi - 조합 인덱스 (0~2)
    * @returns {string | null} Hex 문자열 형식의 Postfix, 에러 시 null
    */
-  private _get_private_postfix_from_response = (
+  private static _get_private_postfix_from_response(
     s_response: string,
     n_track: number,
     n_combi: number,
-  ): string | null => {
+  ): string | null{
     // 1. 트랙 번호 유효성 및 해당 필드의 기대 사이즈 확인
     let n_size = 0;
     if (
@@ -3768,11 +3745,11 @@ export class lpu237 extends hid {
     }
 
     // 2. 응답 성공 여부 및 데이터 길이 검증
-    if (!this._is_success_response(s_response)) return null;
-    if (this._get_length_member_of_response(s_response) !== n_size) return null;
+    if (!lpu237._is_success_response(s_response)) return null;
+    if (lpu237._get_length_member_of_response(s_response) !== n_size) return null;
 
     // 3. 헥사 문자열로 변환하여 반환
-    return this._get_data_field_member_of_response_by_hex_string(s_response);
+    return lpu237._get_data_field_member_of_response_by_hex_string(s_response);
   };
 
   /**
@@ -3781,15 +3758,15 @@ export class lpu237 extends hid {
    * @description iButton 제거 시 전송할 기본 데이터 설정을 가져옵니다.
    * @returns {string | null} Hex 문자열 형식, 에러 시 null
    */
-  private _get_ibutton_remove_from_response = (
+  private static _get_ibutton_remove_from_response(
     s_response: string,
-  ): string | null => {
-    if (!this._is_success_response(s_response)) return null;
+  ): string | null {
+    if (!lpu237._is_success_response(s_response)) return null;
 
     const n_size = _type_system_size.SYS_SIZE_IBUTTON_REMOVE;
-    if (this._get_length_member_of_response(s_response) !== n_size) return null;
+    if (lpu237._get_length_member_of_response(s_response) !== n_size) return null;
 
-    return this._get_data_field_member_of_response_by_hex_string(s_response);
+    return lpu237._get_data_field_member_of_response_by_hex_string(s_response);
   };
 
   /**
@@ -3798,15 +3775,15 @@ export class lpu237 extends hid {
    * @description iButton 접촉 시 데이터 앞에 붙는 전역 접두사를 가져옵니다.
    * @returns {string | null} Hex 문자열 형식, 에러 시 null
    */
-  private _get_ibutton_prefix_from_response = (
+  private static _get_ibutton_prefix_from_response(
     s_response: string,
-  ): string | null => {
-    if (!this._is_success_response(s_response)) return null;
+  ): string | null {
+    if (!lpu237._is_success_response(s_response)) return null;
 
     const n_size = _type_system_size.SYS_SIZE_IBUTTON_G_PRE;
-    if (this._get_length_member_of_response(s_response) !== n_size) return null;
+    if (lpu237._get_length_member_of_response(s_response) !== n_size) return null;
 
-    return this._get_data_field_member_of_response_by_hex_string(s_response);
+    return lpu237._get_data_field_member_of_response_by_hex_string(s_response);
   };
 
   /**
@@ -3815,15 +3792,15 @@ export class lpu237 extends hid {
    * @description iButton 제거 시 데이터 앞에 붙는 전역 접두사를 가져옵니다.
    * @returns {string | null} Hex 문자열 형식, 에러 시 null
    */
-  private _get_ibutton_prefix_remove_from_response = (
+  private static _get_ibutton_prefix_remove_from_response (
     s_response: string,
-  ): string | null => {
-    if (!this._is_success_response(s_response)) return null;
+  ): string | null{
+    if (!lpu237._is_success_response(s_response)) return null;
 
     const n_size = _type_system_size.SYS_SIZE_IBUTTON_G_PRE_REMOVE;
-    if (this._get_length_member_of_response(s_response) !== n_size) return null;
+    if (lpu237._get_length_member_of_response(s_response) !== n_size) return null;
 
-    return this._get_data_field_member_of_response_by_hex_string(s_response);
+    return lpu237._get_data_field_member_of_response_by_hex_string(s_response);
   };
 
   /**
@@ -3832,15 +3809,15 @@ export class lpu237 extends hid {
    * @description iButton 접촉 시 데이터 뒤에 붙는 전역 접미사를 가져옵니다.
    * @returns {string | null} Hex 문자열 형식, 에러 시 null
    */
-  private _get_ibutton_postfix_from_response = (
+  private static _get_ibutton_postfix_from_response(
     s_response: string,
-  ): string | null => {
-    if (!this._is_success_response(s_response)) return null;
+  ): string | null{
+    if (!lpu237._is_success_response(s_response)) return null;
 
     const n_size = _type_system_size.SYS_SIZE_IBUTTON_G_POST;
-    if (this._get_length_member_of_response(s_response) !== n_size) return null;
+    if (lpu237._get_length_member_of_response(s_response) !== n_size) return null;
 
-    return this._get_data_field_member_of_response_by_hex_string(s_response);
+    return lpu237._get_data_field_member_of_response_by_hex_string(s_response);
   };
 
   /**
@@ -3849,15 +3826,15 @@ export class lpu237 extends hid {
    * @description iButton 제거 시 데이터 뒤에 붙는 전역 접미사를 가져옵니다.
    * @returns {string | null} Hex 문자열 형식, 에러 시 null
    */
-  private _get_ibutton_postfix_remove_from_response = (
+  private static _get_ibutton_postfix_remove_from_response(
     s_response: string,
-  ): string | null => {
-    if (!this._is_success_response(s_response)) return null;
+  ): string | null{
+    if (!lpu237._is_success_response(s_response)) return null;
 
     const n_size = _type_system_size.SYS_SIZE_IBUTTON_G_POST_REMOVE;
-    if (this._get_length_member_of_response(s_response) !== n_size) return null;
+    if (lpu237._get_length_member_of_response(s_response) !== n_size) return null;
 
-    return this._get_data_field_member_of_response_by_hex_string(s_response);
+    return lpu237._get_data_field_member_of_response_by_hex_string(s_response);
   };
 
   /**
@@ -3867,15 +3844,15 @@ export class lpu237 extends hid {
    * @param {string} s_response - lpu237 프로토콜 패킷
    * @returns {string | null} Hex 문자열 형식, 에러 시 null
    */
-  private _get_uart_prefix_from_response = (
+  private static _get_uart_prefix_from_response(
     s_response: string,
-  ): string | null => {
-    if (!this._is_success_response(s_response)) return null;
+  ): string | null{
+    if (!lpu237._is_success_response(s_response)) return null;
 
     const n_size = _type_system_size.SYS_SIZE_UART_G_PRE;
-    if (this._get_length_member_of_response(s_response) !== n_size) return null;
+    if (lpu237._get_length_member_of_response(s_response) !== n_size) return null;
 
-    return this._get_data_field_member_of_response_by_hex_string(s_response);
+    return lpu237._get_data_field_member_of_response_by_hex_string(s_response);
   };
 
   /**
@@ -3885,15 +3862,15 @@ export class lpu237 extends hid {
    * @param {string} s_response - lpu237 프로토콜 패킷
    * @returns {string | null} Hex 문자열 형식, 에러 시 null
    */
-  private _get_uart_postfix_from_response = (
+  private static _get_uart_postfix_from_response(
     s_response: string,
-  ): string | null => {
-    if (!this._is_success_response(s_response)) return null;
+  ): string | null {
+    if (!lpu237._is_success_response(s_response)) return null;
 
     const n_size = _type_system_size.SYS_SIZE_UART_G_POST;
-    if (this._get_length_member_of_response(s_response) !== n_size) return null;
+    if (lpu237._get_length_member_of_response(s_response) !== n_size) return null;
 
-    return this._get_data_field_member_of_response_by_hex_string(s_response);
+    return lpu237._get_data_field_member_of_response_by_hex_string(s_response);
   };
 
   /**
@@ -4061,7 +4038,7 @@ export class lpu237 extends hid {
    * @param {string} s_string - "enable" 또는 "disable"
    * @returns {boolean | null} true(활성), false(비활성), 에러 시 null
    */
-  private _get_enable_track_from_string(s_string: string): boolean | null {
+  private static _get_enable_track_from_string(s_string: string): boolean | null {
     if (typeof s_string !== "string") return null;
 
     if (s_string === "enable") return true;
@@ -4075,8 +4052,8 @@ export class lpu237 extends hid {
    * @function _get_use_parity_from_string
    * @description 패리티 비트 사용 여부를 결정합니다. (내부적으로 _get_enable_track_from_string 활용)
    */
-  private _get_use_parity_from_string = (s_string: string): boolean | null => {
-    return this._get_enable_track_from_string(s_string);
+  private static _get_use_parity_from_string(s_string: string): boolean | null {
+    return lpu237._get_enable_track_from_string(s_string);
   };
 
   /**
@@ -4084,10 +4061,10 @@ export class lpu237 extends hid {
    * @function _get_use_error_correct_from_string
    * @description 에러 교정 사용 여부를 결정합니다. (내부적으로 _get_enable_track_from_string 활용)
    */
-  private _get_use_error_correct_from_string = (
+  private static _get_use_error_correct_from_string(
     s_string: string,
-  ): boolean | null => {
-    return this._get_enable_track_from_string(s_string);
+  ): boolean | null{
+    return lpu237._get_enable_track_from_string(s_string);
   };
 
   /**
@@ -4114,10 +4091,10 @@ export class lpu237 extends hid {
    * @param {string} s_string - 파싱할 XML 태그 문자열
    * @returns {string | null} Hex 문자열 (앞에 길이 정보 포함), 에러 시 null
    */
-  private _get_hid_key_pair_hex_string_from_string = (
+  private static _get_hid_key_pair_hex_string_from_string(
     b_ibutton_remove: boolean,
     s_string: string,
-  ): string | null => {
+  ): string | null{
     let s_hex_result: string | null = null;
     let b_all_zero = true;
 
@@ -4196,9 +4173,9 @@ export class lpu237 extends hid {
     s_hex_result = "";
     for (let i = 0; i < array_s_mod.length; i++) {
       const s_hid_modifier_code_hex =
-        this._get_hid_modifier_code_hex_string_by_key_symbol(array_s_mod[i]);
+        lpu237._get_hid_modifier_code_hex_string_by_key_symbol(array_s_mod[i]);
       const s_hid_key_code_hex =
-        this._get_hid_key_code_hex_string_by_key_symbol(array_s_key[i]);
+        lpu237._get_hid_key_code_hex_string_by_key_symbol(array_s_key[i]);
 
       if (s_hid_modifier_code_hex === null || s_hid_key_code_hex === null) {
         b_error = true;
@@ -4227,7 +4204,7 @@ export class lpu237 extends hid {
    * @param {string} s_string - "odd" 또는 "even"
    * @returns {number} 0(Even), 1(Odd), 에러 시 -1
    */
-  private _get_parity_type_from_string(s_string: string): number {
+  private static _get_parity_type_from_string(s_string: string): number {
     if (typeof s_string !== "string") return -1;
 
     const parityMap: Record<string, number> = {
@@ -4245,7 +4222,7 @@ export class lpu237 extends hid {
    * @param {string} s_string - "lrc", "invlrc" 또는 "crc"
    * @returns {number} 0(LRC), 1(invLRC), 2(CRC), 에러 시 -1
    */
-  private _get_error_correct_type_from_string(s_string: string): number {
+  private static _get_error_correct_type_from_string(s_string: string): number {
     if (typeof s_string !== "string") return -1;
 
     const errorCorrectMap: Record<string, number> = {
@@ -7002,7 +6979,7 @@ export class lpu237 extends hid {
       this._deque_generated_tx.push(_type_generated_tx_type.gt_enter_config);
 
       // 2. 장치 타입 및 버전별 i-Button 지원 확인 (v3.6.0.4 이상)
-      const isV3604OrHigher = this._first_version_greater_then_second_version(
+      const isV3604OrHigher = lpu237._first_version_greater_then_second_version(
         false,
         this._version,
         [3, 6, 0, 4],
@@ -7056,7 +7033,7 @@ export class lpu237 extends hid {
 
       // 5. i-Button 및 UART 상세 설정 (버전별 분기)
       if (
-        this._first_version_greater_then_second_version(
+        lpu237._first_version_greater_then_second_version(
           false,
           this._version,
           [3, 0, 0, 0],
@@ -7084,7 +7061,7 @@ export class lpu237 extends hid {
 
         // i-Button 제거(Remove) 이벤트 지원 확인 (v4.0.0.0 이상 구조)
         if (
-          this._first_version_greater_then_second_version(
+          lpu237._first_version_greater_then_second_version(
             true,
             this._version_structure,
             [4, 0, 0, 0],
@@ -7138,7 +7115,7 @@ export class lpu237 extends hid {
       // 8. 고급 다중 조합(Multi-Combination) 설정 (특정 모델 및 버전 이상)
       let b_run_combination = false;
       if (
-        this._first_version_greater_then_second_version(
+        lpu237._first_version_greater_then_second_version(
           false,
           this._version,
           [5, 12, 0, 0],
@@ -7146,14 +7123,14 @@ export class lpu237 extends hid {
       )
         b_run_combination = true;
       if (
-        this._first_version_greater_then_second_version(
+        lpu237._first_version_greater_then_second_version(
           false,
           [4, 0, 0, 0],
           this._version,
         )
       ) {
         if (
-          this._first_version_greater_then_second_version(
+          lpu237._first_version_greater_then_second_version(
             false,
             this._version,
             [3, 20, 0, 0],
@@ -7399,14 +7376,14 @@ export class lpu237 extends hid {
   public update_firmware = (file_rom: File): Promise<boolean> => {
     return new Promise((resolve, reject) => {
       if (!(file_rom instanceof File)) {
-        return reject(this._get_error_object("en_e_parameter"));
+        return reject(lpu237._get_error_object("en_e_parameter"));
       }
 
       const reader = new FileReader();
 
       reader.onload = (evt: ProgressEvent<FileReader>) => {
         if (!evt.target || !evt.target.result) {
-          return reject(this._get_error_object("en_e_parameter"));
+          return reject(lpu237._get_error_object("en_e_parameter"));
         }
 
         try {
@@ -7434,12 +7411,12 @@ export class lpu237 extends hid {
           );
           resolve(true);
         } catch (error) {
-          reject(this._get_error_object("en_e_parameter"));
+          reject(lpu237._get_error_object("en_e_parameter"));
         }
       };
 
       reader.onerror = () => {
-        reject(this._get_error_object("en_e_unknown"));
+        reject(lpu237._get_error_object("en_e_unknown"));
       };
 
       // 파일을 ArrayBuffer 형태로 읽기 시작
@@ -7790,8 +7767,8 @@ export class lpu237 extends hid {
     try {
       // 1. 기본 시스템 정보
       s_description += `System name : ${this._s_name}\n`;
-      s_description += `System version : ${this._get_version_string(this._version)}\n`;
-      s_description += `Structure version : ${this._get_version_structure_string(this._version_structure)}\n`;
+      s_description += `System version : ${lpu237._get_version_string(this._version)}\n`;
+      s_description += `Structure version : ${lpu237._get_version_structure_string(this._version_structure)}\n`;
       s_description += `System UID : ${this._s_uid}\n`;
 
       s_description += `Used bootloader : ${this._b_is_hid_boot ? "Hid" : "MSD"}.\n`;
@@ -7805,7 +7782,7 @@ export class lpu237 extends hid {
         lpu237._get_freqency_from_timer_count(this._dw_buzzer_count) / 1000
       ).toFixed(0);
       s_description += `Buzzer frequency : ${buzzerKHz} KHz(${this._dw_buzzer_count})\n`;
-      s_description += `The supported functions : ${this._get_function_string(this._n_device_function, this._version)}\n`;
+      s_description += `The supported functions : ${lpu237._get_function_string(this._n_device_function, this._version)}\n`;
 
       let decoderName = "Magtek";
       if (this._b_device_is_ibutton_only) decoderName = "None";
@@ -7838,18 +7815,18 @@ export class lpu237 extends hid {
 
       // 5. 버전별 특수 파라미터 (MMD1100 리셋 간격 등)
       if (
-        this._first_version_greater_then_second_version(
+        lpu237._first_version_greater_then_second_version(
           false,
           this._version,
           [5, 15, 0, 0],
         ) &&
-        this._first_version_greater_then_second_version(
+        lpu237._first_version_greater_then_second_version(
           false,
           [6, 0, 0, 0],
           this._version,
         )
       ) {
-        const isGreater518 = this._first_version_greater_then_second_version(
+        const isGreater518 = lpu237._first_version_greater_then_second_version(
           false,
           this._version,
           [5, 18, 0, 0],
@@ -7864,7 +7841,7 @@ export class lpu237 extends hid {
       s_description += `i-button postfixs : ${this._s_postfix_ibutton}\n`;
 
       if (
-        this._first_version_greater_then_second_version(
+        lpu237._first_version_greater_then_second_version(
           true,
           this._version_structure,
           [4, 0, 0, 0],
@@ -7893,11 +7870,11 @@ export class lpu237 extends hid {
           s_description += `one bit size of track ${i + 1} combination ${j} : ${this._n_bit_size[i][j]}\n`;
           s_description += `data mask of track ${i + 1} combination ${j} : 0x${this._c_data_mask[i][j].toString(16)}\n`;
           s_description += `parity bit of track ${i + 1} combination ${j} : ${this._b_use_parity[i][j] ? "enabled" : "disabled"}.\n`;
-          s_description += `parity bit type of track ${i + 1} combination ${j} : ${this._get_parity_type_string(this._n_parity_type[i][j])}\n`;
+          s_description += `parity bit type of track ${i + 1} combination ${j} : ${lpu237._get_parity_type_string(this._n_parity_type[i][j])}\n`;
           s_description += `STX pattern of track ${i + 1} combination ${j} : 0x${this._c_stxl[i][j].toString(16)}\n`;
           s_description += `ETX pattern of track ${i + 1} combination ${j} : 0x${this._c_etxl[i][j].toString(16)}\n`;
           s_description += `ecm of track ${i + 1} combination ${j} : ${this._b_use_ecm[i][j] ? "enabled" : "disabled"}.\n`;
-          s_description += `ecm type of track ${i + 1} combination ${j} : ${this._get_error_correct_type_string(this._n_ecm_type[i][j])}\n`;
+          s_description += `ecm type of track ${i + 1} combination ${j} : ${lpu237._get_error_correct_type_string(this._n_ecm_type[i][j])}\n`;
           s_description += `for converting to ASCII, add value of track ${i + 1} combination ${j} : ${this._n_add_value[i][j]}\n`;
           s_description += `MSR private prefix track ${i + 1} combination ${j} : ${this._s_private_prefix[i][j]}\n`;
           s_description += `MSR private postfix track ${i + 1} combination ${j} : ${this._s_private_postfix[i][j]}\n`;
@@ -7929,7 +7906,7 @@ export class lpu237 extends hid {
    */
   public is_success_enter_opos_mode = (s_response: string): boolean => {
     // 응답 패킷의 상태 코드를 분석하는 공용 함수를 호출합니다.
-    return this._is_success_response(s_response);
+    return lpu237._is_success_response(s_response);
   };
 
   /**
@@ -7953,7 +7930,7 @@ export class lpu237 extends hid {
    * @description 에러 이름을 전달하여 해당 에러의 상세 메시지를 가져옵니다.
    */
   public get_error_message = (s_error_name: string): string => {
-    return this._get_error_message(s_error_name);
+    return lpu237._get_error_message(s_error_name);
   };
 
   /**
@@ -8018,11 +7995,11 @@ export class lpu237 extends hid {
         //
         ++n_count;
         as_name[n_count] = "System version";
-        as_value[n_count] = this._get_version_string(this._version);
+        as_value[n_count] = lpu237._get_version_string(this._version);
         //
         ++n_count;
         as_name[n_count] = "Structure version";
-        as_value[n_count] = this._get_version_structure_string(
+        as_value[n_count] = lpu237._get_version_structure_string(
           this._version_structure,
         );
         //
@@ -8066,7 +8043,7 @@ export class lpu237 extends hid {
         //
         ++n_count;
         as_name[n_count] = "The supported functions";
-        as_value[n_count] = this._get_function_string(
+        as_value[n_count] = lpu237._get_function_string(
           this._n_device_function,
           this._version,
         );
@@ -8151,14 +8128,14 @@ export class lpu237 extends hid {
         //
         let b_device_version_greater_then_5_18: boolean = false;
         if (
-          this._first_version_greater_then_second_version(
+          lpu237._first_version_greater_then_second_version(
             false,
             this._version,
             [5, 18, 0, 0],
           )
         ) {
           if (
-            this._first_version_greater_then_second_version(
+            lpu237._first_version_greater_then_second_version(
               false,
               [6, 0, 0, 0],
               this._version,
@@ -8168,14 +8145,14 @@ export class lpu237 extends hid {
           }
         }
         if (
-          this._first_version_greater_then_second_version(
+          lpu237._first_version_greater_then_second_version(
             false,
             this._version,
             [5, 15, 0, 0],
           )
         ) {
           if (
-            this._first_version_greater_then_second_version(
+            lpu237._first_version_greater_then_second_version(
               false,
               [6, 0, 0, 0],
               this._version,
@@ -8227,7 +8204,7 @@ export class lpu237 extends hid {
         );
 
         if (
-          this._first_version_greater_then_second_version(
+          lpu237._first_version_greater_then_second_version(
             true,
             this._version_structure,
             [4, 0, 0, 0],
@@ -8336,7 +8313,7 @@ export class lpu237 extends hid {
           }
           //
           as_n[i].push("parity bit type combination" + String(j));
-          as_v[i].push(this._get_parity_type_string(this._n_parity_type[i][j]));
+          as_v[i].push(lpu237._get_parity_type_string(this._n_parity_type[i][j]));
           //
           as_n[i].push("STX pattern combination" + String(j));
           as_v[i].push("0x" + this._c_stxl[i][j].toString(16));
@@ -8353,7 +8330,7 @@ export class lpu237 extends hid {
           //
           as_n[i].push("ecm type combination" + String(j));
           as_v[i].push(
-            this._get_error_correct_type_string(this._n_ecm_type[i][j]),
+            lpu237._get_error_correct_type_string(this._n_ecm_type[i][j]),
           );
           //
           as_n[i].push(
@@ -9338,7 +9315,7 @@ export class lpu237 extends hid {
 
       //
       if (
-        this._first_version_greater_then_second_version(
+        lpu237._first_version_greater_then_second_version(
           false,
           this._version,
           [3, 0, 0, 0],
@@ -9425,7 +9402,7 @@ export class lpu237 extends hid {
         }
 
         if (
-          this._first_version_greater_then_second_version(
+          lpu237._first_version_greater_then_second_version(
             true,
             this._version,
             [3, 0, 0, 0],
@@ -9889,7 +9866,7 @@ export class lpu237 extends hid {
 
       let b_run_combination: boolean = false;
       if (
-        this._first_version_greater_then_second_version(
+        lpu237._first_version_greater_then_second_version(
           false,
           this._version,
           [5, 12, 0, 0],
@@ -9898,7 +9875,7 @@ export class lpu237 extends hid {
         b_run_combination = true; //support from ganymede v5.13
       }
       if (
-        this._first_version_greater_then_second_version(
+        lpu237._first_version_greater_then_second_version(
           false,
           [4, 0, 0, 0],
           this._version,
@@ -9906,7 +9883,7 @@ export class lpu237 extends hid {
       ) {
         //callisto
         if (
-          this._first_version_greater_then_second_version(
+          lpu237._first_version_greater_then_second_version(
             false,
             this._version,
             [3, 20, 0, 0],
@@ -10309,19 +10286,19 @@ export class lpu237 extends hid {
 
       switch (n_generated_tx) {
         case _type_generated_tx_type.gt_get_version:
-          version = this._get_version_from_response(s_response);
+          version = lpu237._get_version_from_response(s_response);
           if (version === null) {
             break;
           }
           if (
-            this._first_version_greater_then_second_version(
+            lpu237._first_version_greater_then_second_version(
               false,
               version,
               [1, 1, 0, 0],
             )
           ) {
             if (
-              this._first_version_greater_then_second_version(
+              lpu237._first_version_greater_then_second_version(
                 false,
                 version,
                 [2, 2, 0, 0],
@@ -10329,7 +10306,7 @@ export class lpu237 extends hid {
             ) {
               this._b_is_hid_boot = true;
               if (
-                this._first_version_greater_then_second_version(
+                lpu237._first_version_greater_then_second_version(
                   false,
                   version,
                   [3, 3, 0, 2],
@@ -10348,7 +10325,7 @@ export class lpu237 extends hid {
           b_result = true;
           break;
         case _type_generated_tx_type.gt_get_version_structure:
-          version = this._get_version_structure_from_response(s_response);
+          version = lpu237._get_version_structure_from_response(s_response);
           if (version === null) {
             break;
           }
@@ -10357,7 +10334,7 @@ export class lpu237 extends hid {
           b_result = true;
           break;
         case _type_generated_tx_type.gt_type_device:
-          this._b_device_is_standard = this._get_type_from_response(s_response);
+          this._b_device_is_standard = lpu237._get_type_from_response(s_response);
           if (!this._b_device_is_standard) {
             this._n_device_function = type_function.fun_msr; //compact model
           } else {
@@ -10367,39 +10344,39 @@ export class lpu237 extends hid {
           break;
         case _type_generated_tx_type.gt_type_ibutton:
           this._b_device_is_ibutton_only =
-            this._get_ibutton_type_from_response(s_response);
+            lpu237._get_ibutton_type_from_response(s_response);
           if (this._b_device_is_ibutton_only) {
             this._n_device_function = type_function.fun_ibutton; //ibutton only model
           }
           b_result = true;
           break;
         case _type_generated_tx_type.gt_read_uid:
-          s_value = this._get_uid_from_response(s_response);
+          s_value = lpu237._get_uid_from_response(s_response);
           if (s_value !== null) {
             this._s_uid = s_value;
             b_result = true;
           }
           break;
         case _type_generated_tx_type.gt_enter_config:
-          b_result = this._is_success_response(s_response);
+          b_result = lpu237._is_success_response(s_response);
           if (b_result) {
             this._b_config_mode = true;
           }
           break;
         case _type_generated_tx_type.gt_leave_config:
-          b_result = this._is_success_response(s_response);
+          b_result = lpu237._is_success_response(s_response);
           if (b_result) {
             this._b_config_mode = false;
           }
           break;
         case _type_generated_tx_type.gt_enter_opos:
-          b_result = this._is_success_response(s_response);
+          b_result = lpu237._is_success_response(s_response);
           if (b_result) {
             this._b_opos_mode = true;
           }
           break;
         case _type_generated_tx_type.gt_leave_opos:
-          b_result = this._is_success_response(s_response);
+          b_result = lpu237._is_success_response(s_response);
           if (b_result) {
             this._b_opos_mode = false;
           }
@@ -10409,22 +10386,22 @@ export class lpu237 extends hid {
         case _type_generated_tx_type.gt_change_sn:
         case _type_generated_tx_type.gt_apply:
         case _type_generated_tx_type.gt_goto_boot:
-          b_result = this._is_success_response(s_response);
+          b_result = lpu237._is_success_response(s_response);
           break;
         case _type_generated_tx_type.gt_support_mmd1000:
           this._b_device_is_mmd1000 =
-            this._get_support_mmd1000_from_response(s_response);
+            lpu237._get_support_mmd1000_from_response(s_response);
           b_result = true;
           break;
         case _type_generated_tx_type.gt_get_name:
-          this._s_name = this._get_name_from_response(s_response);
+          this._s_name = lpu237._get_name_from_response(s_response);
           if (this._s_name !== null) {
             b_result = true;
           }
           break;
         case _type_generated_tx_type.gt_get_global_prepostfix_send_condition:
           b_value =
-            this._get_global_pre_postfix_send_condition_from_response(
+            lpu237._get_global_pre_postfix_send_condition_from_response(
               s_response,
             );
           if (b_value !== null) {
@@ -10433,49 +10410,49 @@ export class lpu237 extends hid {
           }
           break;
         case _type_generated_tx_type.gt_get_track_order:
-          order = this._get_track_order_from_response(s_response);
+          order = lpu237._get_track_order_from_response(s_response);
           if (order !== null) {
             this._n_order = order;
             b_result = true;
           }
           break;
         case _type_generated_tx_type.gt_get_blank_4byets:
-          blank = this._get_blank_4bytes_from_response(s_response);
+          blank = lpu237._get_blank_4bytes_from_response(s_response);
           if (blank !== null) {
             this._c_blank = blank;
             b_result = true;
           }
           break;
         case _type_generated_tx_type.gt_get_interface:
-          n_value = this._get_interface_from_response(s_response);
+          n_value = lpu237._get_interface_from_response(s_response);
           if (n_value >= 0) {
             this._n_interface = n_value;
             b_result = true;
           }
           break;
         case _type_generated_tx_type.gt_get_language:
-          n_value = this._get_language_from_response(s_response);
+          n_value = lpu237._get_language_from_response(s_response);
           if (n_value >= 0) {
             this._n_language_index = n_value;
             b_result = true;
           }
           break;
         case _type_generated_tx_type.gt_get_buzzer_count:
-          n_value = this._get_buzzer_count_from_response(s_response);
+          n_value = lpu237._get_buzzer_count_from_response(s_response);
           if (n_value >= 0) {
             this._dw_buzzer_count = n_value;
             b_result = true;
           }
           break;
         case _type_generated_tx_type.gt_get_boot_run_time:
-          n_value = this._get_boot_run_time_from_response(s_response);
+          n_value = lpu237._get_boot_run_time_from_response(s_response);
           if (n_value >= 0) {
             this._dw_boot_run_time = n_value;
             b_result = true;
           }
           break;
         case _type_generated_tx_type.gt_get_enable_iso1:
-          b_value = this._get_enable_track_from_response(
+          b_value = lpu237._get_enable_track_from_response(
             s_response,
             _type_msr_track_Numer.iso1_track,
           );
@@ -10485,7 +10462,7 @@ export class lpu237 extends hid {
           }
           break;
         case _type_generated_tx_type.gt_get_enable_iso2:
-          b_value = this._get_enable_track_from_response(
+          b_value = lpu237._get_enable_track_from_response(
             s_response,
             _type_msr_track_Numer.iso2_track,
           );
@@ -10495,7 +10472,7 @@ export class lpu237 extends hid {
           }
           break;
         case _type_generated_tx_type.gt_get_enable_iso3:
-          b_value = this._get_enable_track_from_response(
+          b_value = lpu237._get_enable_track_from_response(
             s_response,
             _type_msr_track_Numer.iso3_track,
           );
@@ -10505,7 +10482,7 @@ export class lpu237 extends hid {
           }
           break;
         case _type_generated_tx_type.gt_get_direction1:
-          n_value = this._get_direction_from_response(
+          n_value = lpu237._get_direction_from_response(
             s_response,
             _type_msr_track_Numer.iso1_track,
           );
@@ -10515,7 +10492,7 @@ export class lpu237 extends hid {
           }
           break;
         case _type_generated_tx_type.gt_get_direction2:
-          n_value = this._get_direction_from_response(
+          n_value = lpu237._get_direction_from_response(
             s_response,
             _type_msr_track_Numer.iso2_track,
           );
@@ -10525,7 +10502,7 @@ export class lpu237 extends hid {
           }
           break;
         case _type_generated_tx_type.gt_get_direction3:
-          n_value = this._get_direction_from_response(
+          n_value = lpu237._get_direction_from_response(
             s_response,
             _type_msr_track_Numer.iso3_track,
           );
@@ -10535,14 +10512,14 @@ export class lpu237 extends hid {
           }
           break;
         case _type_generated_tx_type.gt_get_global_prefix:
-          s_value = this._get_global_prefix_from_response(s_response);
+          s_value = lpu237._get_global_prefix_from_response(s_response);
           if (s_value !== null) {
             this._s_global_prefix = s_value;
             b_result = true;
           }
           break;
         case _type_generated_tx_type.gt_get_global_postfix:
-          s_value = this._get_global_postfix_from_response(s_response);
+          s_value = lpu237._get_global_postfix_from_response(s_response);
           if (s_value !== null) {
             this._s_global_postfix = s_value;
             b_result = true;
@@ -10552,7 +10529,7 @@ export class lpu237 extends hid {
         case _type_generated_tx_type.gt_get_iso1_number_combi:
         case _type_generated_tx_type.gt_get_iso2_number_combi:
         case _type_generated_tx_type.gt_get_iso3_number_combi:
-          n_value = this._get_number_combi_from_response(
+          n_value = lpu237._get_number_combi_from_response(
             s_response,
             n_generated_tx - _type_generated_tx_type.gt_get_iso1_number_combi,
           );
@@ -10566,7 +10543,7 @@ export class lpu237 extends hid {
         case _type_generated_tx_type.gt_get_iso1_Combi0_MaxSize:
         case _type_generated_tx_type.gt_get_iso1_Combi1_MaxSize:
         case _type_generated_tx_type.gt_get_iso1_Combi2_MaxSize:
-          n_value = this._get_max_size_from_response(
+          n_value = lpu237._get_max_size_from_response(
             s_response,
             _type_msr_track_Numer.iso1_track,
             n_generated_tx - _type_generated_tx_type.gt_get_iso1_Combi0_MaxSize,
@@ -10582,7 +10559,7 @@ export class lpu237 extends hid {
         case _type_generated_tx_type.gt_get_iso2_Combi0_MaxSize:
         case _type_generated_tx_type.gt_get_iso2_Combi1_MaxSize:
         case _type_generated_tx_type.gt_get_iso2_Combi2_MaxSize:
-          n_value = this._get_max_size_from_response(
+          n_value = lpu237._get_max_size_from_response(
             s_response,
             _type_msr_track_Numer.iso2_track,
             n_generated_tx - _type_generated_tx_type.gt_get_iso2_Combi0_MaxSize,
@@ -10598,7 +10575,7 @@ export class lpu237 extends hid {
         case _type_generated_tx_type.gt_get_iso3_Combi0_MaxSize:
         case _type_generated_tx_type.gt_get_iso3_Combi1_MaxSize:
         case _type_generated_tx_type.gt_get_iso3_Combi2_MaxSize:
-          n_value = this._get_max_size_from_response(
+          n_value = lpu237._get_max_size_from_response(
             s_response,
             _type_msr_track_Numer.iso3_track,
             n_generated_tx - _type_generated_tx_type.gt_get_iso3_Combi0_MaxSize,
@@ -10614,7 +10591,7 @@ export class lpu237 extends hid {
         case _type_generated_tx_type.gt_get_iso1_Combi0_BitSize:
         case _type_generated_tx_type.gt_get_iso1_Combi1_BitSize:
         case _type_generated_tx_type.gt_get_iso1_Combi2_BitSize:
-          n_value = this._get_bit_size_from_response(
+          n_value = lpu237._get_bit_size_from_response(
             s_response,
             _type_msr_track_Numer.iso1_track,
             n_generated_tx - _type_generated_tx_type.gt_get_iso1_Combi0_BitSize,
@@ -10630,7 +10607,7 @@ export class lpu237 extends hid {
         case _type_generated_tx_type.gt_get_iso2_Combi0_BitSize:
         case _type_generated_tx_type.gt_get_iso2_Combi1_BitSize:
         case _type_generated_tx_type.gt_get_iso2_Combi2_BitSize:
-          n_value = this._get_bit_size_from_response(
+          n_value = lpu237._get_bit_size_from_response(
             s_response,
             _type_msr_track_Numer.iso2_track,
             n_generated_tx - _type_generated_tx_type.gt_get_iso2_Combi0_BitSize,
@@ -10646,7 +10623,7 @@ export class lpu237 extends hid {
         case _type_generated_tx_type.gt_get_iso3_Combi0_BitSize:
         case _type_generated_tx_type.gt_get_iso3_Combi1_BitSize:
         case _type_generated_tx_type.gt_get_iso3_Combi2_BitSize:
-          n_value = this._get_bit_size_from_response(
+          n_value = lpu237._get_bit_size_from_response(
             s_response,
             _type_msr_track_Numer.iso3_track,
             n_generated_tx - _type_generated_tx_type.gt_get_iso3_Combi0_BitSize,
@@ -10662,7 +10639,7 @@ export class lpu237 extends hid {
         case _type_generated_tx_type.gt_get_iso1_Combi0_DataMask:
         case _type_generated_tx_type.gt_get_iso1_Combi1_DataMask:
         case _type_generated_tx_type.gt_get_iso1_Combi2_DataMask:
-          n_value = this._get_data_mask_from_response(
+          n_value = lpu237._get_data_mask_from_response(
             s_response,
             _type_msr_track_Numer.iso1_track,
             n_generated_tx -
@@ -10679,7 +10656,7 @@ export class lpu237 extends hid {
         case _type_generated_tx_type.gt_get_iso2_Combi0_DataMask:
         case _type_generated_tx_type.gt_get_iso2_Combi1_DataMask:
         case _type_generated_tx_type.gt_get_iso2_Combi2_DataMask:
-          n_value = this._get_data_mask_from_response(
+          n_value = lpu237._get_data_mask_from_response(
             s_response,
             _type_msr_track_Numer.iso2_track,
             n_generated_tx -
@@ -10696,7 +10673,7 @@ export class lpu237 extends hid {
         case _type_generated_tx_type.gt_get_iso3_Combi0_DataMask:
         case _type_generated_tx_type.gt_get_iso3_Combi1_DataMask:
         case _type_generated_tx_type.gt_get_iso3_Combi2_DataMask:
-          n_value = this._get_data_mask_from_response(
+          n_value = lpu237._get_data_mask_from_response(
             s_response,
             _type_msr_track_Numer.iso3_track,
             n_generated_tx -
@@ -10713,7 +10690,7 @@ export class lpu237 extends hid {
         case _type_generated_tx_type.gt_get_iso1_Combi0_UseParity: // this._b_use_parity
         case _type_generated_tx_type.gt_get_iso1_Combi1_UseParity:
         case _type_generated_tx_type.gt_get_iso1_Combi2_UseParity:
-          b_value = this._get_use_parity_from_response(
+          b_value = lpu237._get_use_parity_from_response(
             s_response,
             _type_msr_track_Numer.iso1_track,
             n_generated_tx -
@@ -10730,7 +10707,7 @@ export class lpu237 extends hid {
         case _type_generated_tx_type.gt_get_iso2_Combi0_UseParity:
         case _type_generated_tx_type.gt_get_iso2_Combi1_UseParity:
         case _type_generated_tx_type.gt_get_iso2_Combi2_UseParity:
-          b_value = this._get_use_parity_from_response(
+          b_value = lpu237._get_use_parity_from_response(
             s_response,
             _type_msr_track_Numer.iso2_track,
             n_generated_tx -
@@ -10747,7 +10724,7 @@ export class lpu237 extends hid {
         case _type_generated_tx_type.gt_get_iso3_Combi0_UseParity:
         case _type_generated_tx_type.gt_get_iso3_Combi1_UseParity:
         case _type_generated_tx_type.gt_get_iso3_Combi2_UseParity:
-          b_value = this._get_use_parity_from_response(
+          b_value = lpu237._get_use_parity_from_response(
             s_response,
             _type_msr_track_Numer.iso3_track,
             n_generated_tx -
@@ -10764,7 +10741,7 @@ export class lpu237 extends hid {
         case _type_generated_tx_type.gt_get_iso1_Combi0_ParityType: //this._n_parity_type
         case _type_generated_tx_type.gt_get_iso1_Combi1_ParityType:
         case _type_generated_tx_type.gt_get_iso1_Combi2_ParityType:
-          n_value = this._get_parity_type_from_response(
+          n_value = lpu237._get_parity_type_from_response(
             s_response,
             _type_msr_track_Numer.iso1_track,
             n_generated_tx -
@@ -10781,7 +10758,7 @@ export class lpu237 extends hid {
         case _type_generated_tx_type.gt_get_iso2_Combi0_ParityType:
         case _type_generated_tx_type.gt_get_iso2_Combi1_ParityType:
         case _type_generated_tx_type.gt_get_iso2_Combi2_ParityType:
-          n_value = this._get_parity_type_from_response(
+          n_value = lpu237._get_parity_type_from_response(
             s_response,
             _type_msr_track_Numer.iso2_track,
             n_generated_tx -
@@ -10798,7 +10775,7 @@ export class lpu237 extends hid {
         case _type_generated_tx_type.gt_get_iso3_Combi0_ParityType:
         case _type_generated_tx_type.gt_get_iso3_Combi1_ParityType:
         case _type_generated_tx_type.gt_get_iso3_Combi2_ParityType:
-          n_value = this._get_parity_type_from_response(
+          n_value = lpu237._get_parity_type_from_response(
             s_response,
             _type_msr_track_Numer.iso3_track,
             n_generated_tx -
@@ -10815,7 +10792,7 @@ export class lpu237 extends hid {
         case _type_generated_tx_type.gt_get_iso1_Combi0_STX_L: //this._c_stxl
         case _type_generated_tx_type.gt_get_iso1_Combi1_STX_L:
         case _type_generated_tx_type.gt_get_iso1_Combi2_STX_L:
-          n_value = this._get_stxl_from_response(
+          n_value = lpu237._get_stxl_from_response(
             s_response,
             _type_msr_track_Numer.iso1_track,
             n_generated_tx - _type_generated_tx_type.gt_get_iso1_Combi0_STX_L,
@@ -10830,7 +10807,7 @@ export class lpu237 extends hid {
         case _type_generated_tx_type.gt_get_iso2_Combi0_STX_L:
         case _type_generated_tx_type.gt_get_iso2_Combi1_STX_L:
         case _type_generated_tx_type.gt_get_iso2_Combi2_STX_L:
-          n_value = this._get_stxl_from_response(
+          n_value = lpu237._get_stxl_from_response(
             s_response,
             _type_msr_track_Numer.iso2_track,
             n_generated_tx - _type_generated_tx_type.gt_get_iso2_Combi0_STX_L,
@@ -10845,7 +10822,7 @@ export class lpu237 extends hid {
         case _type_generated_tx_type.gt_get_iso3_Combi0_STX_L:
         case _type_generated_tx_type.gt_get_iso3_Combi1_STX_L:
         case _type_generated_tx_type.gt_get_iso3_Combi2_STX_L:
-          n_value = this._get_stxl_from_response(
+          n_value = lpu237._get_stxl_from_response(
             s_response,
             _type_msr_track_Numer.iso3_track,
             n_generated_tx - _type_generated_tx_type.gt_get_iso3_Combi0_STX_L,
@@ -10860,7 +10837,7 @@ export class lpu237 extends hid {
         case _type_generated_tx_type.gt_get_iso1_Combi0_ETX_L: //this._c_etxl
         case _type_generated_tx_type.gt_get_iso1_Combi1_ETX_L:
         case _type_generated_tx_type.gt_get_iso1_Combi2_ETX_L:
-          n_value = this._get_etxl_from_response(
+          n_value = lpu237._get_etxl_from_response(
             s_response,
             _type_msr_track_Numer.iso1_track,
             n_generated_tx - _type_generated_tx_type.gt_get_iso1_Combi0_ETX_L,
@@ -10875,7 +10852,7 @@ export class lpu237 extends hid {
         case _type_generated_tx_type.gt_get_iso2_Combi0_ETX_L:
         case _type_generated_tx_type.gt_get_iso2_Combi1_ETX_L:
         case _type_generated_tx_type.gt_get_iso2_Combi2_ETX_L:
-          n_value = this._get_etxl_from_response(
+          n_value = lpu237._get_etxl_from_response(
             s_response,
             _type_msr_track_Numer.iso2_track,
             n_generated_tx - _type_generated_tx_type.gt_get_iso2_Combi0_ETX_L,
@@ -10890,7 +10867,7 @@ export class lpu237 extends hid {
         case _type_generated_tx_type.gt_get_iso3_Combi0_ETX_L:
         case _type_generated_tx_type.gt_get_iso3_Combi1_ETX_L:
         case _type_generated_tx_type.gt_get_iso3_Combi2_ETX_L:
-          n_value = this._get_etxl_from_response(
+          n_value = lpu237._get_etxl_from_response(
             s_response,
             _type_msr_track_Numer.iso3_track,
             n_generated_tx - _type_generated_tx_type.gt_get_iso3_Combi0_ETX_L,
@@ -10905,7 +10882,7 @@ export class lpu237 extends hid {
         case _type_generated_tx_type.gt_get_iso1_Combi0_UseErrorCorrect: //this._b_use_ecm
         case _type_generated_tx_type.gt_get_iso1_Combi1_UseErrorCorrect:
         case _type_generated_tx_type.gt_get_iso1_Combi2_UseErrorCorrect:
-          b_value = this._get_use_error_correct_from_response(
+          b_value = lpu237._get_use_error_correct_from_response(
             s_response,
             _type_msr_track_Numer.iso1_track,
             n_generated_tx -
@@ -10922,7 +10899,7 @@ export class lpu237 extends hid {
         case _type_generated_tx_type.gt_get_iso2_Combi0_UseErrorCorrect:
         case _type_generated_tx_type.gt_get_iso2_Combi1_UseErrorCorrect:
         case _type_generated_tx_type.gt_get_iso2_Combi2_UseErrorCorrect:
-          b_value = this._get_use_error_correct_from_response(
+          b_value = lpu237._get_use_error_correct_from_response(
             s_response,
             _type_msr_track_Numer.iso2_track,
             n_generated_tx -
@@ -10939,7 +10916,7 @@ export class lpu237 extends hid {
         case _type_generated_tx_type.gt_get_iso3_Combi0_UseErrorCorrect:
         case _type_generated_tx_type.gt_get_iso3_Combi1_UseErrorCorrect:
         case _type_generated_tx_type.gt_get_iso3_Combi2_UseErrorCorrect:
-          b_value = this._get_use_error_correct_from_response(
+          b_value = lpu237._get_use_error_correct_from_response(
             s_response,
             _type_msr_track_Numer.iso3_track,
             n_generated_tx -
@@ -10956,7 +10933,7 @@ export class lpu237 extends hid {
         case _type_generated_tx_type.gt_get_iso1_Combi0_ECMType: //this._n_ecm_type
         case _type_generated_tx_type.gt_get_iso1_Combi1_ECMType:
         case _type_generated_tx_type.gt_get_iso1_Combi2_ECMType:
-          n_value = this._get_ecm_type_from_response(
+          n_value = lpu237._get_ecm_type_from_response(
             s_response,
             _type_msr_track_Numer.iso1_track,
             n_generated_tx - _type_generated_tx_type.gt_get_iso1_Combi0_ECMType,
@@ -10972,7 +10949,7 @@ export class lpu237 extends hid {
         case _type_generated_tx_type.gt_get_iso2_Combi0_ECMType:
         case _type_generated_tx_type.gt_get_iso2_Combi1_ECMType:
         case _type_generated_tx_type.gt_get_iso2_Combi2_ECMType:
-          n_value = this._get_ecm_type_from_response(
+          n_value = lpu237._get_ecm_type_from_response(
             s_response,
             _type_msr_track_Numer.iso2_track,
             n_generated_tx - _type_generated_tx_type.gt_get_iso2_Combi0_ECMType,
@@ -10988,7 +10965,7 @@ export class lpu237 extends hid {
         case _type_generated_tx_type.gt_get_iso3_Combi0_ECMType:
         case _type_generated_tx_type.gt_get_iso3_Combi1_ECMType:
         case _type_generated_tx_type.gt_get_iso3_Combi2_ECMType:
-          n_value = this._get_ecm_type_from_response(
+          n_value = lpu237._get_ecm_type_from_response(
             s_response,
             _type_msr_track_Numer.iso3_track,
             n_generated_tx - _type_generated_tx_type.gt_get_iso3_Combi0_ECMType,
@@ -11004,7 +10981,7 @@ export class lpu237 extends hid {
         case _type_generated_tx_type.gt_get_iso1_Combi0_AddValue: //this._n_add_value
         case _type_generated_tx_type.gt_get_iso1_Combi1_AddValue:
         case _type_generated_tx_type.gt_get_iso1_Combi2_AddValue:
-          n_value = this._get_add_value_from_response(
+          n_value = lpu237._get_add_value_from_response(
             s_response,
             _type_msr_track_Numer.iso1_track,
             n_generated_tx -
@@ -11021,7 +10998,7 @@ export class lpu237 extends hid {
         case _type_generated_tx_type.gt_get_iso2_Combi0_AddValue:
         case _type_generated_tx_type.gt_get_iso2_Combi1_AddValue:
         case _type_generated_tx_type.gt_get_iso2_Combi2_AddValue:
-          n_value = this._get_add_value_from_response(
+          n_value = lpu237._get_add_value_from_response(
             s_response,
             _type_msr_track_Numer.iso2_track,
             n_generated_tx -
@@ -11038,7 +11015,7 @@ export class lpu237 extends hid {
         case _type_generated_tx_type.gt_get_iso3_Combi0_AddValue:
         case _type_generated_tx_type.gt_get_iso3_Combi1_AddValue:
         case _type_generated_tx_type.gt_get_iso3_Combi2_AddValue:
-          n_value = this._get_add_value_from_response(
+          n_value = lpu237._get_add_value_from_response(
             s_response,
             _type_msr_track_Numer.iso3_track,
             n_generated_tx -
@@ -11056,7 +11033,7 @@ export class lpu237 extends hid {
         case _type_generated_tx_type.gt_get_private_prefix10:
         case _type_generated_tx_type.gt_get_private_prefix11:
         case _type_generated_tx_type.gt_get_private_prefix12:
-          s_value = this._get_private_prefix_from_response(
+          s_value = lpu237._get_private_prefix_from_response(
             s_response,
             _type_msr_track_Numer.iso1_track,
             n_generated_tx - _type_generated_tx_type.gt_get_private_prefix10,
@@ -11071,7 +11048,7 @@ export class lpu237 extends hid {
         case _type_generated_tx_type.gt_get_private_prefix20:
         case _type_generated_tx_type.gt_get_private_prefix21:
         case _type_generated_tx_type.gt_get_private_prefix22:
-          s_value = this._get_private_prefix_from_response(
+          s_value = lpu237._get_private_prefix_from_response(
             s_response,
             _type_msr_track_Numer.iso2_track,
             n_generated_tx - _type_generated_tx_type.gt_get_private_prefix20,
@@ -11086,7 +11063,7 @@ export class lpu237 extends hid {
         case _type_generated_tx_type.gt_get_private_prefix30:
         case _type_generated_tx_type.gt_get_private_prefix31:
         case _type_generated_tx_type.gt_get_private_prefix32:
-          s_value = this._get_private_prefix_from_response(
+          s_value = lpu237._get_private_prefix_from_response(
             s_response,
             _type_msr_track_Numer.iso3_track,
             n_generated_tx - _type_generated_tx_type.gt_get_private_prefix30,
@@ -11101,7 +11078,7 @@ export class lpu237 extends hid {
         case _type_generated_tx_type.gt_get_private_postfix10:
         case _type_generated_tx_type.gt_get_private_postfix11:
         case _type_generated_tx_type.gt_get_private_postfix12:
-          s_value = this._get_private_postfix_from_response(
+          s_value = lpu237._get_private_postfix_from_response(
             s_response,
             _type_msr_track_Numer.iso1_track,
             n_generated_tx - _type_generated_tx_type.gt_get_private_postfix10,
@@ -11116,7 +11093,7 @@ export class lpu237 extends hid {
         case _type_generated_tx_type.gt_get_private_postfix20:
         case _type_generated_tx_type.gt_get_private_postfix21:
         case _type_generated_tx_type.gt_get_private_postfix22:
-          s_value = this._get_private_postfix_from_response(
+          s_value = lpu237._get_private_postfix_from_response(
             s_response,
             _type_msr_track_Numer.iso2_track,
             n_generated_tx - _type_generated_tx_type.gt_get_private_postfix20,
@@ -11131,7 +11108,7 @@ export class lpu237 extends hid {
         case _type_generated_tx_type.gt_get_private_postfix30:
         case _type_generated_tx_type.gt_get_private_postfix31:
         case _type_generated_tx_type.gt_get_private_postfix32:
-          s_value = this._get_private_postfix_from_response(
+          s_value = lpu237._get_private_postfix_from_response(
             s_response,
             _type_msr_track_Numer.iso3_track,
             n_generated_tx - _type_generated_tx_type.gt_get_private_postfix30,
@@ -11144,49 +11121,49 @@ export class lpu237 extends hid {
           }
           break;
         case _type_generated_tx_type.gt_get_prefix_ibutton:
-          s_value = this._get_ibutton_prefix_from_response(s_response);
+          s_value = lpu237._get_ibutton_prefix_from_response(s_response);
           if (s_value !== null) {
             this._s_prefix_ibutton = s_value;
             b_result = true;
           }
           break;
         case _type_generated_tx_type.gt_get_postfix_ibutton:
-          s_value = this._get_ibutton_postfix_from_response(s_response);
+          s_value = lpu237._get_ibutton_postfix_from_response(s_response);
           if (s_value !== null) {
             this._s_postfix_ibutton = s_value;
             b_result = true;
           }
           break;
         case _type_generated_tx_type.gt_get_ibutton_remove:
-          s_value = this._get_ibutton_remove_from_response(s_response);
+          s_value = lpu237._get_ibutton_remove_from_response(s_response);
           if (s_value !== null) {
             this._s_ibutton_remove = s_value;
             b_result = true;
           }
           break;
         case _type_generated_tx_type.gt_get_prefix_ibutton_remove:
-          s_value = this._get_ibutton_prefix_remove_from_response(s_response);
+          s_value = lpu237._get_ibutton_prefix_remove_from_response(s_response);
           if (s_value !== null) {
             this._s_prefix_ibutton_remove = s_value;
             b_result = true;
           }
           break;
         case _type_generated_tx_type.gt_get_postfix_ibutton_remove:
-          s_value = this._get_ibutton_postfix_remove_from_response(s_response);
+          s_value = lpu237._get_ibutton_postfix_remove_from_response(s_response);
           if (s_value !== null) {
             this._s_postfix_ibutton_remove = s_value;
             b_result = true;
           }
           break;
         case _type_generated_tx_type.gt_get_prefix_uart:
-          s_value = this._get_uart_prefix_from_response(s_response);
+          s_value = lpu237._get_uart_prefix_from_response(s_response);
           if (s_value !== null) {
             this._s_prefix_uart = s_value;
             b_result = true;
           }
           break;
         case _type_generated_tx_type.gt_get_postfix_uart:
-          s_value = this._get_uart_postfix_from_response(s_response);
+          s_value = lpu237._get_uart_postfix_from_response(s_response);
           if (s_value !== null) {
             this._s_postfix_uart = s_value;
             b_result = true;
@@ -11327,7 +11304,7 @@ export class lpu237 extends hid {
         case _type_generated_tx_type.gt_set_postfix_ibutton_remove:
         case _type_generated_tx_type.gt_set_prefix_uart:
         case _type_generated_tx_type.gt_set_postfix_uart:
-          b_result = this._is_success_response(s_response);
+          b_result = lpu237._is_success_response(s_response);
           break;
         default:
           continue;
@@ -11348,7 +11325,7 @@ export class lpu237 extends hid {
     return new Promise<boolean>((resolve, reject) => {
       do {
         if (typeof file_xml !== "object") {
-          reject(this._get_error_object("en_e_parameter"));
+          reject(lpu237._get_error_object("en_e_parameter"));
           continue;
         }
         //
@@ -11494,7 +11471,7 @@ export class lpu237 extends hid {
               if (ele.hasAttribute(s_attr_name)) {
                 s_attr = ele.getAttribute(s_attr_name)!;
                 array_b_enable_track[0] =
-                  this_device._get_enable_track_from_string(s_attr);
+                  lpu237._get_enable_track_from_string(s_attr);
                 if (array_b_enable_track[0] === null) {
                   continue;
                 }
@@ -11504,7 +11481,7 @@ export class lpu237 extends hid {
               if (ele.hasAttribute(s_attr_name)) {
                 s_attr = ele.getAttribute(s_attr_name)!;
                 array_b_enable_track[1] =
-                  this_device._get_enable_track_from_string(s_attr);
+                  lpu237._get_enable_track_from_string(s_attr);
                 if (array_b_enable_track[1] === null) {
                   continue;
                 }
@@ -11514,7 +11491,7 @@ export class lpu237 extends hid {
               if (ele.hasAttribute(s_attr_name)) {
                 s_attr = ele.getAttribute(s_attr_name)!;
                 array_b_enable_track[2] =
-                  this_device._get_enable_track_from_string(s_attr);
+                  lpu237._get_enable_track_from_string(s_attr);
                 if (array_b_enable_track[2] === null) {
                   continue;
                 }
@@ -11557,7 +11534,7 @@ export class lpu237 extends hid {
               if (ele.hasAttribute(s_attr_name)) {
                 s_attr = ele.getAttribute(s_attr_name)!;
                 b_ignore_iso1 =
-                  this_device._get_enable_track_from_string(s_attr);
+                  lpu237._get_enable_track_from_string(s_attr);
                 if (b_ignore_iso1 === null) {
                   continue;
                 }
@@ -11567,7 +11544,7 @@ export class lpu237 extends hid {
               if (ele.hasAttribute(s_attr_name)) {
                 s_attr = ele.getAttribute(s_attr_name)!;
                 b_ignore_iso3 =
-                  this_device._get_enable_track_from_string(s_attr);
+                  lpu237._get_enable_track_from_string(s_attr);
                 if (b_ignore_iso3 === null) {
                   continue;
                 }
@@ -11577,7 +11554,7 @@ export class lpu237 extends hid {
               if (ele.hasAttribute(s_attr_name)) {
                 s_attr = ele.getAttribute(s_attr_name)!;
                 b_remove_colon =
-                  this_device._get_enable_track_from_string(s_attr);
+                  lpu237._get_enable_track_from_string(s_attr);
                 if (b_remove_colon === null) {
                   continue;
                 }
@@ -11624,7 +11601,7 @@ export class lpu237 extends hid {
               s_attr_name = "prefix";
               if (ele.hasAttribute(s_attr_name)) {
                 s_attr = ele.getAttribute(s_attr_name)!;
-                s_gpre = this_device._get_hid_key_pair_hex_string_from_string(
+                s_gpre = lpu237._get_hid_key_pair_hex_string_from_string(
                   false,
                   s_attr,
                 );
@@ -11636,7 +11613,7 @@ export class lpu237 extends hid {
               s_attr_name = "postfix";
               if (ele.hasAttribute(s_attr_name)) {
                 s_attr = ele.getAttribute(s_attr_name)!;
-                s_gpost = this_device._get_hid_key_pair_hex_string_from_string(
+                s_gpost = lpu237._get_hid_key_pair_hex_string_from_string(
                   false,
                   s_attr,
                 );
@@ -11664,7 +11641,7 @@ export class lpu237 extends hid {
                 if (ele.hasAttribute(s_attr_name)) {
                   s_attr = ele.getAttribute(s_attr_name)!;
                   s_ppretag[0][0] =
-                    this_device._get_hid_key_pair_hex_string_from_string(
+                    lpu237._get_hid_key_pair_hex_string_from_string(
                       false,
                       s_attr,
                     );
@@ -11677,7 +11654,7 @@ export class lpu237 extends hid {
                 if (ele.hasAttribute(s_attr_name)) {
                   s_attr = ele.getAttribute(s_attr_name)!;
                   s_pposttag[0][0] =
-                    this_device._get_hid_key_pair_hex_string_from_string(
+                    lpu237._get_hid_key_pair_hex_string_from_string(
                       false,
                       s_attr,
                     );
@@ -11737,7 +11714,7 @@ export class lpu237 extends hid {
                   if (ele.hasAttribute(s_attr_name)) {
                     s_attr = ele.getAttribute(s_attr_name)!;
                     b_use_parity[n_track][i] =
-                      this_device._get_enable_track_from_string(s_attr);
+                      lpu237._get_enable_track_from_string(s_attr);
                     if (b_use_parity[n_track][i] === null) {
                       break; //exit for
                     }
@@ -11748,7 +11725,7 @@ export class lpu237 extends hid {
                   if (ele.hasAttribute(s_attr_name)) {
                     s_attr = ele.getAttribute(s_attr_name)!;
                     n_parity_type[n_track][i] =
-                      this_device._get_parity_type_from_string(s_attr);
+                      lpu237._get_parity_type_from_string(s_attr);
                     if (n_parity_type[n_track][i]! < 0) {
                       n_parity_type[n_track][i] = null;
                       break; //exit for
@@ -11782,7 +11759,7 @@ export class lpu237 extends hid {
                   if (ele.hasAttribute(s_attr_name)) {
                     s_attr = ele.getAttribute(s_attr_name)!;
                     b_use_error_correct[n_track][i] =
-                      this_device._get_enable_track_from_string(s_attr);
+                      lpu237._get_enable_track_from_string(s_attr);
                     if (b_use_error_correct[n_track][i] === null) {
                       break; //exit for
                     }
@@ -11793,7 +11770,7 @@ export class lpu237 extends hid {
                   if (ele.hasAttribute(s_attr_name)) {
                     s_attr = ele.getAttribute(s_attr_name)!;
                     n_error_correct_type[n_track][i] =
-                      this_device._get_error_correct_type_from_string(s_attr);
+                      lpu237._get_error_correct_type_from_string(s_attr);
                     if (n_error_correct_type[n_track][i]! < 0) {
                       n_error_correct_type[n_track][i] = null;
                       break; //exit for
@@ -11816,7 +11793,7 @@ export class lpu237 extends hid {
                   if (ele.hasAttribute(s_attr_name)) {
                     s_attr = ele.getAttribute(s_attr_name)!;
                     s_ppretag[n_track][i] =
-                      this_device._get_hid_key_pair_hex_string_from_string(
+                      lpu237._get_hid_key_pair_hex_string_from_string(
                         false,
                         s_attr,
                       );
@@ -11830,7 +11807,7 @@ export class lpu237 extends hid {
                   if (ele.hasAttribute(s_attr_name)) {
                     s_attr = ele.getAttribute(s_attr_name)!;
                     s_pposttag[n_track][i] =
-                      this_device._get_hid_key_pair_hex_string_from_string(
+                      lpu237._get_hid_key_pair_hex_string_from_string(
                         false,
                         s_attr,
                       );
@@ -11855,7 +11832,7 @@ export class lpu237 extends hid {
               s_attr_name = "prefix";
               if (ele.hasAttribute(s_attr_name)) {
                 s_attr = ele.getAttribute(s_attr_name)!;
-                s_ipre = this_device._get_hid_key_pair_hex_string_from_string(
+                s_ipre = lpu237._get_hid_key_pair_hex_string_from_string(
                   false,
                   s_attr,
                 );
@@ -11867,7 +11844,7 @@ export class lpu237 extends hid {
               s_attr_name = "postfix";
               if (ele.hasAttribute(s_attr_name)) {
                 s_attr = ele.getAttribute(s_attr_name)!;
-                s_ipost = this_device._get_hid_key_pair_hex_string_from_string(
+                s_ipost = lpu237._get_hid_key_pair_hex_string_from_string(
                   false,
                   s_attr,
                 );
@@ -11881,7 +11858,7 @@ export class lpu237 extends hid {
               if (ele.hasAttribute(s_attr_name)) {
                 s_attr = ele.getAttribute(s_attr_name)!;
                 s_iremove =
-                  this_device._get_hid_key_pair_hex_string_from_string(
+                  lpu237._get_hid_key_pair_hex_string_from_string(
                     true,
                     s_attr,
                   );
@@ -11895,7 +11872,7 @@ export class lpu237 extends hid {
               if (ele.hasAttribute(s_attr_name)) {
                 s_attr = ele.getAttribute(s_attr_name)!;
                 s_ipre_remove =
-                  this_device._get_hid_key_pair_hex_string_from_string(
+                  lpu237._get_hid_key_pair_hex_string_from_string(
                     false,
                     s_attr,
                   );
@@ -11908,7 +11885,7 @@ export class lpu237 extends hid {
               if (ele.hasAttribute(s_attr_name)) {
                 s_attr = ele.getAttribute(s_attr_name)!;
                 s_ipost_remove =
-                  this_device._get_hid_key_pair_hex_string_from_string(
+                  lpu237._get_hid_key_pair_hex_string_from_string(
                     false,
                     s_attr,
                   );
@@ -11927,7 +11904,7 @@ export class lpu237 extends hid {
               s_attr_name = "prefix";
               if (ele.hasAttribute(s_attr_name)) {
                 s_attr = ele.getAttribute(s_attr_name)!;
-                s_upre = this_device._get_hid_key_pair_hex_string_from_string(
+                s_upre = lpu237._get_hid_key_pair_hex_string_from_string(
                   false,
                   s_attr,
                 );
@@ -11939,7 +11916,7 @@ export class lpu237 extends hid {
               s_attr_name = "postfix";
               if (ele.hasAttribute(s_attr_name)) {
                 s_attr = ele.getAttribute(s_attr_name)!;
-                s_upost = this_device._get_hid_key_pair_hex_string_from_string(
+                s_upost = lpu237._get_hid_key_pair_hex_string_from_string(
                   false,
                   s_attr,
                 );
@@ -11957,7 +11934,7 @@ export class lpu237 extends hid {
               s_attr_name = "prefix";
               if (ele.hasAttribute(s_attr_name)) {
                 s_attr = ele.getAttribute(s_attr_name)!;
-                s_upre = this_device._get_hid_key_pair_hex_string_from_string(
+                s_upre = lpu237._get_hid_key_pair_hex_string_from_string(
                   false,
                   s_attr,
                 );
@@ -11969,7 +11946,7 @@ export class lpu237 extends hid {
               s_attr_name = "postfix";
               if (ele.hasAttribute(s_attr_name)) {
                 s_attr = ele.getAttribute(s_attr_name)!;
-                s_upost = this_device._get_hid_key_pair_hex_string_from_string(
+                s_upost = lpu237._get_hid_key_pair_hex_string_from_string(
                   false,
                   s_attr,
                 );
@@ -12520,7 +12497,7 @@ export class lpu237 extends hid {
             resolve(true);
           } else {
             //error
-            reject(this_device._get_error_object("en_e_parameter"));
+            reject(lpu237._get_error_object("en_e_parameter"));
           }
         }; // the end of onload event handler.
         //

@@ -21,7 +21,6 @@
  * SOFTWARE.
  */
 
-import { util } from "./elpusk.util";
 import * as elpusk_util_keyboard_const from "./elpusk.util.keyboard.const";
 
 
