@@ -134,6 +134,80 @@ const _get_tag_string = (b_shift:boolean, b_ctl:boolean, b_alt:boolean, s_hex_hi
   return s_hex_tag;
 }
 
+const _set_ui_tag_to_device = (state: AppState,s_tab_lable:string):void => {
+      const ui = state.config;
+      const hw = g_lpu_device;
+      if(hw === null){
+        return;
+      }
+      const km = state.keyMaps;
+
+      if( s_tab_lable in km ){
+        let s_tab = s_tab_lable;
+        let s_hex_key = "";
+        let s_hex_mode_and_key = "";
+        let s_tags = "";
+        let s : boolean = false;
+        let c : boolean = false;
+        let a : boolean = false;
+        let s_len = (km[s_tab].length*2).toString(16).padStart(2, "0").toLowerCase();
+
+        for( let i=0; i<km[s_tab].length; i++ ){
+          s = km[s_tab][i].shift;
+          c = km[s_tab][i].ctrl;
+          a = km[s_tab][i].alt;
+          s_hex_key = km[s_tab][i].hidCode;
+          s_hex_mode_and_key += _get_tag_string(s,c,a,s_hex_key);
+        }//end for
+        s_tags = s_len + s_hex_mode_and_key;
+
+        switch(s_tab_lable){
+        case "msr-global-prefix":
+          hw.set_global_prefix(s_tags);
+          break;
+        case "msr-global-suffix":
+          hw.set_global_postfix(s_tags);
+          break;
+        case "msr-iso1-prefix":
+          hw.set_msr_private_prefix(0,0,s_tags);
+          break;
+        case "msr-iso1-suffix":
+          hw.set_msr_private_postfix(0,0,s_tags);
+          break;
+        case "msr-iso2-prefix":
+          hw.set_msr_private_prefix(1,0,s_tags);
+          break;
+        case "msr-iso2-suffix":
+          hw.set_msr_private_postfix(1,0,s_tags);
+          break;
+        case "msr-iso3-prefix":
+          hw.set_msr_private_prefix(2,0,s_tags);
+          break;
+        case "msr-iso3-suffix":
+          hw.set_msr_private_postfix(2,0,s_tags);
+          break;
+
+        case "ibutton-key-prefix":
+          hw.set_prefix_ibutton(s_tags);
+          break;
+        case "ibutton-key-suffix":
+          hw.set_postfix_ibutton(s_tags);
+          break;
+        case "ibutton-remove-key":
+          hw.set_ibutton_remove(s_tags);
+          break;
+        case "ibutton-remove-prefix":
+          hw.set_prefix_ibutton_remove(s_tags);
+          break;
+        case "ibutton-remove-suffix":
+          hw.set_postfix_ibutton_remove(s_tags);
+          break;
+        default:
+          break;
+        }//end switch
+      }
+}
+
 /**
  * Helper to parse LPU237 hex tag format (length + modifier/keycode pairs) into KeyMapEntry array.
  */
@@ -431,254 +505,20 @@ export const createHandlers = (
         hw.set_mmd1100_reset_interval_by_string(ui.msrResetInterval);
         hw.set_ibutton_mode_by_string(ui.ibuttonMode);
 
-        const km = state.keyMaps;
+        _set_ui_tag_to_device(state,"msr-global-prefix");
+        _set_ui_tag_to_device(state,"msr-global-suffix");
+        _set_ui_tag_to_device(state,"msr-iso1-prefix");
+        _set_ui_tag_to_device(state,"msr-iso1-suffix");
+        _set_ui_tag_to_device(state,"msr-iso2-prefix");
+        _set_ui_tag_to_device(state,"msr-iso2-suffix");
+        _set_ui_tag_to_device(state,"msr-iso3-prefix");
+        _set_ui_tag_to_device(state,"msr-iso3-suffix");
 
-        let s_tab = "msr-global-prefix";
-        let s_hex_key = "";
-        let s_hex_mode_and_key = "";
-        let s_tags = "";
-        let s : boolean = false;
-        let c : boolean = false;
-        let a : boolean = false;
-        let s_len = (km[s_tab].length*2).toString(16).padStart(2, "0").toLowerCase();
-
-        for( let i=0; i<km[s_tab].length; i++ ){
-          s = km[s_tab][i].shift;
-          c = km[s_tab][i].ctrl;
-          a = km[s_tab][i].alt;
-          s_hex_key = km[s_tab][i].hidCode;
-          s_hex_mode_and_key += _get_tag_string(s,c,a,s_hex_key);
-        }//end for
-        s_tags = s_len + s_hex_mode_and_key;
-        hw.set_global_prefix(s_tags);
-        //
-        s_tab = "msr-global-suffix";
-        s_hex_key = "";
-        s_hex_mode_and_key = "";
-        s_tags = "";
-        s = false;
-        c = false;
-        a = false;
-        s_len = (km[s_tab].length*2).toString(16).padStart(2, "0").toLowerCase();
-
-        for( let i=0; i<km[s_tab].length; i++ ){
-          s = km[s_tab][i].shift;
-          c = km[s_tab][i].ctrl;
-          a = km[s_tab][i].alt;
-          s_hex_key = km[s_tab][i].hidCode;
-          s_hex_mode_and_key += _get_tag_string(s,c,a,s_hex_key);
-        }//end for
-        s_tags = s_len + s_hex_mode_and_key;
-        hw.set_global_postfix(s_tags);
-        //
-        s_tab = "msr-iso1-prefix";
-        s_hex_key = "";
-        s_hex_mode_and_key = "";
-        s_tags = "";
-        s = false;
-        c = false;
-        a = false;
-        s_len = (km[s_tab].length*2).toString(16).padStart(2, "0").toLowerCase();
-
-        for( let i=0; i<km[s_tab].length; i++ ){
-          s = km[s_tab][i].shift;
-          c = km[s_tab][i].ctrl;
-          a = km[s_tab][i].alt;
-          s_hex_key = km[s_tab][i].hidCode;
-          s_hex_mode_and_key += _get_tag_string(s,c,a,s_hex_key);
-        }//end for
-        s_tags = s_len + s_hex_mode_and_key;
-        hw.set_msr_private_prefix(0,0,s_tags);
-        //
-        s_tab = "msr-iso1-suffix";
-        s_hex_key = "";
-        s_hex_mode_and_key = "";
-        s_tags = "";
-        s = false;
-        c = false;
-        a = false;
-        s_len = (km[s_tab].length*2).toString(16).padStart(2, "0").toLowerCase();
-
-        for( let i=0; i<km[s_tab].length; i++ ){
-          s = km[s_tab][i].shift;
-          c = km[s_tab][i].ctrl;
-          a = km[s_tab][i].alt;
-          s_hex_key = km[s_tab][i].hidCode;
-          s_hex_mode_and_key += _get_tag_string(s,c,a,s_hex_key);
-        }//end for
-        s_tags = s_len + s_hex_mode_and_key;
-        hw.set_msr_private_postfix(0,0,s_tags);
-        //
-        s_tab = "msr-iso2-prefix";
-        s_hex_key = "";
-        s_hex_mode_and_key = "";
-        s_tags = "";
-        s = false;
-        c = false;
-        a = false;
-        s_len = (km[s_tab].length*2).toString(16).padStart(2, "0").toLowerCase();
-
-        for( let i=0; i<km[s_tab].length; i++ ){
-          s = km[s_tab][i].shift;
-          c = km[s_tab][i].ctrl;
-          a = km[s_tab][i].alt;
-          s_hex_key = km[s_tab][i].hidCode;
-          s_hex_mode_and_key += _get_tag_string(s,c,a,s_hex_key);
-        }//end for
-        s_tags = s_len + s_hex_mode_and_key;
-        hw.set_msr_private_prefix(1,0,s_tags);
-        //
-        s_tab = "msr-iso2-suffix";
-        s_hex_key = "";
-        s_hex_mode_and_key = "";
-        s_tags = "";
-        s = false;
-        c = false;
-        a = false;
-        s_len = (km[s_tab].length*2).toString(16).padStart(2, "0").toLowerCase();
-
-        for( let i=0; i<km[s_tab].length; i++ ){
-          s = km[s_tab][i].shift;
-          c = km[s_tab][i].ctrl;
-          a = km[s_tab][i].alt;
-          s_hex_key = km[s_tab][i].hidCode;
-          s_hex_mode_and_key += _get_tag_string(s,c,a,s_hex_key);
-        }//end for
-        s_tags = s_len + s_hex_mode_and_key;
-        hw.set_msr_private_postfix(1,0,s_tags);
-        //
-        s_tab = "msr-iso3-prefix";
-        s_hex_key = "";
-        s_hex_mode_and_key = "";
-        s_tags = "";
-        s = false;
-        c = false;
-        a = false;
-        s_len = (km[s_tab].length*2).toString(16).padStart(2, "0").toLowerCase();
-
-        for( let i=0; i<km[s_tab].length; i++ ){
-          s = km[s_tab][i].shift;
-          c = km[s_tab][i].ctrl;
-          a = km[s_tab][i].alt;
-          s_hex_key = km[s_tab][i].hidCode;
-          s_hex_mode_and_key += _get_tag_string(s,c,a,s_hex_key);
-        }//end for
-        s_tags = s_len + s_hex_mode_and_key;
-        hw.set_msr_private_prefix(2,0,s_tags);
-        //
-        s_tab = "msr-iso3-suffix";
-        s_hex_key = "";
-        s_hex_mode_and_key = "";
-        s_tags = "";
-        s = false;
-        c = false;
-        a = false;
-        s_len = (km[s_tab].length*2).toString(16).padStart(2, "0").toLowerCase();
-
-        for( let i=0; i<km[s_tab].length; i++ ){
-          s = km[s_tab][i].shift;
-          c = km[s_tab][i].ctrl;
-          a = km[s_tab][i].alt;
-          s_hex_key = km[s_tab][i].hidCode;
-          s_hex_mode_and_key += _get_tag_string(s,c,a,s_hex_key);
-        }//end for
-        s_tags = s_len + s_hex_mode_and_key;
-        hw.set_msr_private_postfix(2,0,s_tags);
-        //
-        s_tab = "ibutton-key-prefix";
-        s_hex_key = "";
-        s_hex_mode_and_key = "";
-        s_tags = "";
-        s = false;
-        c = false;
-        a = false;
-        s_len = (km[s_tab].length*2).toString(16).padStart(2, "0").toLowerCase();
-
-        for( let i=0; i<km[s_tab].length; i++ ){
-          s = km[s_tab][i].shift;
-          c = km[s_tab][i].ctrl;
-          a = km[s_tab][i].alt;
-          s_hex_key = km[s_tab][i].hidCode;
-          s_hex_mode_and_key += _get_tag_string(s,c,a,s_hex_key);
-        }//end for
-        s_tags = s_len + s_hex_mode_and_key;
-        hw.set_prefix_ibutton(s_tags);
-        //
-        s_tab = "ibutton-key-suffix";
-        s_hex_key = "";
-        s_hex_mode_and_key = "";
-        s_tags = "";
-        s = false;
-        c = false;
-        a = false;
-        s_len = (km[s_tab].length*2).toString(16).padStart(2, "0").toLowerCase();
-
-        for( let i=0; i<km[s_tab].length; i++ ){
-          s = km[s_tab][i].shift;
-          c = km[s_tab][i].ctrl;
-          a = km[s_tab][i].alt;
-          s_hex_key = km[s_tab][i].hidCode;
-          s_hex_mode_and_key += _get_tag_string(s,c,a,s_hex_key);
-        }//end for
-        s_tags = s_len + s_hex_mode_and_key;
-        hw.set_postfix_ibutton(s_tags);
-        //
-        s_tab = "ibutton-remove-key";
-        s_hex_key = "";
-        s_hex_mode_and_key = "";
-        s_tags = "";
-        s = false;
-        c = false;
-        a = false;
-        s_len = (km[s_tab].length*2).toString(16).padStart(2, "0").toLowerCase();
-
-        for( let i=0; i<km[s_tab].length; i++ ){
-          s = km[s_tab][i].shift;
-          c = km[s_tab][i].ctrl;
-          a = km[s_tab][i].alt;
-          s_hex_key = km[s_tab][i].hidCode;
-          s_hex_mode_and_key += _get_tag_string(s,c,a,s_hex_key);
-        }//end for
-        s_tags = s_len + s_hex_mode_and_key;
-        hw.set_ibutton_remove(s_tags);
-        //
-        s_tab = "ibutton-remove-prefix";
-        s_hex_key = "";
-        s_hex_mode_and_key = "";
-        s_tags = "";
-        s = false;
-        c = false;
-        a = false;
-        s_len = (km[s_tab].length*2).toString(16).padStart(2, "0").toLowerCase();
-
-        for( let i=0; i<km[s_tab].length; i++ ){
-          s = km[s_tab][i].shift;
-          c = km[s_tab][i].ctrl;
-          a = km[s_tab][i].alt;
-          s_hex_key = km[s_tab][i].hidCode;
-          s_hex_mode_and_key += _get_tag_string(s,c,a,s_hex_key);
-        }//end for
-        s_tags = s_len + s_hex_mode_and_key;
-        hw.set_prefix_ibutton_remove(s_tags);
-        //
-        s_tab = "ibutton-remove-suffix";
-        s_hex_key = "";
-        s_hex_mode_and_key = "";
-        s_tags = "";
-        s = false;
-        c = false;
-        a = false;
-        s_len = (km[s_tab].length*2).toString(16).padStart(2, "0").toLowerCase();
-
-        for( let i=0; i<km[s_tab].length; i++ ){
-          s = km[s_tab][i].shift;
-          c = km[s_tab][i].ctrl;
-          a = km[s_tab][i].alt;
-          s_hex_key = km[s_tab][i].hidCode;
-          s_hex_mode_and_key += _get_tag_string(s,c,a,s_hex_key);
-        }//end for
-        s_tags = s_len + s_hex_mode_and_key;
-        hw.set_postfix_ibutton_remove(s_tags);
+        _set_ui_tag_to_device(state,"ibutton-key-prefix");
+        _set_ui_tag_to_device(state,"ibutton-key-suffix");
+        _set_ui_tag_to_device(state,"ibutton-remove-key");
+        _set_ui_tag_to_device(state,"ibutton-remove-prefix");
+        _set_ui_tag_to_device(state,"ibutton-remove-suffix");
         //
         // start saving
         await g_ctl.save_parameter_to_device_with_promise((idx, total, cur) => {
