@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { ConnectionStatus, DeviceType, AppState, KeyMapEntry, DEFAULT_CONFIG } from './types';
 import { createHandlers } from './handlers';
 import Header from './components/Header';
@@ -25,6 +25,11 @@ const App: React.FC = () => {
     keyMaps: {}, // Centralized keyMaps within state
     loading: null, // Initialize loading as null
   });
+  const stateRef = useRef(state);
+
+  useEffect(() => {
+    stateRef.current = state;
+  }, [state]);
 
   // Track the string currently selected in the dropdown
   const [selectedPath, setSelectedPath] = useState<string>('');
@@ -39,7 +44,7 @@ const App: React.FC = () => {
 
   // Initialize the central handlers
   // Note: handlers are memoized but reconstructed when state changes to ensure fresh closures
-  const handlers = useMemo(() => createHandlers(state, setState, addLog), [state]);
+  const handlers = useMemo(() => createHandlers(stateRef,setState, addLog), []);
 
   // Sync selectedPath when devicePaths is first populated
   useEffect(() => {

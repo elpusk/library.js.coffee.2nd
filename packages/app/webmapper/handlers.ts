@@ -281,10 +281,19 @@ function _cb_system_event(s_action_code: any, s_data_field: any) {
 (window as any).cf2_uninitialize = () => {};
 
 export const createHandlers = (
-  state: AppState,
+  stateRef: React.MutableRefObject<AppState>,
   setState: React.Dispatch<React.SetStateAction<AppState>>,
   addLog: (msg: string) => void,
 ) => {
+  const getState = (): AppState => {
+    let snapshot!: AppState;
+    setState(prev => {
+      snapshot = prev;
+      return prev;
+    });
+    return snapshot;
+  };
+
   const updateSetting = (
     key: keyof DeviceConfig,
     value: any,
@@ -490,41 +499,43 @@ export const createHandlers = (
 
     onApply: async () => {
       if (!g_lpu_device || !g_ctl) return;
+
+      const cur_status = stateRef.current; //최신 state 확보
+
       setState((prev) => ({
         ...prev,
         loading: { current: 0, total: 100, message: "Saving parameters..." },
       }));
       try {
-        const ui = state.config;
         const hw = g_lpu_device;
-        hw.set_interface_by_string(ui.interface);
-        hw.set_language_index_by_string(ui.language);
-        hw.set_buzzer_count_by_boolean(ui.buzzer);
-        hw.set_global_pre_postfix_send_condition_by_string(ui.msrGlobalSendCondition);
-        hw.set_order_by_string(ui.msrTrackOrder);
-        hw.set_enable_iso_read(ui.msrEnableISO1,ui.msrEnableISO2,ui.msrEnableISO3);
-        hw.set_direction_read_by_string(ui.msrDirection);
-        hw.set_ibutton_range(ui.ibuttonRangeStart,ui.ibuttonRangeEnd );
+        hw.set_interface_by_string(cur_status.config.interface);
+        hw.set_language_index_by_string(cur_status.config.language);
+        hw.set_buzzer_count_by_boolean(cur_status.config.buzzer);
+        hw.set_global_pre_postfix_send_condition_by_string(cur_status.config.msrGlobalSendCondition);
+        hw.set_order_by_string(cur_status.config.msrTrackOrder);
+        hw.set_enable_iso_read(cur_status.config.msrEnableISO1,cur_status.config.msrEnableISO2,cur_status.config.msrEnableISO3);
+        hw.set_direction_read_by_string(cur_status.config.msrDirection);
+        hw.set_ibutton_range(cur_status.config.ibuttonRangeStart,cur_status.config.ibuttonRangeEnd );
 
         //blank part
-        hw.set_success_indicate_when_one_more_track_is_normal_by_string(ui.msrSuccessIndCondition);
-        hw.set_mmd1100_reset_interval_by_string(ui.msrResetInterval);
-        hw.set_ibutton_mode_by_string(ui.ibuttonMode);
+        hw.set_success_indicate_when_one_more_track_is_normal_by_string(cur_status.config.msrSuccessIndCondition);
+        hw.set_mmd1100_reset_interval_by_string(cur_status.config.msrResetInterval);
+        hw.set_ibutton_mode_by_string(cur_status.config.ibuttonMode);
 
-        _set_ui_tag_to_device(state,"msr-global-prefix");
-        _set_ui_tag_to_device(state,"msr-global-suffix");
-        _set_ui_tag_to_device(state,"msr-iso1-prefix");
-        _set_ui_tag_to_device(state,"msr-iso1-suffix");
-        _set_ui_tag_to_device(state,"msr-iso2-prefix");
-        _set_ui_tag_to_device(state,"msr-iso2-suffix");
-        _set_ui_tag_to_device(state,"msr-iso3-prefix");
-        _set_ui_tag_to_device(state,"msr-iso3-suffix");
+        _set_ui_tag_to_device(cur_status,"msr-global-prefix");
+        _set_ui_tag_to_device(cur_status,"msr-global-suffix");
+        _set_ui_tag_to_device(cur_status,"msr-iso1-prefix");
+        _set_ui_tag_to_device(cur_status,"msr-iso1-suffix");
+        _set_ui_tag_to_device(cur_status,"msr-iso2-prefix");
+        _set_ui_tag_to_device(cur_status,"msr-iso2-suffix");
+        _set_ui_tag_to_device(cur_status,"msr-iso3-prefix");
+        _set_ui_tag_to_device(cur_status,"msr-iso3-suffix");
 
-        _set_ui_tag_to_device(state,"ibutton-key-prefix");
-        _set_ui_tag_to_device(state,"ibutton-key-suffix");
-        _set_ui_tag_to_device(state,"ibutton-remove-key");
-        _set_ui_tag_to_device(state,"ibutton-remove-prefix");
-        _set_ui_tag_to_device(state,"ibutton-remove-suffix");
+        _set_ui_tag_to_device(cur_status,"ibutton-key-prefix");
+        _set_ui_tag_to_device(cur_status,"ibutton-key-suffix");
+        _set_ui_tag_to_device(cur_status,"ibutton-remove-key");
+        _set_ui_tag_to_device(cur_status,"ibutton-remove-prefix");
+        _set_ui_tag_to_device(cur_status,"ibutton-remove-suffix");
         //
         // start saving
         await g_ctl.save_parameter_to_device_with_promise((idx, total, cur) => {
@@ -597,7 +608,9 @@ export const createHandlers = (
       addLog(`Loading ROM: ${n}`)
     },
     onDownloadSettings: () => {
-      const blob = new Blob([JSON.stringify(state.config)], {
+      const { config } = stateRef.current;
+
+      const blob = new Blob([JSON.stringify(config)], {
         type: "application/json",
       });
       const url = URL.createObjectURL(blob);
