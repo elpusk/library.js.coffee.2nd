@@ -135,7 +135,6 @@ const _get_tag_string = (b_shift:boolean, b_ctl:boolean, b_alt:boolean, s_hex_hi
 }
 
 const _set_ui_tag_to_device = (state: AppState,s_tab_lable:string):void => {
-      const ui = state.config;
       const hw = g_lpu_device;
       if(hw === null){
         return;
@@ -285,15 +284,6 @@ export const createHandlers = (
   setState: React.Dispatch<React.SetStateAction<AppState>>,
   addLog: (msg: string) => void,
 ) => {
-  const getState = (): AppState => {
-    let snapshot!: AppState;
-    setState(prev => {
-      snapshot = prev;
-      return prev;
-    });
-    return snapshot;
-  };
-
   const updateSetting = (
     key: keyof DeviceConfig,
     value: any,
@@ -308,6 +298,57 @@ export const createHandlers = (
 
   const clamp = (val: number, min: number, max: number) =>
     Math.max(min, Math.min(max, val));
+
+  /**
+   * Internal helper to extract the current state of the hardware instance
+   * and update the React application state.
+   */
+  const _syncHardwareToState = (hw: lpu237) => {
+    const newConfig: DeviceConfig = {
+      interface: hw.get_interface_string(),
+      buzzer: hw.get_buzzer_count_boolean(),
+      language: hw.get_keyboard_language_index_string(),
+      ibuttonMode: hw.get_ibutton_mode_string(),
+      ibuttonRangeStart: hw.get_ibutton_range_start(),
+      ibuttonRangeEnd: hw.get_ibutton_range_end(),
+      msrDirection: hw.get_direction_string(0),
+      msrTrackOrder: hw.get_order_string(),
+      msrResetInterval: hw.get_mmd1100_reset_interval_string_cur(),
+      msrEnableISO1: hw.get_enable_iso(0),
+      msrEnableISO2: hw.get_enable_iso(1),
+      msrEnableISO3: hw.get_enable_iso(2),
+      msrGlobalSendCondition:
+        hw.get_global_pre_postfix_send_condition_string(),
+      msrSuccessIndCondition:
+        hw.get_indicate_success_when_any_not_error_string(),
+    };
+
+    // Extract and parse all key mapping configurations
+    const keyMaps: Record<string, KeyMapEntry[]> = {
+      "msr-global-prefix": parseHexToKeyMap(hw.get_language(), hw.get_global_prefix()),
+      "msr-global-suffix": parseHexToKeyMap(hw.get_language(), hw.get_global_postfix()),
+      "msr-iso1-prefix": parseHexToKeyMap(hw.get_language(), hw.get_private_prefix(0, 0)),
+      "msr-iso1-suffix": parseHexToKeyMap(hw.get_language(), hw.get_private_postfix(0, 0)),
+      "msr-iso2-prefix": parseHexToKeyMap(hw.get_language(), hw.get_private_prefix(1, 0)),
+      "msr-iso2-suffix": parseHexToKeyMap(hw.get_language(), hw.get_private_postfix(1, 0)),
+      "msr-iso3-prefix": parseHexToKeyMap(hw.get_language(), hw.get_private_prefix(2, 0)),
+      "msr-iso3-suffix": parseHexToKeyMap(hw.get_language(), hw.get_private_postfix(2, 0)),
+      "ibutton-key-prefix": parseHexToKeyMap(hw.get_language(), hw.get_prefix_ibutton()),
+      "ibutton-key-suffix": parseHexToKeyMap(hw.get_language(), hw.get_postfix_ibutton()),
+      "ibutton-remove-key": parseHexToKeyMap(hw.get_language(), hw.get_ibutton_remove()),
+      "ibutton-remove-prefix": parseHexToKeyMap(hw.get_language(), hw.get_prefix_ibutton_remove()),
+      "ibutton-remove-suffix": parseHexToKeyMap(hw.get_language(), hw.get_postfix_ibutton_remove()),
+    };
+
+    setState((prev) => ({
+      ...prev,
+      config: newConfig,
+      keyMaps: keyMaps,
+      deviceName: hw.get_name() || "Unknown Hardware",
+      deviceFirmware: hw.get_system_version_by_string() || "Unknown",
+      deviceUid: hw.get_uid() || "Unknown",
+    }));
+  };
 
   return {
     initializeSystem: () => {
@@ -361,48 +402,6 @@ export const createHandlers = (
         );
 
         const hw = g_lpu_device;
-        const newConfig: DeviceConfig = {
-          interface: hw.get_interface_string(),
-          buzzer: hw.get_buzzer_count_boolean(),
-          language: hw.get_keyboard_language_index_string(),
-          ibuttonMode: hw.get_ibutton_mode_string(),
-          ibuttonRangeStart: hw.get_ibutton_range_start(),
-          ibuttonRangeEnd: hw.get_ibutton_range_end(),
-          msrDirection: hw.get_direction_string(0),
-          msrTrackOrder: hw.get_order_string(),
-          msrResetInterval: hw.get_mmd1100_reset_interval_string_cur(),
-          msrEnableISO1: hw.get_enable_iso(0),
-          msrEnableISO2: hw.get_enable_iso(1),
-          msrEnableISO3: hw.get_enable_iso(2),
-          msrGlobalSendCondition:
-            hw.get_global_pre_postfix_send_condition_string(),
-          msrSuccessIndCondition:
-            hw.get_indicate_success_when_any_not_error_string(),
-        };
-
-        // Extract and parse all key mapping configurations
-        const keyMaps: Record<string, KeyMapEntry[]> = {
-          "msr-global-prefix": parseHexToKeyMap(hw.get_language(),hw.get_global_prefix()),
-          "msr-global-suffix": parseHexToKeyMap(hw.get_language(),hw.get_global_postfix()),
-          "msr-iso1-prefix": parseHexToKeyMap(hw.get_language(),hw.get_private_prefix(0, 0)),
-          "msr-iso1-suffix": parseHexToKeyMap(hw.get_language(),hw.get_private_postfix(0, 0)),
-          "msr-iso2-prefix": parseHexToKeyMap(hw.get_language(),hw.get_private_prefix(1, 0)),
-          "msr-iso2-suffix": parseHexToKeyMap(hw.get_language(),hw.get_private_postfix(1, 0)),
-          "msr-iso3-prefix": parseHexToKeyMap(hw.get_language(),hw.get_private_prefix(2, 0)),
-          "msr-iso3-suffix": parseHexToKeyMap(hw.get_language(),hw.get_private_postfix(2, 0)),
-          "ibutton-key-prefix": parseHexToKeyMap(hw.get_language(),hw.get_prefix_ibutton()),
-          "ibutton-key-suffix": parseHexToKeyMap(hw.get_language(),hw.get_postfix_ibutton()),
-          "ibutton-remove-key": parseHexToKeyMap(hw.get_language(),hw.get_ibutton_remove()),
-          "ibutton-remove-prefix": parseHexToKeyMap(
-            hw.get_language(),
-            hw.get_prefix_ibutton_remove(),
-          ),
-          "ibutton-remove-suffix": parseHexToKeyMap(
-            hw.get_language(),
-            hw.get_postfix_ibutton_remove(),
-          ),
-        };
-
         let type = DeviceType.MSR_IBUTTON;
         const dt = hw.get_device_function();
         if (dt === type_function.fun_msr) type = DeviceType.MSR;
@@ -412,15 +411,12 @@ export const createHandlers = (
           ...prev,
           status: ConnectionStatus.CONNECTED,
           devicePath: path,
-          deviceUid: hw.get_uid() || "Unknown", // Store device UID
-          deviceName: hw.get_name() || "Unknown Hardware", // Store device model name
-          deviceFirmware: hw.get_system_version_by_string() || "Unknown", // Store firmware version
           deviceType: type,
-          config: newConfig,
-          keyMaps: keyMaps, // Populate the UI key maps from hardware
           loading: null,
           logs: [...prev.logs, `Hardware ready: ${hw.get_name()}`],
         }));
+
+         _syncHardwareToState(hw);
       } catch (error: any) {
         addLog(`Error: ${error.message}`);
         g_ctl = null;
@@ -601,8 +597,23 @@ export const createHandlers = (
         updateSetting("msrSuccessIndCondition", v),
     },
 
-    onLoadSettings: (n: string) => {
-      addLog(`Loading config: ${n}`)
+    onLoadSettings: async (file: File) => {
+      if (!g_lpu_device) {
+        addLog("Error: Device not connected. Settings cannot be loaded without an active device instance.");
+        return;
+      }
+      addLog(`Loading configuration from file: ${file.name}`);
+      try {
+        const success = await g_lpu_device.set_from_file(file);
+        if (success) {
+          _syncHardwareToState(g_lpu_device);
+          addLog("Settings successfully read and reflected in UI.");
+        } else {
+          addLog("Failed to parse settings file. Please check XML format.");
+        }
+      } catch (e: any) {
+        addLog(`File Load Error: ${e.message}`);
+      }
     },
     onLoadFirmware: (n: string) => {
       addLog(`Loading ROM: ${n}`)

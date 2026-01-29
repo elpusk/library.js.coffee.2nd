@@ -1083,6 +1083,7 @@ export class lpu237 extends hid {
     return sl;
   }
 
+  // 주로 display 를 위해 사용.
   public static readonly INTERFACE_MAP: Record<string, number> = {
     "USB keyboard": type_system_interface.system_interface_usb_keyboard,
     "USB HID Vendor": type_system_interface.system_interface_usb_msr,
@@ -1092,7 +1093,18 @@ export class lpu237 extends hid {
     "Bypass PS2": type_system_interface.system_interface_ps2_bypass,
     "By HW setting": type_system_interface.system_interface_by_hw_setting,
   };
+  // 주로 설정파일를 위해 사용.
+  public static readonly INTERFACE_MAP_FOR_FILE: Record<string, number> = {
+    "usb_kb": type_system_interface.system_interface_usb_keyboard,
+    "usb_hid": type_system_interface.system_interface_usb_msr,
+    "rs232": type_system_interface.system_interface_uart,
+    "usb_vcom": type_system_interface.system_interface_usb_vcom,
+  };
 
+  /**
+   * @description 화면 표시를 위해 사용되는 interface를 나타내는 문장열의 배열 반환.
+   * @returns {string[]}
+   */
   public static GetInterfaceStringList(): string[] {
     const sl = Object.keys(lpu237.INTERFACE_MAP) as string[];
     return sl;
@@ -2314,6 +2326,7 @@ export class lpu237 extends hid {
 
   /**
    * @private
+   * @description 화면표시용 interface 문자열 얻기.
    * @function _get_interface_string
    * @param {number} inf type_system_interface value.
    * @returns {string} system interface string.
@@ -3966,12 +3979,15 @@ export class lpu237 extends hid {
    * @returns {number} 인터페이스 번호, 에러 시 -1
    */
   private static _get_interface_from_string(s_string: string): number {
-    const validDirectionKeys = Object.keys(lpu237.INTERFACE_MAP);
-    if (validDirectionKeys.includes(s_string)) {
+    const display_validDirectionKeys = Object.keys(lpu237.INTERFACE_MAP);
+    if (display_validDirectionKeys.includes(s_string)) {
       return lpu237.INTERFACE_MAP[s_string];
-    } else {
-      return -1;
     }
+    const file_validDirectionKeys = Object.keys(lpu237.INTERFACE_MAP_FOR_FILE);
+    if (file_validDirectionKeys.includes(s_string)) {
+      return lpu237.INTERFACE_MAP_FOR_FILE[s_string];
+    }
+    return -1;
   }
 
   /**

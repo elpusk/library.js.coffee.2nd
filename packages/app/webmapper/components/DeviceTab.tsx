@@ -15,7 +15,7 @@ interface DeviceTabProps {
   onClearLogs: () => void;
   setDeviceType: (type: DeviceType) => void;
   onApply: () => void;
-  onLoadSettings: (fileName: string) => void;
+  onLoadSettings: (file: File) => void; // Changed from string to File
   onLoadFirmware: (fileName: string) => void;
   onDownloadSettings: () => void;
   deviceName?: string; // New prop for model name
@@ -54,9 +54,9 @@ const DeviceTab: React.FC<DeviceTabProps> = ({
 
   const handleConfigFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      const name = e.target.files[0].name;
-      setConfigFileName(name);
-      onLoadSettings(name);
+      const file = e.target.files[0];
+      setConfigFileName(file.name);
+      onLoadSettings(file); // Pass the File object
     }
   };
 
