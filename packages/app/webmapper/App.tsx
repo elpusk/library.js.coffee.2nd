@@ -15,10 +15,12 @@ const App: React.FC = () => {
     serverStatus: ConnectionStatus.DISCONNECTED,
     devicePath: '',
     deviceUid: '', // Initialize deviceUid
+    deviceName: '', // Initialize deviceName
+    deviceFirmware: '', // Initialize deviceFirmware
     deviceType: DeviceType.MSR_IBUTTON,
     devicePaths: [], // Initially empty
     activeTab: 'device',
-    logs: ['Welcome to Web Tools 1.0'],
+    logs: ['Welcome to Web Mapper 0.7'],
     config: { ...DEFAULT_CONFIG },
     keyMaps: {}, // Centralized keyMaps within state
     loading: null, // Initialize loading as null
@@ -96,6 +98,10 @@ const App: React.FC = () => {
           onLoadSettings={handlers.onLoadSettings}
           onLoadFirmware={handlers.onLoadFirmware}
           onDownloadSettings={handlers.onDownloadSettings}
+          deviceName={state.deviceName} // Pass dynamic device name
+          deviceUid={state.deviceUid} // Pass dynamic UID
+          deviceFirmware={state.deviceFirmware} // Pass firmware version
+          interfaceMode={state.config.interface} // Pass dynamic interface          
         />
       );
     }

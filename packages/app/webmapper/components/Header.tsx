@@ -22,7 +22,7 @@ const Header: React.FC<HeaderProps> = ({ status, serverStatus, deviceUid, onTogg
           <CreditCard size={24} />
         </div>
         <div>
-          <h1 className="text-xl font-bold text-slate-800 leading-tight">Elpusk Card Reader Web Tools 1.0</h1>
+          <h1 className="text-xl font-bold text-slate-800 leading-tight">Elpusk Card Reader Web Mapper 0.7</h1>
           <p className="text-xs text-slate-500 font-medium">For LPU237, LPU-207 and LPU208</p>
         </div>
       </div>

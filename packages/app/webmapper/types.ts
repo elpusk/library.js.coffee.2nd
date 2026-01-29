@@ -46,6 +46,8 @@ export interface AppState {
   serverStatus: ConnectionStatus;
   devicePath: string;
   deviceUid: string; // Added field for hardware identifier
+  deviceName: string; // Added field for hardware model name
+  deviceFirmware: string; // Added field for hardware firmware version
   deviceType: DeviceType;
   devicePaths: string[]; // List of available device paths from server
   activeTab: string;

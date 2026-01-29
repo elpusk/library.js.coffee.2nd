@@ -18,6 +18,10 @@ interface DeviceTabProps {
   onLoadSettings: (fileName: string) => void;
   onLoadFirmware: (fileName: string) => void;
   onDownloadSettings: () => void;
+  deviceName?: string; // New prop for model name
+  deviceUid?: string; // New prop for serial/UID
+  deviceFirmware?: string; // New prop for firmware version
+  interfaceMode?: string; // New prop for interface mode  
 }
 
 const DeviceTab: React.FC<DeviceTabProps> = ({ 
@@ -33,7 +37,11 @@ const DeviceTab: React.FC<DeviceTabProps> = ({
   onApply,
   onLoadSettings,
   onLoadFirmware,
-  onDownloadSettings
+  onDownloadSettings,
+  deviceName,
+  deviceUid,
+  deviceFirmware,
+  interfaceMode  
 }) => {
   const isConnected = status === ConnectionStatus.CONNECTED;
   const isServerConnected = serverStatus === ConnectionStatus.CONNECTED;
@@ -204,10 +212,10 @@ const DeviceTab: React.FC<DeviceTabProps> = ({
             {isConnected && (
               <div className="p-4 border-t border-gray-100 bg-gray-50">
                 <div className="text-[10px] text-gray-500 grid grid-cols-2 gap-x-4 gap-y-1">
-                    <p><strong>Model:</strong> LPU237-Dual-Web</p>
-                    <p><strong>Firmware:</strong> v2.1.0-RC</p>
-                    <p><strong>S/N:</strong> ELP-2025-X99</p>
-                    <p><strong>Interface:</strong> HID KB</p>
+                    <p><strong>Model:</strong> {deviceName || 'Unknown Hardware'}</p>
+                    <p><strong>Firmware:</strong> {deviceFirmware || 'Unknown'}</p>
+                    <p><strong>S/N:</strong> {deviceUid || 'Unknown'}</p>
+                    <p><strong>Interface:</strong> {interfaceMode || 'Unknown'}</p>
                 </div>
               </div>
             )}

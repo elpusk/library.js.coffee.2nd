@@ -6119,6 +6119,7 @@ export class lpu237 extends hid {
   };
 
   /**
+   * @deprecated get_system_version() 와 기능 같아서 사용금지.
    * @public
    * @description 장치의 펌웨어 버전을 가져옵니다.
    * @returns {number[] | null} 4개 숫자로 구성된 버전 배열 (예: [5, 1, 6, 0]), 오류 시 null
@@ -6133,6 +6134,7 @@ export class lpu237 extends hid {
   };
 
   /**
+   * @deprecated get_structure_version() 와 기능이 같아서 사용 금지.
    * @public
    * @description 장치 설정 구조(Structure)의 버전을 가져옵니다.
    * @returns {number[] | null} 4개 숫자로 구성된 구조 버전 배열, 오류 시 null
@@ -6365,12 +6367,28 @@ export class lpu237 extends hid {
   };
 
   /**
+   * @description 장치의 시스템 펌웨어 버전을 문지열로 가져옴.
+   * @returns {string} system version string
+   */
+  public get_system_version_by_string = (): string => {
+    return util.get_version_string_from_version(this._version);
+  }
+
+  /**
    * @description 장치의 설정 데이터 구조 버전을 가져옵니다.
    * @returns {number[]} 4개 숫자 배열
    */
   public get_structure_version = (): number[] => {
     return this._version_structure;
   };
+
+  /**
+   * @description 장치의 설정 데이터 구조 버전을 문지열로 가져옴.
+   * @returns {string} version structure version string
+   */
+  public get_structure_version_by_string = (): string => {
+    return util.get_version_string_from_version(this._version_structure);
+  }
 
   /**
    * @description 키 맵 테이블 저장 방식(메모리 절약 모드)을 확인합니다.

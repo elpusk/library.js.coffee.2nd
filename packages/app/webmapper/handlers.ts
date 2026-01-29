@@ -404,6 +404,8 @@ export const createHandlers = (
           status: ConnectionStatus.CONNECTED,
           devicePath: path,
           deviceUid: hw.get_uid() || "Unknown", // Store device UID
+          deviceName: hw.get_name() || "Unknown Hardware", // Store device model name
+          deviceFirmware: hw.get_system_version_by_string() || "Unknown", // Store firmware version
           deviceType: type,
           config: newConfig,
           keyMaps: keyMaps, // Populate the UI key maps from hardware
@@ -429,6 +431,8 @@ export const createHandlers = (
         status: ConnectionStatus.DISCONNECTED,
         devicePath: "",
         deviceUid: "", // Reset device UID
+        deviceName: "", // Reset device name
+        deviceFirmware: "", // Reset firmware version
         activeTab: "device",
         keyMaps: {}, // Clear key maps
         logs: [...prev.logs, "Disconnected."],
@@ -469,6 +473,8 @@ export const createHandlers = (
         status: ConnectionStatus.DISCONNECTED,
         devicePath: "",
         deviceUid: "", // Reset device UID
+        deviceName: "", // Reset device name
+        deviceFirmware: "", // Reset firmware version
         activeTab: "device",
         logs: [...prev.logs, "Disconnected."],
       }));
@@ -584,8 +590,12 @@ export const createHandlers = (
         updateSetting("msrSuccessIndCondition", v),
     },
 
-    onLoadSettings: (n: string) => addLog(`Loading config: ${n}`),
-    onLoadFirmware: (n: string) => addLog(`Loading ROM: ${n}`),
+    onLoadSettings: (n: string) => {
+      addLog(`Loading config: ${n}`)
+    },
+    onLoadFirmware: (n: string) => {
+      addLog(`Loading ROM: ${n}`)
+    },
     onDownloadSettings: () => {
       const blob = new Blob([JSON.stringify(state.config)], {
         type: "application/json",
