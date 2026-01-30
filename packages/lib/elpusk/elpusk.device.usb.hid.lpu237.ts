@@ -1077,6 +1077,11 @@ export class lpu237 extends hid {
     Forward: type_direction.dir_forward,
     Backward: type_direction.dir_backward,
   };
+  public static readonly DIRECTION_MAP_FOR_FILE: Record<string, number> = {
+    bidirectional: type_direction.dir_bidectional,
+    forward: type_direction.dir_forward,
+    backward: type_direction.dir_backward,
+  };
 
   public static GetDirectionStringList(): string[] {
     const sl = Object.keys(lpu237.DIRECTION_MAP) as string[];
@@ -1124,18 +1129,40 @@ export class lpu237 extends hid {
     Turkiye: type_keyboard_language_index.language_map_index_turkey,
   };
 
+  public static readonly LANGUAGE_MAP_FOR_FILE: Record<string, number> = {
+    usa_english: type_keyboard_language_index.language_map_index_english,
+    spanish: type_keyboard_language_index.language_map_index_spanish,
+    danish: type_keyboard_language_index.language_map_index_danish,
+    french: type_keyboard_language_index.language_map_index_french,
+    german: type_keyboard_language_index.language_map_index_german,
+    italian: type_keyboard_language_index.language_map_index_italian,
+    norwegian: type_keyboard_language_index.language_map_index_norwegian,
+    swedish: type_keyboard_language_index.language_map_index_swedish,
+    uk_english: type_keyboard_language_index.language_map_index_uk_english,
+    hebrew: type_keyboard_language_index.language_map_index_israel,
+    turkiye: type_keyboard_language_index.language_map_index_turkey,
+    turkey: type_keyboard_language_index.language_map_index_turkey,
+  };
+
   public static GetLanguageStringList(): string[] {
     const sl = Object.keys(lpu237.LANGUAGE_MAP) as string[];
     return sl;
   }
 
   public static readonly IBUTTON_MODE_MAP: Record<string, number> = {
-    // 왜 3개만 있지 다른 것들은 5개씩 있는데.?
     Zeros: type_ibutton_mode.ibutton_zeros, // 16 times zeroes
     F12: type_ibutton_mode.ibutton_f12,
     "Zero-7 times": type_ibutton_mode.ibutton_zeros7,
     "Addmit Code stick": type_ibutton_mode.ibutton_addmit,
     "User definition": type_ibutton_mode.ibutton_none,
+  };
+
+  public static readonly IBUTTON_MODE_MAP_FOR_FILE: Record<string, number> = {
+    zeros: type_ibutton_mode.ibutton_zeros, // 16 times zeroes
+    f12: type_ibutton_mode.ibutton_f12,
+    zeros7: type_ibutton_mode.ibutton_zeros7,
+    addimat: type_ibutton_mode.ibutton_addmit,
+    none: type_ibutton_mode.ibutton_none,
   };
 
   public static GetiButtonStringList(): string[] {
@@ -1162,6 +1189,28 @@ export class lpu237 extends hid {
     "01:27:22": 208,
     "01:34:05": 224,
     disable: 240, // fw 버전이 5.18 보다 크면 "disable", 작거나 같으면 missing code 로 인한 사용불가("don't use").
+  };
+
+  public static readonly RESET_INTERVAL_MAP_FOR_FILE: Record<string, number> = {
+    // 왜 3개만 있지 다른 것들은 5개씩 있는데.?
+    "default": 0,
+    "0": 0,
+    "16": 16,
+    "32": 32,
+    "48": 48,
+    "64": 64,
+    "80": 80,
+    "96": 96,
+    "112": 112,
+    "128": 128,
+    "144": 144,
+    "160": 160,
+    "176": 176,
+    "192": 192,
+    "208": 208,
+    "224": 224,
+    "240": 240, // fw 버전이 5.18 보다 크면 "disable", 작거나 같으면 missing code 로 인한 사용불가("don't use").
+    "disable": 240, // fw 버전이 5.18 보다 크면 "disable", 작거나 같으면 missing code 로 인한 사용불가("don't use").
   };
 
   public static GetResetIntervalStringList(): string[] {
@@ -2426,12 +2475,26 @@ export class lpu237 extends hid {
   /**
    * @private
    * @description 첫 바이트를 길이 정보로 포함하는 두 개의 16진수 태그 문자열이 동일한지 비교합니다.
-   * @param s_tag0 길이 정보를 포함한 16진수 태그 문자열 (예: "02AABB")
-   * @param s_tag1 비교할 두 번째 16진수 태그 문자열
+   * @param {string|null} s_tag0 길이 정보를 포함한 16진수 태그 문자열 (예: "02AABB")
+   * @param {string|null} s_tag1 비교할 두 번째 16진수 태그 문자열
    * @returns 두 태그의 내용이 일치하면 true, 그렇지 않으면 false
    */
-  private static _is_equal_tag(s_tag0: string, s_tag1: string): boolean {
+  private static _is_equal_tag(s_tag0: string|null, s_tag1: string|null): boolean {
     // 1. 기본 유효성 및 타입 검사
+    if(s_tag0 === null && s_tag1 === null) return true;
+    if(s_tag0 === null && typeof s_tag1 === "string"){
+      if(s_tag1.length === 0){
+        //null 을 빈 문자열로 간주.
+        return true;
+      }
+    }
+    if(s_tag1 === null && typeof s_tag0 === "string"){
+      if(s_tag0.length === 0){
+        //null 을 빈 문자열로 간주.
+        return true;
+      }
+    }
+
     if (typeof s_tag0 !== "string" || typeof s_tag1 !== "string") return false;
 
     // 16진수 문자열은 항상 짝수 길이어야 함 (2글자가 1바이트)
@@ -3889,7 +3952,7 @@ export class lpu237 extends hid {
   /**
    * @private
    * @function _get_global_pre_postfix_send_condition_from_string
-   * @description 문자열 입력을 바탕으로 전역 접두사/접미사 전송 조건을 결정합니다.
+   * @description 화면표시용 또는 파일용 문자열 입력을 바탕으로 전역 접두사/접미사 전송 조건을 결정합니다.
    * @param {string} s_string - "and" "No Error in all tracks", "One more track is normal" 또는 "or"
    * @returns {boolean | null} true(And 조건: 모든 트랙 성공 시), false(Or 조건: 하나만 성공해도), 에러 시 null
    */
@@ -3916,7 +3979,7 @@ export class lpu237 extends hid {
   /**
    * @private
    * @function _get_track_order_from_string
-   * @description 문자열(예: "123")을 기반으로 트랙 출력 순서를 배열로 반환합니다.
+   * @description 화면표시용 또는 파일용 문자열(예: "123")을 기반으로 트랙 출력 순서를 배열로 반환합니다.
    * @param {string} s_string - "123", "132", "213", "231", "312", "321" 중 하나
    * @returns {number[] | null} 트랙 인덱스 배열 (예: [0, 1, 2]), 에러 시 null
    */
@@ -3934,7 +3997,7 @@ export class lpu237 extends hid {
   /**
    * @private
    * @function _get_indicate_error_condition_from_string
-   * @description 문자열 입력을 바탕으로 장치가 성공/에러 상태를 표시할 기준 조건을 결정합니다.
+   * @description 화면 또는 파일용 문자열 입력을 바탕으로 장치가 성공/에러 상태를 표시할 기준 조건을 결정합니다.
    * @param {string} s_string - "and" "One more track is normal", "No Error in all tracks" 또는 "or"
    * @returns {boolean | null} true(And: 모든 트랙 성공 시만 성공 표시), false(Or: 하나만 성공해도 성공 표시), 에러 시 null
    */
@@ -3960,22 +4023,27 @@ export class lpu237 extends hid {
   /**
    * @private
    * @function _get_ibutton_mode_from_string
-   * @description 문자열을 기반으로 ibutton 모드 숫자 값을 얻음.
+   * @description 화면용 또는 파일용 문자열을 기반으로 ibutton 모드 숫자 값을 얻음.
    * @returns {number} 숫자값, 에러 시 -1. 이 값은 this._c_blank array 의 인덱스 2(인덱스는 0부터)의 하위 nibble 에 설정되어야 한다.
    */
   private static _get_ibutton_mode_from_string(s_string: string): number {
     const validDirectionKeys = Object.keys(lpu237.IBUTTON_MODE_MAP);
     if (validDirectionKeys.includes(s_string)) {
       return lpu237.IBUTTON_MODE_MAP[s_string];
-    } else {
-      return -1;
-    }
+    } 
+
+    const FileValidDirectionKeys = Object.keys(lpu237.IBUTTON_MODE_MAP_FOR_FILE);
+    if (FileValidDirectionKeys.includes(s_string)) {
+      return lpu237.IBUTTON_MODE_MAP_FOR_FILE[s_string];
+    } 
+    
+    return -1;
   }
 
   /**
    * @private
    * @function _get_interface_from_string
-   * @description 문자열을 기반으로 시스템 인터페이스 번호를 가져옵니다.
+   * @description 파일용과 화면표시용 문자열을 기반으로 시스템 인터페이스 번호를 가져옵니다.
    * @returns {number} 인터페이스 번호, 에러 시 -1
    */
   private static _get_interface_from_string(s_string: string): number {
@@ -3993,16 +4061,21 @@ export class lpu237 extends hid {
   /**
    * @private
    * @function _get_language_from_string
-   * @description 키보드 시뮬레이션에 사용할 언어 인덱스를 가져옵니다.
+   * @description 화면표시용 또는 파일용 문자열로 부터 키보드 시뮬레이션에 사용할 언어 인덱스를 가져옵니다.
    * @returns {number} 언어 인덱스 번호, 에러 시 -1
    */
   private static _get_language_from_string(s_string: string): number {
     const validDirectionKeys = Object.keys(lpu237.LANGUAGE_MAP);
     if (validDirectionKeys.includes(s_string)) {
       return lpu237.LANGUAGE_MAP[s_string];
-    } else {
-      return -1;
     }
+    
+    const fileValidDirectionKeys = Object.keys(lpu237.LANGUAGE_MAP_FOR_FILE);
+    if (fileValidDirectionKeys.includes(s_string)) {
+      return lpu237.LANGUAGE_MAP_FOR_FILE[s_string];
+    }
+    
+    return -1;
   }
 
   /**
@@ -4059,6 +4132,10 @@ export class lpu237 extends hid {
 
     if (s_string === "enable") return true;
     if (s_string === "disable") return false;
+    if (s_string === "true") return true;
+    if (s_string === "false") return false;
+    if (s_string === "on") return true;
+    if (s_string === "off") return false;
 
     return null;
   }
@@ -4086,7 +4163,7 @@ export class lpu237 extends hid {
   /**
    * @private
    * @function _get_direction_from_string
-   * @description 카드를 읽는 허용 방향을 문자열로부터 파싱합니다.
+   * @description 화면 또는 파일용 문자열로 부터 카드를 읽는 허용 방향을 문자열로부터 파싱합니다.
    * @param {string} s_string - "bidirectional", "forward" 또는 "backward"
    * @returns {number} 읽기 방향 코드값, 에러 시 -1
    */
@@ -4094,9 +4171,12 @@ export class lpu237 extends hid {
     const validDirectionKeys = Object.keys(lpu237.DIRECTION_MAP);
     if (validDirectionKeys.includes(s_string)) {
       return lpu237.DIRECTION_MAP[s_string];
-    } else {
-      return -1;
     }
+    const FileValidDirectionKeys = Object.keys(lpu237.DIRECTION_MAP_FOR_FILE);
+    if (FileValidDirectionKeys.includes(s_string)) {
+      return lpu237.DIRECTION_MAP_FOR_FILE[s_string];
+    }
+    return -1;
   }
 
   /**
@@ -4253,34 +4333,23 @@ export class lpu237 extends hid {
   /**
    * @private
    * @function _get_mmd1100_reset_interval_from_string
-   * @description MMD1100 보안 칩의 리셋 간격 값을 파싱합니다.
+   * @description 화면 또는 파일용 문자열로 부터 MMD1100 보안 칩의 리셋 간격 값을 파싱합니다.
    * @param {string} s_string - "default", "disable", 또는 "0", "16", ... "240" (16의 배수 문자열)
    * @returns {number} 0~240 사이의 16의 배수, 에러 시 음수(-1)
    */
   private static _get_mmd1100_reset_interval_from_string(s_string: string): number {
     if (typeof s_string !== "string") return -1;
 
-    // 1. 특수 키워드 처리
-    if (s_string === "default") {
-      return 0;
+    const validDirectionKeys = Object.keys(lpu237.RESET_INTERVAL_MAP);
+    if (validDirectionKeys.includes(s_string)) {
+      return lpu237.RESET_INTERVAL_MAP[s_string];
     }
-    if (s_string === "disable") {
-      return 240;
-    }
-
-    // 2. 숫자 파싱 및 유효성 검사
-    const n_interval = parseInt(s_string, 10);
-
-    if (isNaN(n_interval)) {
-      return -1;
+    const FileValidDirectionKeys = Object.keys(lpu237.RESET_INTERVAL_MAP_FOR_FILE);
+    if (FileValidDirectionKeys.includes(s_string)) {
+      return lpu237.RESET_INTERVAL_MAP_FOR_FILE[s_string];
     }
 
-    // 16의 배수인지 확인 (하드웨어 레지스터 제약 조건)
-    if (n_interval < 0 || n_interval > 240 || n_interval % 16 !== 0) {
-      return -1;
-    }
-
-    return n_interval;
+    return -1;
   }
 
   /**
@@ -8194,10 +8263,7 @@ export class lpu237 extends hid {
           ) {
             ++n_count;
             as_name[n_count] = "mmd1100 reset interval";
-            as_value[n_count] = this.get_mmd1100_reset_interval_string(
-              this._c_blank[1] & 0xf0,
-              b_device_version_greater_then_5_18,
-            );
+            as_value[n_count] = this.get_mmd1100_reset_interval_string_cur();
           }
         }
         //
@@ -11365,8 +11431,6 @@ export class lpu237 extends hid {
         //
         const reader = new FileReader();
 
-        (reader as any)._device = this_device;
-
         reader.onload = function (evt: ProgressEvent<FileReader>) {
           const s_data = evt.target!.result as string;
           //
@@ -11390,69 +11454,71 @@ export class lpu237 extends hid {
           let b_ignore_iso3: boolean | null = null;
           let b_remove_colon: boolean | null = null;
           let n_ibutton: number | null = null;
+          let n_ibutton_pos_start : number = -1;
+          let n_ibutton_pos_end : number = -1;
           let n_reset_interval: number | null = null;
           let n_direction: number | null = null;
           let s_gpre: string | null = null;
           let s_gpost: string | null = null;
 
-          const n_combination: (number | null)[] = [null, null, null];
-          const n_max_size: (number | null)[][] = [
+          let n_combination: (number | null)[] = [null, null, null];
+          let n_max_size: (number | null)[][] = [
             [null, null, null],
             [null, null, null],
             [null, null, null],
           ];
-          const n_bit_size: (number | null)[][] = [
+          let n_bit_size: (number | null)[][] = [
             [null, null, null],
             [null, null, null],
             [null, null, null],
           ];
-          const n_data_mask: (number | null)[][] = [
+          let n_data_mask: (number | null)[][] = [
             [null, null, null],
             [null, null, null],
             [null, null, null],
           ];
-          const b_use_parity: (boolean | null)[][] = [
+          let b_use_parity: (boolean | null)[][] = [
             [null, null, null],
             [null, null, null],
             [null, null, null],
           ];
-          const n_parity_type: (number | null)[][] = [
+          let n_parity_type: (number | null)[][] = [
             [null, null, null],
             [null, null, null],
             [null, null, null],
           ];
-          const n_stxl: (number | null)[][] = [
+          let n_stxl: (number | null)[][] = [
             [null, null, null],
             [null, null, null],
             [null, null, null],
           ];
-          const n_etxl: (number | null)[][] = [
+          let n_etxl: (number | null)[][] = [
             [null, null, null],
             [null, null, null],
             [null, null, null],
           ];
-          const b_use_error_correct: (boolean | null)[][] = [
+          let b_use_error_correct: (boolean | null)[][] = [
             [null, null, null],
             [null, null, null],
             [null, null, null],
           ];
-          const n_error_correct_type: (number | null)[][] = [
+          let n_error_correct_type: (number | null)[][] = [
             [null, null, null],
             [null, null, null],
             [null, null, null],
           ];
-          const n_add_value: (number | null)[][] = [
+          let n_add_value: (number | null)[][] = [
             [null, null, null],
             [null, null, null],
             [null, null, null],
           ];
 
-          const s_ppretag: (string | null)[][] = [
+          let s_ppretag: (string | null)[][] = [
             [null, null, null],
             [null, null, null],
             [null, null, null],
           ];
-          const s_pposttag: (string | null)[][] = [
+          let s_pposttag: (string | null)[][] = [
             [null, null, null],
             [null, null, null],
             [null, null, null],
@@ -11604,7 +11670,42 @@ export class lpu237 extends hid {
                 }
               }
 
-              // ibutton attribute
+              // ibutton_start attribute
+              s_attr_name = "ibutton_start";
+              if (ele.hasAttribute(s_attr_name)) {
+                s_attr = ele.getAttribute(s_attr_name)!;
+                n_ibutton_pos_start = parseInt(s_attr, 10);
+                if (isNaN(n_ibutton_pos_start)) {
+                  n_ibutton_pos_start = -1;
+                  continue;
+                }
+                if (n_ibutton_pos_start < 0 || n_ibutton_pos_start > 15) {
+                  n_ibutton_pos_start = -1;
+                  continue;
+                }
+              }
+
+              // ibutton_end attribute
+              s_attr_name = "ibutton_end";
+              if (ele.hasAttribute(s_attr_name)) {
+                s_attr = ele.getAttribute(s_attr_name)!;
+                n_ibutton_pos_end = parseInt(s_attr, 10);
+                if (isNaN(n_ibutton_pos_end)) {
+                  n_ibutton_pos_end = -1;
+                  continue;
+                }
+                if (n_ibutton_pos_end < 0 || n_ibutton_pos_end > 15) {
+                  n_ibutton_pos_end = -1;
+                  continue;
+                }
+              }
+
+              if(n_ibutton_pos_end<n_ibutton_pos_start ){
+                n_ibutton_pos_start = n_ibutton_pos_end = -1;
+                continue;
+              }
+
+              // mmd1100_reset_interval attribute
               s_attr_name = "mmd1100_reset_interval";
               if (ele.hasAttribute(s_attr_name)) {
                 s_attr = ele.getAttribute(s_attr_name)!;
@@ -11995,201 +12096,213 @@ export class lpu237 extends hid {
 
           if (b_result) {
             if (n_interface !== null) {
-              if ((this as any)._device._n_interface !== n_interface) {
+              if (this_device._n_interface !== n_interface) {
                 util.insert_to_set(
-                  (this as any)._device._set_change_parameter,
+                  this_device._set_change_parameter,
                   _type_change_parameter.cp_Interface,
                 );
-                (this as any)._device._n_interface = n_interface;
+                this_device._n_interface = n_interface;
               }
             }
             if (n_buzzer !== null) {
-              if ((this as any)._device._dw_buzzer_count !== n_buzzer) {
+              if (this_device._dw_buzzer_count !== n_buzzer) {
                 util.insert_to_set(
-                  (this as any)._device._set_change_parameter,
+                  this_device._set_change_parameter,
                   _type_change_parameter.cp_BuzzerFrequency,
                 );
-                (this as any)._device._dw_buzzer_count = n_buzzer;
+                this_device._dw_buzzer_count = n_buzzer;
               }
             }
             if (n_language !== null) {
-              if ((this as any)._device._n_language_index !== n_language) {
+              if (this_device._n_language_index !== n_language) {
                 util.insert_to_set(
-                  (this as any)._device._set_change_parameter,
+                  this_device._set_change_parameter,
                   _type_change_parameter.cp_Language,
                 );
-                (this as any)._device._n_language_index = n_language;
+                this_device._n_language_index = n_language;
               }
             }
             if (b_condition !== null) {
               if (
-                (this as any)._device._b_global_pre_postfix_send_condition !==
+                this_device._b_global_pre_postfix_send_condition !==
                 b_condition
               ) {
                 util.insert_to_set(
-                  (this as any)._device._set_change_parameter,
+                  this_device._set_change_parameter,
                   _type_change_parameter.cp_GlobalPrePostfixSendCondition,
                 );
-                (this as any)._device._b_global_pre_postfix_send_condition =
+                this_device._b_global_pre_postfix_send_condition =
                   b_condition;
               }
             }
             if (n_order !== null) {
               if (
-                (this as any)._device._n_order[0] !== n_order[0] ||
-                (this as any)._device._n_order[1] !== n_order[1] ||
-                (this as any)._device._n_order[2] !== n_order[2]
+                this_device._n_order[0] !== n_order[0] ||
+                this_device._n_order[1] !== n_order[1] ||
+                this_device._n_order[2] !== n_order[2]
               ) {
                 util.insert_to_set(
-                  (this as any)._device._set_change_parameter,
+                  this_device._set_change_parameter,
                   _type_change_parameter.cp_TrackOrder,
                 );
-                (this as any)._device._n_order = n_order;
+                this_device._n_order = n_order;
               }
             }
 
             if (b_indicate_all_success_is_success !== null) {
               let b_indicate_set: boolean = true;
-              if (!((this as any)._device._c_blank[1] & 0x01)) {
+              if (!(this_device._c_blank[1] & 0x01)) {
                 b_indicate_set = false;
               }
               if (b_indicate_all_success_is_success && b_indicate_set) {
                 util.insert_to_set(
-                  (this as any)._device._set_change_parameter,
+                  this_device._set_change_parameter,
                   _type_change_parameter.cp_Blank_4bytes,
                 );
-                (this as any)._device._c_blank[1] =
-                  (this as any)._device._c_blank[1] & 0xfe;
+                this_device._c_blank[1] =
+                  this_device._c_blank[1] & 0xfe;
               } else if (
                 !b_indicate_all_success_is_success &&
                 !b_indicate_set
               ) {
                 util.insert_to_set(
-                  (this as any)._device._set_change_parameter,
+                  this_device._set_change_parameter,
                   _type_change_parameter.cp_Blank_4bytes,
                 );
-                (this as any)._device._c_blank[1] =
-                  (this as any)._device._c_blank[1] | 0x01;
+                this_device._c_blank[1] =
+                  this_device._c_blank[1] | 0x01;
               }
             }
             if (b_ignore_iso1 !== null) {
               let b_ignore_iso1_cur: boolean = false;
-              if ((this as any)._device._c_blank[1] & 0x02) {
+              if (this_device._c_blank[1] & 0x02) {
                 b_ignore_iso1_cur = true;
               }
               if (b_ignore_iso1 && !b_ignore_iso1_cur) {
                 util.insert_to_set(
-                  (this as any)._device._set_change_parameter,
+                  this_device._set_change_parameter,
                   _type_change_parameter.cp_Blank_4bytes,
                 );
-                (this as any)._device._c_blank[1] =
-                  (this as any)._device._c_blank[1] | 0x02;
+                this_device._c_blank[1] =
+                  this_device._c_blank[1] | 0x02;
               } else if (!b_ignore_iso1 && b_ignore_iso1_cur) {
                 util.insert_to_set(
-                  (this as any)._device._set_change_parameter,
+                  this_device._set_change_parameter,
                   _type_change_parameter.cp_Blank_4bytes,
                 );
-                (this as any)._device._c_blank[1] =
-                  (this as any)._device._c_blank[1] & 0xfd;
+                this_device._c_blank[1] =
+                  this_device._c_blank[1] & 0xfd;
               }
             }
             if (b_ignore_iso3 !== null) {
               var b_ignore_iso3_cur = false;
-              if ((this as any)._device._c_blank[1] & 0x04) {
+              if (this_device._c_blank[1] & 0x04) {
                 b_ignore_iso3_cur = true;
               }
               if (b_ignore_iso3 && !b_ignore_iso3_cur) {
                 util.insert_to_set(
-                  (this as any)._device._set_change_parameter,
+                  this_device._set_change_parameter,
                   _type_change_parameter.cp_Blank_4bytes,
                 );
-                (this as any)._device._c_blank[1] =
-                  (this as any)._device._c_blank[1] | 0x04;
+                this_device._c_blank[1] =
+                  this_device._c_blank[1] | 0x04;
               } else if (!b_ignore_iso3 && b_ignore_iso3_cur) {
                 util.insert_to_set(
-                  (this as any)._device._set_change_parameter,
+                  this_device._set_change_parameter,
                   _type_change_parameter.cp_Blank_4bytes,
                 );
-                (this as any)._device._c_blank[1] =
-                  (this as any)._device._c_blank[1] & 0xfb;
+                this_device._c_blank[1] =
+                  this_device._c_blank[1] & 0xfb;
               }
             }
             if (b_remove_colon !== null) {
               var b_remove_colon_cur = false;
-              if ((this as any)._device._c_blank[1] & 0x08) {
+              if (this_device._c_blank[1] & 0x08) {
                 b_remove_colon_cur = true;
               }
               if (b_remove_colon && !b_remove_colon_cur) {
                 util.insert_to_set(
-                  (this as any)._device._set_change_parameter,
+                  this_device._set_change_parameter,
                   _type_change_parameter.cp_Blank_4bytes,
                 );
-                (this as any)._device._c_blank[1] =
-                  (this as any)._device._c_blank[1] | 0x08;
+                this_device._c_blank[1] =
+                  this_device._c_blank[1] | 0x08;
               } else if (!b_remove_colon && b_remove_colon_cur) {
                 util.insert_to_set(
-                  (this as any)._device._set_change_parameter,
+                  this_device._set_change_parameter,
                   _type_change_parameter.cp_Blank_4bytes,
                 );
-                (this as any)._device._c_blank[1] =
-                  (this as any)._device._c_blank[1] & 0xf7;
+                this_device._c_blank[1] =
+                  this_device._c_blank[1] & 0xf7;
               }
             }
 
             if (n_ibutton !== null) {
-              if (((this as any)._device._c_blank[2] & 0x0f) !== n_ibutton) {
+              if ((this_device._c_blank[2] & 0x0f) !== n_ibutton) {
                 util.insert_to_set(
-                  (this as any)._device._set_change_parameter,
+                  this_device._set_change_parameter,
                   _type_change_parameter.cp_Blank_4bytes,
                 );
-                (this as any)._device._c_blank[2] =
-                  (this as any)._device._c_blank[2] & 0xf0;
-                (this as any)._device._c_blank[2] =
-                  (this as any)._device._c_blank[2] | n_ibutton;
+                this_device._c_blank[2] =
+                  this_device._c_blank[2] & 0xf0;
+                this_device._c_blank[2] =
+                  this_device._c_blank[2] | n_ibutton;
               }
             }
+
+            if (n_ibutton_pos_start !== -1 && n_ibutton_pos_end !== -1) {
+              if ((this_device.get_ibutton_range_start()) !== n_ibutton_pos_start || (this_device.get_ibutton_range_end()) !== n_ibutton_pos_end) {
+                util.insert_to_set(
+                  this_device._set_change_parameter,
+                  _type_change_parameter.cp_Blank_4bytes,
+                );
+                this_device.set_ibutton_range(n_ibutton_pos_start,n_ibutton_pos_end);
+              }
+            }
+
+
             if (n_direction !== null) {
               if (
-                (this as any)._device._n_direction[
+                this_device._n_direction[
                   _type_msr_track_Numer.iso1_track
                 ] !== n_direction
               ) {
                 util.insert_to_set(
-                  (this as any)._device._set_change_parameter,
+                  this_device._set_change_parameter,
                   _type_change_parameter.cp_Direction1,
                 );
                 util.insert_to_set(
-                  (this as any)._device._set_change_parameter,
+                  this_device._set_change_parameter,
                   _type_change_parameter.cp_Direction2,
                 );
                 util.insert_to_set(
-                  (this as any)._device._set_change_parameter,
+                  this_device._set_change_parameter,
                   _type_change_parameter.cp_Direction3,
                 );
-                (this as any)._device._n_direction[
+                this_device._n_direction[
                   _type_msr_track_Numer.iso1_track
                 ] = n_direction;
-                (this as any)._device._n_direction[
+                this_device._n_direction[
                   _type_msr_track_Numer.iso2_track
                 ] = n_direction;
-                (this as any)._device._n_direction[
+                this_device._n_direction[
                   _type_msr_track_Numer.iso3_track
                 ] = n_direction;
               }
             }
             if (n_reset_interval != null) {
               if (
-                ((this as any)._device._c_blank[1] & 0xf0) !==
+                (this_device._c_blank[1] & 0xf0) !==
                 n_reset_interval
               ) {
                 util.insert_to_set(
-                  (this as any)._device._set_change_parameter,
+                  this_device._set_change_parameter,
                   _type_change_parameter.cp_Blank_4bytes,
                 );
-                (this as any)._device._c_blank[1] =
-                  (this as any)._device._c_blank[1] & 0x0f;
-                (this as any)._device._c_blank[1] =
-                  (this as any)._device._c_blank[1] | n_reset_interval;
+                this_device._c_blank[1] =
+                  this_device._c_blank[1] & 0x0f;
+                this_device._c_blank[1] =
+                  this_device._c_blank[1] | n_reset_interval;
               }
             }
             if (s_gpre !== null) {
@@ -12197,95 +12310,95 @@ export class lpu237 extends hid {
                 !lpu237._is_equal_tag((this as any)._s_global_prefix, s_gpre)
               ) {
                 util.insert_to_set(
-                  (this as any)._device._set_change_parameter,
+                  this_device._set_change_parameter,
                   _type_change_parameter.cp_GlobalPrefix,
                 );
-                (this as any)._device._s_global_prefix = s_gpre;
+                this_device._s_global_prefix = s_gpre;
               }
             }
             if (s_gpost !== null) {
               if (
                 !lpu237._is_equal_tag(
-                  (this as any)._device._s_global_postfix,
+                  this_device._s_global_postfix,
                   s_gpost,
                 )
               ) {
                 util.insert_to_set(
-                  (this as any)._device._set_change_parameter,
+                  this_device._set_change_parameter,
                   _type_change_parameter.cp_GlobalPostfix,
                 );
-                (this as any)._device._s_global_postfix = s_gpost;
+                this_device._s_global_postfix = s_gpost;
               }
             }
             if (s_ipre !== null) {
               if (
                 !lpu237._is_equal_tag(
-                  (this as any)._device._s_prefix_ibutton,
+                  this_device._s_prefix_ibutton,
                   s_ipre,
                 )
               ) {
                 util.insert_to_set(
-                  (this as any)._device._set_change_parameter,
+                  this_device._set_change_parameter,
                   _type_change_parameter.cp_Prefix_iButton,
                 );
-                (this as any)._device._s_prefix_ibutton = s_ipre;
+                this_device._s_prefix_ibutton = s_ipre;
               }
             }
             if (s_ipost !== null) {
               if (
                 !lpu237._is_equal_tag(
-                  (this as any)._device._s_postfix_ibutton,
+                  this_device._s_postfix_ibutton,
                   s_ipost,
                 )
               ) {
                 util.insert_to_set(
-                  (this as any)._device._set_change_parameter,
+                  this_device._set_change_parameter,
                   _type_change_parameter.cp_Postfix_iButton,
                 );
-                (this as any)._device._s_postfix_ibutton = s_ipost;
+                this_device._s_postfix_ibutton = s_ipost;
               }
             }
 
             if (s_iremove !== null) {
               if (
                 !lpu237._is_equal_tag(
-                  (this as any)._device._s_ibutton_remove,
+                  this_device._s_ibutton_remove,
                   s_iremove,
                 )
               ) {
                 util.insert_to_set(
-                  (this as any)._device._set_change_parameter,
+                  this_device._set_change_parameter,
                   _type_change_parameter.cp_iButton_Remove,
                 );
-                (this as any)._device._s_ibutton_remove = s_iremove;
+                this_device._s_ibutton_remove = s_iremove;
               }
             }
             if (s_ipre_remove !== null) {
               if (
                 !lpu237._is_equal_tag(
-                  (this as any)._device._s_prefix_ibutton_remove,
+                  this_device._s_prefix_ibutton_remove,
                   s_ipre_remove,
                 )
               ) {
                 util.insert_to_set(
-                  (this as any)._device._set_change_parameter,
+                  this_device._set_change_parameter,
                   _type_change_parameter.cp_Prefix_iButton_Remove,
                 );
-                (this as any)._device._s_prefix_ibutton_remove = s_ipre_remove;
+                this_device._s_prefix_ibutton_remove = s_ipre_remove;
               }
             }
             if (s_ipost_remove !== null) {
               if (
                 !lpu237._is_equal_tag(
-                  (this as any)._device._s_postfix_ibutton_remove,
+                  this_device._s_postfix_ibutton_remove,
                   s_ipost_remove,
                 )
               ) {
                 util.insert_to_set(
-                  (this as any)._device._set_change_parameter,
+                  this_device._set_change_parameter,
                   _type_change_parameter.cp_Postfix_iButton_Remove,
                 );
-                (this as any)._device._s_postfix_ibutton_remove =
+                this_device._s_postfix_ibutton_remove =
                   s_ipost_remove;
               }
             }
@@ -12293,58 +12406,53 @@ export class lpu237 extends hid {
             if (s_upre !== null) {
               if (
                 !lpu237._is_equal_tag(
-                  (this as any)._device._s_prefix_uart,
+                  this_device._s_prefix_uart,
                   s_upre,
                 )
               ) {
                 util.insert_to_set(
-                  (this as any)._device._set_change_parameter,
+                  this_device._set_change_parameter,
                   _type_change_parameter.cp_Prefix_Uart,
                 );
-                (this as any)._device._s_prefix_uart = s_upre;
+                this_device._s_prefix_uart = s_upre;
               }
             }
             if (s_upost !== null) {
               if (
                 !lpu237._is_equal_tag(
-                  (this as any)._device._s_prefix_uart,
+                  this_device._s_prefix_uart,
                   s_upost,
                 )
               ) {
                 util.insert_to_set(
-                  (this as any)._device._set_change_parameter,
+                  this_device._set_change_parameter,
                   _type_change_parameter.cp_Postfix_Uart,
                 );
-                (this as any)._device._s_prefix_uart = s_upost;
+                this_device._s_prefix_uart = s_upost;
               }
             }
 
             for (let i = 0; i < lpu237._const_the_number_of_track; i++) {
-              if (n_combination[i] !== null) {
-                if (
-                  (this as any)._device._n_number_combination[i] !==
-                  n_combination[i]
-                ) {
+              if ( n_combination[i] !== null ) {
+                if ( this_device._n_number_combination[i] !==  n_combination[i] ) {
                   util.insert_to_set(
-                    (this as any)._device._set_change_parameter,
+                    this_device._set_change_parameter,
                     _type_change_parameter.cp_ISO1_NumberCombi + i,
                   );
-                  (this as any)._device._n_number_combination[i] =
-                    n_combination[i];
+                  this_device._n_number_combination[i] = n_combination[i] as number;
                 }
               }
 
               if (array_b_enable_track[i] !== null) {
                 if (
-                  (this as any)._device._b_enable_iso[i] !==
+                  this_device._b_enable_iso[i] !==
                   array_b_enable_track[i]
                 ) {
                   util.insert_to_set(
-                    (this as any)._device._set_change_parameter,
+                    this_device._set_change_parameter,
                     _type_change_parameter.cp_EnableISO1 + i,
                   );
-                  (this as any)._device._b_enable_iso[i] =
-                    array_b_enable_track[i];
+                  this_device._b_enable_iso[i] = array_b_enable_track[i] as boolean;
                 }
               }
               //
@@ -12355,173 +12463,167 @@ export class lpu237 extends hid {
               ) {
                 if (n_max_size[i][j] !== null) {
                   if (
-                    (this as any)._device._n_max_size[i][j] !== n_max_size[i][j]
+                    this_device._n_max_size[i][j] !== n_max_size[i][j]
                   ) {
                     util.insert_to_set(
-                      (this as any)._device._set_change_parameter,
+                      this_device._set_change_parameter,
                       _type_change_parameter.cp_ISO1_Combi0_MaxSize +
                         i * lpu237._const_the_number_of_combination +
                         j,
                     );
-                    (this as any)._device._n_max_size[i][j] = n_max_size[i][j];
+                    this_device._n_max_size[i][j] = n_max_size[i][j] as number;
                   }
                 }
                 if (n_bit_size[i][j] !== null) {
                   if (
-                    (this as any)._device._n_bit_size[i][j] !== n_bit_size[i][j]
+                    this_device._n_bit_size[i][j] !== n_bit_size[i][j]
                   ) {
                     util.insert_to_set(
-                      (this as any)._device._set_change_parameter,
+                      this_device._set_change_parameter,
                       _type_change_parameter.cp_ISO1_Combi0_BitSize +
                         i * lpu237._const_the_number_of_combination +
                         j,
                     );
-                    (this as any)._device._n_bit_size[i][j] = n_bit_size[i][j];
+                    this_device._n_bit_size[i][j] = n_bit_size[i][j] as number;
                   }
                 }
                 if (n_data_mask[i][j] !== null) {
                   if (
-                    (this as any)._device._c_data_mask[i][j] !==
+                    this_device._c_data_mask[i][j] !==
                     n_data_mask[i][j]
                   ) {
                     util.insert_to_set(
-                      (this as any)._device._set_change_parameter,
+                      this_device._set_change_parameter,
                       _type_change_parameter.cp_ISO1_Combi0_DataMask +
                         i * lpu237._const_the_number_of_combination +
                         j,
                     );
-                    (this as any)._device._c_data_mask[i][j] =
-                      n_data_mask[i][j];
+                    this_device._c_data_mask[i][j] = n_data_mask[i][j] as number;
                   }
                 }
                 if (b_use_parity[i][j] !== null) {
                   if (
-                    (this as any)._device._b_use_parity[i][j] !==
+                    this_device._b_use_parity[i][j] !==
                     b_use_parity[i][j]
                   ) {
                     util.insert_to_set(
-                      (this as any)._device._set_change_parameter,
+                      this_device._set_change_parameter,
                       _type_change_parameter.cp_ISO1_Combi0_UseParity +
                         i * lpu237._const_the_number_of_combination +
                         j,
                     );
-                    (this as any)._device._b_use_parity[i][j] =
-                      b_use_parity[i][j];
+                    this_device._b_use_parity[i][j] = b_use_parity[i][j] as boolean;
                   }
                 }
                 if (n_parity_type[i][j] !== null) {
                   if (
-                    (this as any)._device._n_parity_type[i][j] !==
+                    this_device._n_parity_type[i][j] !==
                     n_parity_type[i][j]
                   ) {
                     util.insert_to_set(
-                      (this as any)._device._set_change_parameter,
+                      this_device._set_change_parameter,
                       _type_change_parameter.cp_ISO1_Combi0_ParityType +
                         i * lpu237._const_the_number_of_combination +
                         j,
                     );
-                    (this as any)._device._n_parity_type[i][j] =
-                      n_parity_type[i][j];
+                    this_device._n_parity_type[i][j] = n_parity_type[i][j] as number;
                   }
                 }
                 if (n_stxl[i][j] !== null) {
-                  if ((this as any)._device._c_stxl[i][j] !== n_stxl[i][j]) {
+                  if (this_device._c_stxl[i][j] !== n_stxl[i][j]) {
                     util.insert_to_set(
-                      (this as any)._device._set_change_parameter,
+                      this_device._set_change_parameter,
                       _type_change_parameter.cp_ISO1_Combi0_STX_L +
                         i * lpu237._const_the_number_of_combination +
                         j,
                     );
-                    (this as any)._device._c_stxl[i][j] = n_stxl[i][j];
+                    this_device._c_stxl[i][j] = n_stxl[i][j] as number;
                   }
                 }
                 if (n_etxl[i][j] !== null) {
-                  if ((this as any)._device._c_etxl[i][j] !== n_etxl[i][j]) {
+                  if (this_device._c_etxl[i][j] !== n_etxl[i][j]) {
                     util.insert_to_set(
-                      (this as any)._device._set_change_parameter,
+                      this_device._set_change_parameter,
                       _type_change_parameter.cp_ISO1_Combi0_ETX_L +
                         i * lpu237._const_the_number_of_combination +
                         j,
                     );
-                    (this as any)._device._c_etxl[i][j] = n_etxl[i][j];
+                    this_device._c_etxl[i][j] = n_etxl[i][j] as number;
                   }
                 }
                 if (b_use_error_correct[i][j] !== null) {
                   if (
-                    (this as any)._device._b_use_ecm[i][j] !==
+                    this_device._b_use_ecm[i][j] !==
                     b_use_error_correct[i][j]
                   ) {
                     util.insert_to_set(
-                      (this as any)._device._set_change_parameter,
+                      this_device._set_change_parameter,
                       _type_change_parameter.cp_ISO1_Combi0_UseErrorCorrect +
                         i * lpu237._const_the_number_of_combination +
                         j,
                     );
-                    (this as any)._device._b_use_ecm[i][j] =
-                      b_use_error_correct[i][j];
+                    this_device._b_use_ecm[i][j] = b_use_error_correct[i][j] as boolean;
                   }
                 }
                 if (n_error_correct_type[i][j] !== null) {
                   if (
-                    (this as any)._device._n_ecm_type[i][j] !==
+                    this_device._n_ecm_type[i][j] !==
                     n_error_correct_type[i][j]
                   ) {
                     util.insert_to_set(
-                      (this as any)._device._set_change_parameter,
+                      this_device._set_change_parameter,
                       _type_change_parameter.cp_ISO1_Combi0_ECMType +
                         i * lpu237._const_the_number_of_combination +
                         j,
                     );
-                    (this as any)._device._n_ecm_type[i][j] =
-                      n_error_correct_type[i][j];
+                    this_device._n_ecm_type[i][j] = n_error_correct_type[i][j] as number;
                   }
                 }
                 if (n_add_value[i][j] !== null) {
                   if (
-                    (this as any)._device._n_add_value[i][j] !==
+                    this_device._n_add_value[i][j] !==
                     n_add_value[i][j]
                   ) {
                     util.insert_to_set(
-                      (this as any)._device._set_change_parameter,
+                      this_device._set_change_parameter,
                       _type_change_parameter.cp_ISO1_Combi0_AddValue +
                         i * lpu237._const_the_number_of_combination +
                         j,
                     );
-                    (this as any)._device._n_add_value[i][j] =
-                      n_add_value[i][j];
+                    this_device._n_add_value[i][j] = n_add_value[i][j] as number;
                   }
                 }
                 if (s_ppretag[i][j] !== null) {
                   if (
                     !lpu237._is_equal_tag(
-                      (this as any)._device._s_private_prefix[i][j],
+                      this_device._s_private_prefix[i][j],
                       s_ppretag[i][j] ?? "",
                     )
                   ) {
                     util.insert_to_set(
-                      (this as any)._device._set_change_parameter,
+                      this_device._set_change_parameter,
                       _type_change_parameter.cp_PrivatePrefix10 +
                         i * lpu237._const_the_number_of_combination +
                         j,
                     );
-                    (this as any)._device._s_private_prefix[i][j] =
+                    this_device._s_private_prefix[i][j] =
                       s_ppretag[i][j];
                   }
                 }
                 if (s_pposttag[i][j] !== null) {
                   if (
                     !lpu237._is_equal_tag(
-                      (this as any)._device._s_private_postfix[i][j],
+                      this_device._s_private_postfix[i][j],
                       s_pposttag[i][j] ?? "",
                     )
                   ) {
                     util.insert_to_set(
-                      (this as any)._device._set_change_parameter,
+                      this_device._set_change_parameter,
                       _type_change_parameter.cp_PrivatePostfix10 +
                         i * lpu237._const_the_number_of_combination +
                         j,
                     );
-                    (this as any)._device._s_private_postfix[i][j] =
+                    this_device._s_private_postfix[i][j] =
                       s_pposttag[i][j];
                   }
                 }
