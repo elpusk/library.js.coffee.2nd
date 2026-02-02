@@ -620,16 +620,28 @@ export const createHandlers = (
       addLog(`Loading ROM: ${n}`)
     },
     onDownloadSettings: () => {
+      if (!window.confirm("Save the currnet setting to lpu237_settings.xml?")) {
+        return;
+      }      
       const { config } = stateRef.current;
-
-      const blob = new Blob([JSON.stringify(config)], {
-        type: "application/json",
-      });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "config.json";
-      a.click();
+      //setIsDownloading(true);   // 예: zustand, useState 등으로 관리
+      if(!g_lpu_device){
+        return;
+      }
+      g_lpu_device.save_to_file("lpu237_settings.xml")
+          .then((success) => {
+            if (success) {
+              alert("Save OK");
+            } else {
+              alert("Failure saving setting");
+            }
+          })
+          .catch((err) => {
+            alert("Error: " + err.message);
+          })
+          .finally(() => {
+            //setIsDownloading(false);
+          });
     },
   };
 };

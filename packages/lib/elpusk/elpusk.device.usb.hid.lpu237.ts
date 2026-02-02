@@ -950,6 +950,8 @@ export class lpu237 extends hid {
   private _b_opos_mode: boolean = false;
   private _set_change_parameter: _type_change_parameter[] = []; // 타입에 따라 구체화 필요
 
+  //TODO. _b_iso_mode 에 관련  method는 아직 구현 전임.
+  private _b_iso_mode: boolean = false; // firmware update 후, mmd1100 의 iso mode를 on 시킬 것인지 결정. 
   // 장치 정보
   private _b_global_pre_postfix_send_condition: boolean = false; //default - any track success - send global tag
   private _n_manufacture: number = _type_manufacturer.mf_elpusk;
@@ -2374,6 +2376,19 @@ export class lpu237 extends hid {
   };
 
   /**
+   * @public
+   * @function get_interface_string_for_file
+   * @returns {string} the current system interface string for setting file.
+   */
+  public get_interface_string_for_file = (): string => {
+    const s_value =
+      Object.keys(lpu237.INTERFACE_MAP_FOR_FILE).find(
+        (k) => lpu237.INTERFACE_MAP_FOR_FILE[k] === this._n_interface,
+      ) || "";
+    return s_value;
+  };
+
+  /**
    * @private
    * @description 화면표시용 interface 문자열 얻기.
    * @function _get_interface_string
@@ -2394,7 +2409,33 @@ export class lpu237 extends hid {
   }
 
   /**
-   * @private
+   * @public
+   * @function get_buzzer_string_for_file
+   * @returns {string} "on" or "off"
+   */
+  public get_buzzer_string_for_file = (): string => {
+    if( this.get_buzzer_count_boolean() ){
+      return "on";
+    }
+    else{
+      return "off";
+    }
+  };
+
+  /**
+   * @public
+   * @function get_language_string_for_file
+   * @returns {string} the value of LANGUAGE_MAP_FOR_FILE map
+   */
+  public get_language_string_for_file = (): string => {
+    const entry = Object.entries(lpu237.LANGUAGE_MAP_FOR_FILE).find(
+            ([key, val]) => val === this._n_language_index
+        );
+    return entry ? entry[0] : "";
+  };
+
+  /**
+   * @public
    * @function _get_order_string
    * @returns {string} the current msr sending orders string.
    */
@@ -2532,11 +2573,24 @@ export class lpu237 extends hid {
 
   /**
    * @public
-   * @description i-button 읽기 모드 값을 기반으로 모드 명칭 문자열을 반환합니다.
+   * @description i-button 읽기 모드 값을 기반으로 모드 명칭 화면 표시용 문자열을 반환합니다.
    * @returns 현재 i-button 읽기 모드 명칭 (기본값 "unknown")
    */
   public get_ibutton_mode_string = (): string => {
     return lpu237._get_ibutton_mode_string(this._c_blank[2] & 0x0f);
+  };
+
+  /**
+   * @public
+   * @description i-button 읽기 모드 값을 기반으로 모드 명칭 파일용 문자열을 반환합니다.
+   * @returns 현재 i-button 읽기 모드 명칭 
+   */
+  public get_ibutton_mode_string_for_file = (): string => {
+    const s_value =
+      Object.keys(lpu237.IBUTTON_MODE_MAP_FOR_FILE).find(
+        (k) => lpu237.IBUTTON_MODE_MAP_FOR_FILE[k] === this.get_ibutton_mode(),
+      ) || "";
+    return s_value;
   };
 
   /**
@@ -2611,7 +2665,51 @@ export class lpu237 extends hid {
 
   /**
    * @public
-   * @description 현재 MMD1100 리셋 간격 값을 문자열로 반환합니다.
+   * @description 현재 MMD1100 리셋 간격 값을 파일용 문자열로 반환합니다.
+   *
+   *  원래 함수 이름을 get_mmd1100_reset_interval_string_for_file() 로 해야 하나, 기존에 있어서, 하위 버전 호환성 문제로 이름이 좀 이상하게 지어짐.
+   *
+   * @returns {string} 리셋 간격 설명 문자열
+   */
+
+  public get_mmd1100_reset_interval_string_cur_for_file = (): string => {
+    if (
+      lpu237._first_version_greater_then_second_version(
+        false,
+        this._version,
+        [5, 15, 0, 0],
+      ) &&
+      lpu237._first_version_greater_then_second_version(
+        false,
+        [6, 0, 0, 0],
+        this._version,
+      )
+    ) {
+      const isGreater518 = lpu237._first_version_greater_then_second_version(
+        false,
+        this._version,
+        [5, 18, 0, 0],
+      );
+
+      const n_interval = this._c_blank[1] & 0xf0;
+
+      if (n_interval === 240 && !isGreater518) {
+        return "";
+      }
+      const s_value =
+        Object.keys(lpu237.RESET_INTERVAL_MAP_FOR_FILE).find(
+          (k) => lpu237.RESET_INTERVAL_MAP_FOR_FILE[k] === n_interval,
+        ) || "";
+
+      return s_value;
+    } else {
+      return "";
+    }
+  }  
+
+  /**
+   * @public
+   * @description 현재 MMD1100 리셋 간격 값을 화면표시용 문자열로 반환합니다.
    *
    *  원래 함수 이름을 get_mmd1100_reset_interval_string() 로 해야 하나, 기존에 있어서, 하위 버전 호환성 문제로 이름이 좀 이상하게 지어짐.
    *
@@ -2661,7 +2759,24 @@ export class lpu237 extends hid {
 
   /**
    * @public
-   * @description 카드 읽기 방향 값을 기반으로 명칭 문자열을 반환합니다.
+   * @description 카드 읽기 방향 값을 기반으로 파일용 명칭 문자열을 반환합니다.
+   * @param n_track 카드의 트랙 번호.(0~2)
+   * @returns 읽기 방향 명칭 (기본값 "")
+   */
+  public get_direction_string_for_file = (n_track: number): string => {
+    if (n_track < 0 || n_track > 2) {
+      return "";
+    }
+    const s_d =
+      Object.keys(lpu237.DIRECTION_MAP_FOR_FILE).find(
+        (k) => lpu237.DIRECTION_MAP_FOR_FILE[k] === this._n_direction[n_track],
+      ) || "";
+    return s_d;
+  };
+
+  /**
+   * @public
+   * @description 카드 읽기 방향 값을 기반으로 화면표시용 명칭 문자열을 반환합니다.
    * @param n_track 카드의 트랙 번호.(0~2)
    * @returns 읽기 방향 명칭 (기본값 "unknown")
    */
@@ -2697,7 +2812,7 @@ export class lpu237 extends hid {
    * @private
    * @function _get_parity_type_string
    * @param {number} pt type_parity value.
-   * @returns {string} parity type.
+   * @returns {string} 화면 표시용 문자열 parity type.
    */
   private static _get_parity_type_string(pt: number): string {
     // 유효성 검사
@@ -2720,7 +2835,7 @@ export class lpu237 extends hid {
    * @private
    * @function _get_error_correct_type_string
    * @param {number} et type_error_correct value.
-   * @returns {string} error correction type.
+   * @returns {string}  화면 표시용 문자열 error correction type.
    */
   private static _get_error_correct_type_string(et: number): string {
     // 유효성 검사
@@ -5867,8 +5982,107 @@ export class lpu237 extends hid {
   };
 
   /**
+   * s_tag (16진수 문자열)을 사람이 읽기 쉬운 파일 저장용 태그 문자열로 변환합니다.
+   *
+   * 규격:
+   * - s_tag는 16진수 문자열, 길이는 4의 배수
+   * - 2글자 = 1바이트
+   * - 2바이트 단위로 처리 (modifier + key 또는 0xFF + ASCII)
+   *
+   * 출력 형식 예시:
+   *   [c][enter]     → Ctrl + Enter
+   *   [s]a           → Shift + A
+   *   [][f1]         → F1 (modifier 없음)
+   *   [c][3b]     → 알 수 없는 키코드인 경우
+   *
+   * @param n_language 언어 인덱스
+   * @param s_tag - 예: "01002a" 또는 "ff410042"
+   * @returns 변환된 문자열 (실패 시 빈 문자열 반환)
+   */
+  private static _convert_tag_to_file_format(n_language: number, s_tag: string): string {
+    if (!s_tag || s_tag.length === 0) {
+      return "";
+    }
+
+    // 길이 및 형식 검사
+    if (s_tag.length % 4 !== 0) {
+      console.warn(`s_tag length must be multiple of 4 (actual: ${s_tag.length})`);
+      return "";
+    }
+
+    if (!/^[0-9a-fA-F]{4,}$/.test(s_tag)) {
+      console.warn("s_tag must be hexadecimal string");
+      return "";
+    }
+
+    const result: string[] = [];
+
+    // 16진수 → 바이트 배열
+    const bytes: number[] = [];
+    for (let i = 0; i < s_tag.length; i += 2) {
+      const byteHex = s_tag.slice(i, i + 2);
+      const byte = Number.parseInt(byteHex, 16);
+      if (Number.isNaN(byte)) {
+        console.warn(`Invalid hex byte at ${i}: ${byteHex}`);
+        return "";
+      }
+      bytes.push(byte);
+    }
+
+    // 2바이트 단위 처리
+    for (let i = 0; i < bytes.length; i += 2) {
+      const x0 = bytes[i];     // modifier 또는 0xFF
+      const x1 = bytes[i + 1]; // keycode 또는 ASCII
+
+      let modifier: number;
+      let keycode: number;
+
+      if (x0 === 0xFF) {
+        // ASCII → HID 변환 모드
+        const mapped = elpusk_util_keyboard_map.sASCToHIDKeyMap[n_language][x1];
+        if (!mapped) {
+          console.warn(`No ASCII→HID mapping for 0x${x1.toString(16).padStart(2, "0")}`);
+          return "";
+        }
+
+        [modifier, keycode] = [parseInt(mapped[0],16),parseInt(mapped[1],16)];
+      } else {
+        // 일반 HID keycode
+        modifier = x0;
+        keycode = x1;
+      }
+
+      // ──────────────────────────────
+      // 1. modifier 부분 : [csa]
+      // ──────────────────────────────
+      let modStr = "[";
+      if (modifier & 0x01) modStr += "c"; // Ctrl
+      if (modifier & 0x02) modStr += "s"; // Shift
+      if (modifier & 0x04) modStr += "a"; // Alt
+      // 필요하면 GUI(Win) 키 등 추가 가능 : if (modifier & 0x08) modStr += "g";
+      modStr += "]";
+
+      // ──────────────────────────────
+      // 2. key 부분 : [Enter] 또는 [?0x3B]
+      // ──────────────────────────────
+      let keyStr = lpu237._get_key_symbol_string_by_hid_key_code_number(keycode);//reverseKeyMap.get(keycode);
+      if (!keyStr) {
+        // 매핑이 없으면 16진수 두 자리로 표현
+        keyStr = "?0x" + keycode.toString(16).padStart(2, "0").toLocaleLowerCase();
+      }
+
+      const keyPart = "[" + keyStr + "]";
+
+      // 합치기
+      result.push(modStr + keyPart);
+    }
+
+    return result.join("");
+  }
+
+  /**
    * @private
-   * @description 태그 데이터를 가독성 있는 심볼 문자열 포맷(예: [Shift][A])으로 변환합니다.
+   * @description 태그 데이터를 가독성 있는 심볼 화면 표시용 문자열 포맷(예: [Shift][A])으로 변환합니다.
    * @param n_language 언어 인덱스
    * @param s_len_tag_hex 장치에서 수신한 원시 Hex 문자열
    * @returns {string | null} 심볼 문자열, 오류 시 null 반환
@@ -5934,7 +6148,7 @@ export class lpu237 extends hid {
 
   /**
    * @private
-   * @description iButton 제거(Remove) 태그 데이터를 심볼 문자열 포맷(예: [Shift][Q])으로 변환합니다.
+   * @description iButton 제거(Remove) 태그 데이터를 심볼 화면표시용 문자열 포맷(예: [Shift][Q])으로 변환합니다.
    * @param n_language 언어 인덱스
    * @param s_len_tag_hex 장치에서 수신한 원시 Hex 문자열
    * @returns {string | null} 심볼 문자열, 오류 시 null 반환
@@ -6688,6 +6902,24 @@ export class lpu237 extends hid {
 
   /**
    * @public
+   * @description 파일용 패리티 타입 문장열을 가져옵니다.
+   * @returns {number} "even" or "odd"
+   */
+  public get_parity_type_string_for_file = (n_track: number, n_combi: number): string => {
+    if (lpu237._is_invalid_track_combi(n_track, this._n_parity_type)) return "";
+    switch (this._n_parity_type[n_track][n_combi]) {
+      case type_parity.parity_even:
+        return "even";
+      case type_parity.parity_odd:
+        return "odd";
+      default:
+        return "";
+    }
+  };
+
+
+  /**
+   * @public
    * @description 시작 센티넬(Start Sentinel) 패턴을 가져옵니다.
    * @param {number} n_track 트랙 번호 (0~2)
    * @param {number} n_combi 조합 인덱스 (0~2)
@@ -6725,6 +6957,27 @@ export class lpu237 extends hid {
   public get_ecm_type = (n_track: number, n_combi: number): number => {
     if (lpu237._is_invalid_track_combi(n_track, this._n_ecm_type)) return 0;
     return this._n_ecm_type[n_track][n_combi];
+  };
+
+  /**
+   * @public
+   * @description 파일용 ECM type 문자열을 가져옵니다.
+   * @returns {number} 0: LRC, 1: Inversion LRC, 2: CRC
+   */
+  public get_ecm_type_string_for_file = (n_track: number, n_combi: number): string => {
+    if (lpu237._is_invalid_track_combi(n_track, this._n_ecm_type)) return "";
+
+    switch (this._n_ecm_type[n_track][n_combi]) {
+      case type_error_correct.error_correct_lrc:
+        return "lrc";
+      case type_error_correct.error_correct_inv_lrc:
+        return "invlrc";
+      case type_error_correct.error_correct_crc:
+        return "crc";
+      default:
+        return "";
+    }
+
   };
 
   /**
@@ -12642,6 +12895,280 @@ export class lpu237 extends hid {
     }); //the end of Promise definition.
   };
 
+  /**
+   * @public  "common" session 의 mmd1100_iso_mode attribute 는 아직 적용 안됌.
+   * @param {string} filename 제안되는 저장 파일 이름 (예: "lpu237_settings.xml")
+   * @return {Promise<boolean>} 저장 성공 여부
+   * @description 현재 device 설정값을 XML 형식으로 만들어 파일로 저장합니다.
+   */
+  public save_to_file = (filename: string = "lpu237_settings.xml"): Promise<boolean> => {
+      const this_device = this;
+
+      return new Promise<boolean>((resolve, reject) => {
+          try {
+              // XML 문서 생성
+              const doc = document.implementation.createDocument("", "", null);
+              const root = doc.createElement("lpu237_settings");
+              doc.appendChild(root);
+
+              // ──────────────────────────────
+              // 1. <common> 요소
+              // ──────────────────────────────
+              const common = doc.createElement("common");
+              root.appendChild(common);
+
+              // interface
+              if (this_device._n_interface >= 0) {
+                  common.setAttribute("interface", this_device.get_interface_string_for_file());//
+              }
+
+              // buzzer
+              common.setAttribute("buzzer", this_device.get_buzzer_string_for_file());//
+
+              // language
+              if (this_device._n_language_index >= 0) {
+                  common.setAttribute("language", this_device.get_language_string_for_file());//
+              }
+
+              // iso1, iso2, iso3 (enable track)
+              common.setAttribute("iso1", this_device._b_enable_iso[0] ? "enable" : "disable");//
+              common.setAttribute("iso2", this_device._b_enable_iso[1] ? "enable" : "disable");//
+              common.setAttribute("iso3", this_device._b_enable_iso[2] ? "enable" : "disable");//
+
+              // condition (global pre/post send condition)
+              common.setAttribute(
+                  "condition",
+                  this_device._b_global_pre_postfix_send_condition ? "and" : "or"
+              );//
+
+              // track_order
+              common.setAttribute("track_order",this_device.get_order_string());
+
+              // indication (all success = success)
+              common.setAttribute("indication", this_device.is_indicate_success_when_any_track_is_not_error() ? "or" : "and");//
+
+              // ignore1, ignore3
+              common.setAttribute("ignore1", this_device.is_send_iso2_only_when_iso1_equal_to_iso2() ? "enable" : "disable");//
+              common.setAttribute("ignore3", this_device.is_send_iso2_only_when_iso2_equal_to_iso3() ? "enable" : "disable");//
+
+              // rm_colon
+              common.setAttribute("rm_colon", this_device.is_not_send_colon_if_etxl_is_e0_and_first_code_is_colon() ? "enable" : "disable");
+
+              // ibutton mode
+              common.setAttribute("ibutton", this_device.get_ibutton_mode_string_for_file());//
+
+              // ibutton range
+              const start = this_device.get_ibutton_range_start();
+              const end = this_device.get_ibutton_range_end();
+              if (start >= 0 && end >= 0 && start <= end) {
+                  common.setAttribute("ibutton_start", start.toString());//
+                  common.setAttribute("ibutton_end", end.toString());//
+              }
+
+              // mmd1100_reset_interval
+              common.setAttribute("mmd1100_reset_interval", this_device.get_mmd1100_reset_interval_string_cur_for_file());
+
+              // direction (모두 같다고 가정)
+              common.setAttribute("direction", this_device.get_direction_string_for_file(0));//
+
+              // mmd1100_iso_mode	="disable" or "enable"
+              common.setAttribute("mmd1100_iso_mode", this_device._b_iso_mode ? "enable" : "disable");//
+              ////////////////////////////////////////////
+
+              // ──────────────────────────────
+              // 2. <global> 요소
+              // ──────────────────────────────
+              const globalElem = doc.createElement("global");
+              root.appendChild(globalElem);
+
+              if (this_device._s_global_prefix && this_device._s_global_prefix.length > 0) {
+                  globalElem.setAttribute("prefix", lpu237._convert_tag_to_file_format(this_device._n_language_index,this_device._s_global_prefix));
+              }
+              if (this_device._s_global_postfix && this_device._s_global_postfix.length > 0) {
+                  globalElem.setAttribute("postfix", lpu237._convert_tag_to_file_format(this_device._n_language_index,this_device._s_global_postfix));
+              }
+
+              // ──────────────────────────────
+              // 3. <iso1>, <iso2>, <iso3> 요소
+              // ──────────────────────────────
+              for (let track = 0; track < lpu237._const_the_number_of_track; track++) {
+                  const isoElem = doc.createElement(`iso${track + 1}`);
+                  root.appendChild(isoElem);
+
+                  const combiCount = this_device._n_number_combination[track] ?? 1;
+
+                  // combination 수
+                  if (combiCount >= 1) {
+                      isoElem.setAttribute("combination", combiCount.toString());
+                  }
+
+                  for (let c = 0; c < lpu237._const_the_number_of_combination; c++) {
+                      // prefix / postfix (per combination)
+                      const pre = this_device._s_private_prefix[track][c];
+                      const post = this_device._s_private_postfix[track][c];
+
+                      if (pre && pre.length > 0) {
+                          isoElem.setAttribute(`prefix${c}`, lpu237._convert_tag_to_file_format(this_device._n_language_index,pre));
+                      }
+                      if (post && post.length > 0) {
+                          isoElem.setAttribute(`postfix${c}`, lpu237._convert_tag_to_file_format(this_device._n_language_index,post));
+                      }
+
+                      // max_size
+                      if (this_device._n_max_size[track][c] !== null && this_device._n_max_size[track][c]! > 0) {
+                          isoElem.setAttribute(`max_size${c}`, this_device._n_max_size[track][c]!.toString());
+                      }
+
+                      // bit_size
+                      if (this_device._n_bit_size[track][c] !== null && this_device._n_bit_size[track][c]! > 0) {
+                          isoElem.setAttribute(`bit_size${c}`, this_device._n_bit_size[track][c]!.toString());
+                      }
+
+                      // data_mask (16진수)
+                      if (this_device._c_data_mask[track][c] !== null) {
+                          isoElem.setAttribute(`data_mask${c}`, "0x" + this_device._c_data_mask[track][c]!.toString(16).padStart(2, "0").toUpperCase());
+                      }
+
+                      // use_parity
+                      if (this_device._b_use_parity[track][c] !== null) {
+                          isoElem.setAttribute(`use_parity${c}`, this_device._b_use_parity[track][c] ? "enable" : "disable");
+                      }
+
+                      // parity_type
+                      if (this_device._n_parity_type[track][c] !== null && this_device._n_parity_type[track][c]! >= 0) {
+                          isoElem.setAttribute(`parity_type${c}`, this_device.get_parity_type_string_for_file(track,c));
+                      }
+
+                      // stxl, etxl
+                      if (this_device._c_stxl[track][c] !== null) {
+                          isoElem.setAttribute(`stxl${c}`, "0x" + this_device._c_stxl[track][c]!.toString(16).padStart(2, "0").toUpperCase());
+                      }
+                      if (this_device._c_etxl[track][c] !== null) {
+                          isoElem.setAttribute(`etxl${c}`, "0x" + this_device._c_etxl[track][c]!.toString(16).padStart(2, "0").toUpperCase());
+                      }
+
+                      // use_error_correct & error_correct_type
+                      if (this_device._b_use_ecm[track][c] !== null) {
+                          isoElem.setAttribute(`use_error_correct${c}`, this_device._b_use_ecm[track][c] ? "enable" : "disable");
+                      }
+                      if (this_device._n_ecm_type[track][c] !== null && this_device._n_ecm_type[track][c]! >= 0) {
+                          isoElem.setAttribute(`error_correct_type${c}`, this_device.get_ecm_type_string_for_file(track,c));
+                      }
+
+                      // add_value
+                      if (this_device._n_add_value[track][c] !== null) {
+                          isoElem.setAttribute(`add_value${c}`, this_device._n_add_value[track][c]!.toString());
+                      }
+                  }
+              }
+
+              // ──────────────────────────────
+              // 4. <ibutton> 요소
+              // ──────────────────────────────
+              const ibuttonElem = doc.createElement("ibutton");
+              root.appendChild(ibuttonElem);
+
+              if (this_device._s_prefix_ibutton) {
+                  ibuttonElem.setAttribute("prefix", lpu237._convert_tag_to_file_format(this_device._n_language_index,this_device._s_prefix_ibutton));
+              }
+              if (this_device._s_postfix_ibutton) {
+                  ibuttonElem.setAttribute("postfix", lpu237._convert_tag_to_file_format(this_device._n_language_index,this_device._s_postfix_ibutton));
+              }
+              if (this_device._s_ibutton_remove) {
+                  ibuttonElem.setAttribute("remove", lpu237._convert_tag_to_file_format(this_device._n_language_index,this_device._s_ibutton_remove));
+              }
+              if (this_device._s_prefix_ibutton_remove) {
+                  ibuttonElem.setAttribute("prefix_remove", lpu237._convert_tag_to_file_format(this_device._n_language_index,this_device._s_prefix_ibutton_remove));
+              }
+              if (this_device._s_postfix_ibutton_remove) {
+                  ibuttonElem.setAttribute("postfix_remove", lpu237._convert_tag_to_file_format(this_device._n_language_index,this_device._s_postfix_ibutton_remove));
+              }
+
+              // ──────────────────────────────
+              // 5. <uart> 또는 <rs232> 요소
+              // ──────────────────────────────
+              const uartElem = doc.createElement("uart");  // 또는 "rs232" 로 변경 가능
+              root.appendChild(uartElem);
+
+              if (this_device._s_prefix_uart) {
+                  uartElem.setAttribute("prefix", lpu237._convert_tag_to_file_format(this_device._n_language_index,this_device._s_prefix_uart));
+              }
+              if (this_device._s_postfix_uart) {
+                  uartElem.setAttribute("postfix", lpu237._convert_tag_to_file_format(this_device._n_language_index,this_device._s_postfix_uart));
+              }
+
+              //──────────────────────────────────────────────
+              // XML 문자열로 변환
+              //──────────────────────────────────────────────
+              const serializer = new XMLSerializer();
+              let xmlString = serializer.serializeToString(doc);
+
+              // 보기 좋게 들여쓰기 (선택사항)
+              xmlString = lpu237._formatXml(xmlString);
+
+              // Blob 생성 → 파일 다운로드
+              const blob = new Blob([xmlString], { type: "application/xml" });
+              const url = URL.createObjectURL(blob);
+
+              const a = document.createElement("a");
+              a.href = url;
+              a.download = filename;
+              document.body.appendChild(a);
+              a.click();
+
+              document.body.removeChild(a);
+              URL.revokeObjectURL(url);
+
+              resolve(true);
+          } catch (err) {
+              console.error("save_to_file failed", err);
+              reject(lpu237._get_error_object("en_e_parameter"));
+          }
+      });
+  };
+
+  /**
+   * 간단한 XML pretty-print (외부 라이브러리 없이)
+   * @param xml - 직렬화된 XML 문자열
+   * @returns 들여쓰기 적용된 XML 문자열
+   */
+  private static _formatXml(xml: string): string {
+      const doc = new DOMParser().parseFromString(xml, "application/xml");
+      const serializer = new XMLSerializer();
+      
+      // DOM을 순회하며 예쁘게 문자열 만들기
+      function formatNode(node: Node, indent: number = 0): string {
+          if (node.nodeType === Node.TEXT_NODE) {
+              const text = node.textContent?.trim();
+              return text ? ' '.repeat(indent * 2) + text + '\n' : '';
+          }
+          if (node.nodeType !== Node.ELEMENT_NODE) return '';
+
+          const element = node as Element;
+          let str = ' '.repeat(indent * 2) + `<${element.tagName}`;
+
+          // attributes 한 줄에 하나씩
+          for (const attr of element.attributes) {
+              str += `\n${' '.repeat((indent + 1) * 2)}${attr.name}="${attr.value}"`;
+          }
+
+          if (element.hasChildNodes()) {
+              str += '>\n';
+              for (const child of element.childNodes) {
+                  str += formatNode(child, indent + 1);
+              }
+              str += ' '.repeat(indent * 2) + `</${element.tagName}>\n`;
+          } else {
+              str += ' />\n';
+          }
+
+          return str;
+      }
+
+      let result = formatNode(doc.documentElement);
+      // XML 선언 추가
+      return '<?xml version="1.0" encoding="UTF-8"?>\n' + result.trim();
+  }
   /**
    * @private
    * @description 하드웨어 타이머 카운트를 주파수(Hz)로 변환합니다.
