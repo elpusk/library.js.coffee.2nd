@@ -608,6 +608,7 @@ export const createHandlers = (
         if (success) {
           _syncHardwareToState(g_lpu_device);
           addLog("Settings successfully read and reflected in UI.");
+          window.alert("Settings successfully read and reflected in UI.");
         } else {
           addLog("Failed to parse settings file. Please check XML format.");
         }
