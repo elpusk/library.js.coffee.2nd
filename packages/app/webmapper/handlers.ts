@@ -21,6 +21,8 @@ import * as elpusk_util_keyboard_const from "@lib/elpusk.util.keyboard.const"
 let g_coffee = coffee.get_instance();
 let g_lpu_device: lpu237 | null = null;
 let g_ctl: ctl_lpu237 | null = null;
+// Global callback to trigger UI cleanup when hardware is unplugged
+let g_force_cleanup: (() => void) | null = null;
 
 /**
  * MAPPING HELPERS: HW <-> UI
@@ -258,21 +260,47 @@ let g_n_system_event = 0;
 let g_n_opened_device_index = 0;
 
 function _cb_system_event(s_action_code: any, s_data_field: any) {
-  if (typeof s_action_code === "undefined") return;
+  do{
+    if (typeof s_action_code === "undefined"){
+      continue;
+    }
 
-  if (s_action_code === "c") {
-    ++g_n_system_event;
-    if (g_ctl && g_ctl.get_device()) {
+    if (s_action_code === "c") {
+      //a device is plugged out in the connected device status. 
+      ++g_n_system_event;
+
+      // check the current status is the connected device status.
+      if(!g_ctl){
+        continue;
+      }
+      if(!g_ctl.get_device()){
+        continue;
+      }
+
+      // find the removed device
       for (let i = 0; i < s_data_field.length; i++) {
         if (g_ctl.get_device().get_path() === s_data_field[i]) {
-          g_ctl = null;
-          g_n_opened_device_index = 0;
+          // found the removed device.
+          // need that disconnect the removed device and disconnect server.
+          // Trigger the cleanup logic to update UI and close connections
+          if (typeof g_force_cleanup === 'function') {
+            g_force_cleanup();
+          }
           break;
         }
-      }
-    }
-  }
-}
+      }//end for
+      continue;
+    }//the end of "c" event
+
+    if( s_action_code === "P"){
+        //a device have been plugged in connected server status.
+        ++g_n_system_event;
+        continue;
+    }//the end of "P" event
+
+  }while(false);
+
+} // the end of _cb_system_event
 
 (window as any).cf2_initialize = () => {
   coffee.set_system_event_handler(_cb_system_event);
@@ -359,11 +387,80 @@ export const createHandlers = (
     }));
   };
 
+  const onDisconnect = async () => {
+    if (g_ctl) {
+      try{
+        await g_ctl.close_with_promise();
+      }
+      catch(e){
+        //console.warn("Hardware close failed, proceeding with cleanup.", e);
+      }
+      g_ctl = null;
+      g_lpu_device = null;
+    }
+    setState((prev) => ({
+      ...prev,
+      status: ConnectionStatus.DISCONNECTED,
+      devicePath: "",
+      deviceUid: "", // Reset device UID
+      deviceName: "", // Reset device name
+      deviceFirmware: "", // Reset firmware version
+      activeTab: "device",
+      keyMaps: {}, // Clear key maps
+      logs: [...prev.logs, "Disconnected."],
+    }));
+    showNotification('Device disconnected', 'info');
+  };
+
+  const onDisconnectServer = async () => {
+    if (g_ctl) {
+      try{
+        await g_ctl.close_with_promise();
+      }
+      catch(e){
+        //console.warn("Hardware close failed during server disconnect, proceeding.", e);
+      }
+      g_ctl = null;
+      g_lpu_device = null;
+    }
+    setState((prev) => ({
+      ...prev,
+      status: ConnectionStatus.DISCONNECTED,
+      devicePath: "",
+      deviceUid: "",
+      deviceName: "",
+      deviceFirmware: "",
+      activeTab: "device",
+      logs: [...prev.logs, "Disconnected."],
+    }));
+
+    try{
+      await g_coffee.disconnect();
+    }
+    catch(e){
+      //console.warn("Server disconnect failed.", e);
+    }
+
+    setState((prev) => ({
+      ...prev,
+      serverStatus: ConnectionStatus.DISCONNECTED,
+      devicePaths: [],
+      logs: [...prev.logs, "Server link closed."],
+    }));
+  };
+
   return {
     initializeSystem: () => {
       if (typeof (window as any).cf2_initialize === "function") {
         (window as any).cf2_initialize();
       }
+      // Re-assign the global cleanup callback on initialization
+      // This ensures it points to the most recent closure's handlers even if StrictMode re-mounts.
+      g_force_cleanup = () => {
+        addLog("Device removal detected. Auto-disconnecting...");
+        onDisconnectServer(); // This also triggers device disconnect
+      };
+
       addLog("System components initialized.");
     },
 
@@ -371,6 +468,7 @@ export const createHandlers = (
       if (typeof (window as any).cf2_uninitialize === "function") {
         (window as any).cf2_uninitialize();
       }
+      g_force_cleanup = null;
     },
 
     onConnect: async (path: string) => {
@@ -436,25 +534,7 @@ export const createHandlers = (
       }
     },
 
-    onDisconnect: async () => {
-      if (g_ctl) {
-        await g_ctl.close_with_promise();
-        g_ctl = null;
-        g_lpu_device = null;
-      }
-      setState((prev) => ({
-        ...prev,
-        status: ConnectionStatus.DISCONNECTED,
-        devicePath: "",
-        deviceUid: "", // Reset device UID
-        deviceName: "", // Reset device name
-        deviceFirmware: "", // Reset firmware version
-        activeTab: "device",
-        keyMaps: {}, // Clear key maps
-        logs: [...prev.logs, "Disconnected."],
-      }));
-      showNotification('Device disconnected', 'info');
-    },
+    onDisconnect,
 
     onConnectServer: async (url: string) => {
       addLog(`Server link: ${url}`);
@@ -476,35 +556,11 @@ export const createHandlers = (
         }));
       } catch (error: any) {
         addLog(`Link failure: ${error.message}`);
-        showNotification('Server connection failed', 'error');
+        showNotification('Server connection failed(connects a device)', 'error');
       }
     },
 
-    onDisconnectServer: async () => {
-      if (g_ctl) {
-        await g_ctl.close_with_promise();
-        g_ctl = null;
-        g_lpu_device = null;
-      }
-      setState((prev) => ({
-        ...prev,
-        status: ConnectionStatus.DISCONNECTED,
-        devicePath: "",
-        deviceUid: "", // Reset device UID
-        deviceName: "", // Reset device name
-        deviceFirmware: "", // Reset firmware version
-        activeTab: "device",
-        logs: [...prev.logs, "Disconnected."],
-      }));
-
-      await g_coffee.disconnect();
-      setState((prev) => ({
-        ...prev,
-        serverStatus: ConnectionStatus.DISCONNECTED,
-        devicePaths: [],
-        logs: [...prev.logs, "Server link closed."],
-      }));
-    },
+    onDisconnectServer,
 
     onApply: async () => {
       if (!g_lpu_device || !g_ctl) return;
