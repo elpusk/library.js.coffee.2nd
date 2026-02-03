@@ -540,13 +540,25 @@ export const createHandlers = (
       addLog(`Server link: ${url}`);
       try {
         const urlObj = new URL(url);
-        await g_coffee.connect(urlObj.protocol.replace(":", ""), urlObj.port);
+        const s_session_number = await g_coffee.connect(urlObj.protocol.replace(":", ""), urlObj.port);
+        if(typeof s_session_number !== "string"){
+          throw Error("fail connects server.");
+        }
+        addLog("Session number:${s_session_number}");
+
         const dev_list = await g_coffee.get_device_list(
           "hid#vid_134b&pid_0206&mi_01",
         );
-        const filtered_list = dev_list.filter(
-          (str) => !/&(ibutton|msr|(scr|switch)\d+)$/.test(str),
-        );
+
+        let filtered_list:string[] = [];
+
+        if(Array.isArray(dev_list) ){
+          if(dev_list.length > 0){
+            filtered_list = dev_list.filter(
+            (str) => !/&(ibutton|msr|(scr|switch)\d+)$/.test(str),
+          );
+          }
+        }
 
         setState((prev) => ({
           ...prev,

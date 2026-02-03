@@ -68,6 +68,11 @@ const DeviceTab: React.FC<DeviceTabProps> = ({
     }
   };
 
+  // Connect 버튼 활성화 조건: 
+  // 1. 이미 연결된 경우 (Disconnect 버튼으로 작동하므로 활성)
+  // 2. 미연결 시: 서버가 연결되어 있어야 하고, 선택 가능한 장치 경로가 존재하며, 실제 경로가 선택되어 있어야 함.
+  const isConnectDisabled = !isConnected && (!isServerConnected || devicePaths.length === 0 || !selectedPath);
+
   return (
     <div className="flex flex-col h-full">
       <div className="bg-gray-100 border-b border-gray-300 px-6 py-3">
@@ -99,7 +104,7 @@ const DeviceTab: React.FC<DeviceTabProps> = ({
                   disabled={!isServerConnected}
                 >
                   {!isServerConnected || devicePaths.length === 0 ? (
-                    <option value=""></option>
+                    <option value="">No device found</option>
                   ) : (
                     <>
                       {devicePaths.map((path, idx) => (
@@ -114,7 +119,7 @@ const DeviceTab: React.FC<DeviceTabProps> = ({
               <input 
                 type="text" 
                 value={isConnected ? selectedPath : ""}
-                placeholder={isServerConnected ? "Device Path (auto-detected)" : "Waiting for Server Connection..."}
+                placeholder={isServerConnected ? (devicePaths.length > 0 ? "Select a device from list" : "No devices detected") : "Waiting for Server Connection..."}
                 disabled 
                 className="flex-1 bg-transparent text-sm text-gray-600 outline-none"
               />
@@ -122,14 +127,14 @@ const DeviceTab: React.FC<DeviceTabProps> = ({
             
             <div className="flex gap-3">
               <button
-                disabled={!isServerConnected && !isConnected}
+                disabled={isConnectDisabled}
                 onClick={() => !isConnected ? onConnect() : onDisconnect()}
                 className={`flex-1 py-2.5 px-4 rounded font-semibold text-sm shadow-sm transition-all flex justify-center items-center gap-2 ${
                   isConnected 
                     ? 'bg-red-50 text-red-600 border border-red-200 hover:bg-red-100' 
-                    : isServerConnected 
-                      ? 'bg-blue-600 text-white hover:bg-blue-700 hover:shadow-md' 
-                      : 'bg-gray-200 text-gray-400 border border-gray-300 cursor-not-allowed'
+                    : isConnectDisabled
+                      ? 'bg-gray-200 text-gray-400 border border-gray-300 cursor-not-allowed'
+                      : 'bg-blue-600 text-white hover:bg-blue-700 hover:shadow-md'                      
                 }`}
               >
                 {isConnected ? 'Disconnect' : 'Connect'}
