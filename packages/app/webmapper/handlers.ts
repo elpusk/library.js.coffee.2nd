@@ -6,6 +6,7 @@ import {
   DeviceType,
   DeviceConfig,
   KeyMapEntry,
+  NotificationState
 } from "./types";
 import { coffee } from "@lib/elpusk.framework.coffee";
 import {
@@ -284,6 +285,14 @@ export const createHandlers = (
   setState: React.Dispatch<React.SetStateAction<AppState>>,
   addLog: (msg: string) => void,
 ) => {
+  
+  const showNotification = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
+    setState(prev => ({
+      ...prev,
+      notification: { message, type }
+    }));
+  };
+
   const updateSetting = (
     key: keyof DeviceConfig,
     value: any,
@@ -417,11 +426,13 @@ export const createHandlers = (
         }));
 
          _syncHardwareToState(hw);
+         showNotification(`Connected to ${hw.get_name()}`, 'success');
       } catch (error: any) {
         addLog(`Error: ${error.message}`);
         g_ctl = null;
         g_lpu_device = null;
         setState((prev) => ({ ...prev, loading: null }));
+        showNotification('Connection failed', 'error');
       }
     },
 
@@ -442,6 +453,7 @@ export const createHandlers = (
         keyMaps: {}, // Clear key maps
         logs: [...prev.logs, "Disconnected."],
       }));
+      showNotification('Device disconnected', 'info');
     },
 
     onConnectServer: async (url: string) => {
@@ -464,6 +476,7 @@ export const createHandlers = (
         }));
       } catch (error: any) {
         addLog(`Link failure: ${error.message}`);
+        showNotification('Server connection failed', 'error');
       }
     },
 
@@ -549,9 +562,11 @@ export const createHandlers = (
           loading: null,
           logs: [...prev.logs, "Settings applied successfully."],
         }));
+        showNotification('Settings applied successfully', 'success');
       } catch (error: any) {
         addLog(`Apply failed: ${error.message}`);
         setState((prev) => ({ ...prev, loading: null }));
+        showNotification('Failed to apply settings', 'error');
       }
     },
 
@@ -600,6 +615,7 @@ export const createHandlers = (
     onLoadSettings: async (file: File) => {
       if (!g_lpu_device) {
         addLog("Error: Device not connected. Settings cannot be loaded without an active device instance.");
+        showNotification('Connect device first', 'error');
         return;
       }
       addLog(`Loading configuration from file: ${file.name}`);
@@ -608,9 +624,10 @@ export const createHandlers = (
         if (success) {
           _syncHardwareToState(g_lpu_device);
           addLog("Settings successfully read and reflected in UI.");
-          window.alert("Settings successfully read and reflected in UI.");
+          showNotification('Configuration loaded successfully', 'success');
         } else {
           addLog("Failed to parse settings file. Please check XML format.");
+          showNotification('Invalid XML format', 'error');
         }
       } catch (e: any) {
         addLog(`File Load Error: ${e.message}`);
@@ -620,27 +637,28 @@ export const createHandlers = (
       addLog(`Loading ROM: ${n}`)
     },
     onDownloadSettings: () => {
-      if (!window.confirm("Save the currnet setting to lpu237_settings.xml?")) {
-        return;
-      }      
-      const { config } = stateRef.current;
-      //setIsDownloading(true);   // 예: zustand, useState 등으로 관리
       if(!g_lpu_device){
+        addLog("Error: Device not connected. Cannot download settings.");
+        showNotification('Connect device first', 'error');
         return;
       }
+
+      addLog("Starting settings download to lpu237_settings.xml...");
       g_lpu_device.save_to_file("lpu237_settings.xml")
           .then((success) => {
             if (success) {
-              alert("Save OK");
+              addLog("Settings saved successfully.");
+              showNotification('Download complete', 'success');
             } else {
-              alert("Failure saving setting");
+              addLog("Failed to save settings. This may be restricted by your browser in a preview environment.");
+              showNotification('Download failed', 'error');
             }
           })
           .catch((err) => {
-            alert("Error: " + err.message);
+            addLog(`Download Error: ${err.message}`);
+            showNotification('Download error', 'error');
           })
           .finally(() => {
-            //setIsDownloading(false);
           });
     },
   };

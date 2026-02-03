@@ -4298,7 +4298,7 @@ export class lpu237 extends hid {
    * @private
    * @function _get_hid_key_pair_hex_string_from_string
    * @description [Modifier][Key] 형태의 문자열을 파싱하여 HID Hex 문자열로 변환합니다.
-   * @param {boolean} b_ibutton_remove - iButton 제거 인디케이터 포함 여부
+   * @param {boolean} b_ibutton_remove - iButton 제거 인디케이터 인지(ibutton remove indicator 의 20개 까지, 나머지는 7개 까지)
    * @param {string} s_string - 파싱할 XML 태그 문자열
    * @returns {string | null} Hex 문자열 (앞에 길이 정보 포함), 에러 시 null
    */
@@ -4399,6 +4399,17 @@ export class lpu237 extends hid {
 
     // 6. 길이 정보 및 최종 결과 생성
     let s_len = array_s_token.length.toString(16).padStart(2, "0");
+
+    if(b_ibutton_remove){
+      if(array_s_token.length > lpu237._const_max_size_tag_remove_byte){
+        return null;
+      }
+    }
+    else{
+      if(array_s_token.length > lpu237._const_max_size_tag_byte){
+        return null;
+      }
+    }
 
     if (b_all_zero) {
       return b_ibutton_remove ? "00".repeat(41) : "00".repeat(15);
@@ -5985,7 +5996,8 @@ export class lpu237 extends hid {
    * s_tag (16진수 문자열)을 사람이 읽기 쉬운 파일 저장용 태그 문자열로 변환합니다.
    *
    * 규격:
-   * - s_tag는 16진수 문자열, 길이는 4의 배수
+   * - 처음 두문자는 16진수 문자열로 바이트로 변경했을때 개수.
+   * - s_tag 16진수 문자열로 처음 두문자를 제외한 , 길이는 4의 배수
    * - 2글자 = 1바이트
    * - 2바이트 단위로 처리 (modifier + key 또는 0xFF + ASCII)
    *
@@ -5995,23 +6007,56 @@ export class lpu237 extends hid {
    *   [][f1]         → F1 (modifier 없음)
    *   [c][3b]     → 알 수 없는 키코드인 경우
    *
+   * @param {boolean} b_ibutton_remove - iButton 제거 인디케이터 인지(ibutton remove indicator 의 20개 까지, 나머지는 7개 까지)
    * @param n_language 언어 인덱스
-   * @param s_tag - 예: "01002a" 또는 "ff410042"
+   * @param s_tag - 예: "040001002a" 또는 "04ff410042"
    * @returns 변환된 문자열 (실패 시 빈 문자열 반환)
    */
-  private static _convert_tag_to_file_format(n_language: number, s_tag: string): string {
+  private static _convert_tag_to_file_format(
+    b_ibutton_remove: boolean,
+    n_language: number,
+     s_tag: string
+    ): string {
     if (!s_tag || s_tag.length === 0) {
       return "";
     }
-
-    // 길이 및 형식 검사
-    if (s_tag.length % 4 !== 0) {
-      console.warn(`s_tag length must be multiple of 4 (actual: ${s_tag.length})`);
+    if (!/^[0-9a-fA-F]{4,}$/.test(s_tag)) {
+      console.warn("s_tag must be hexadecimal string");
+      return "";
+    }
+    if (s_tag.length % 2 !== 0) {
+      console.warn(`s_tag length must be multiple of 2 (actual: ${s_tag.length})`);
       return "";
     }
 
-    if (!/^[0-9a-fA-F]{4,}$/.test(s_tag)) {
-      console.warn("s_tag must be hexadecimal string");
+    //data field 길이 구함.
+    const s_len = s_tag.slice(0,2);
+    const n_len = parseInt(s_len,16);
+    if (n_len % 2 !== 0) {
+      console.warn(`n_len must be multiple of 2 (actual: ${n_len})`);
+      return "";
+    }
+    if(b_ibutton_remove){
+      if(n_len > lpu237._const_max_size_tag_remove_byte){
+        console.warn(`n_len over range (actual: ${n_len})`);
+        return "";
+      }
+    }
+    else{
+      if(n_len > lpu237._const_max_size_tag_byte){
+        console.warn(`n_len over range (actual: ${n_len})`);
+        return "";
+      }
+    }
+
+    let n_cal_len = s_tag.length-2;
+    if(n_cal_len % 4 !== 0) {
+      console.warn(`s_tag data field length must be multiple of 4 (actual: ${n_cal_len})`);
+      return "";
+    }
+
+    if(n_len > (n_cal_len/2)){
+      console.warn(`s_tag length field must be greater then equal to data field length.`);
       return "";
     }
 
@@ -6019,11 +6064,11 @@ export class lpu237 extends hid {
 
     // 16진수 → 바이트 배열
     const bytes: number[] = [];
-    for (let i = 0; i < s_tag.length; i += 2) {
-      const byteHex = s_tag.slice(i, i + 2);
+    for (let i = 0; i < n_len*2; i += 2) {
+      const byteHex = s_tag.slice((i+2), (i+2) + 2);
       const byte = Number.parseInt(byteHex, 16);
       if (Number.isNaN(byte)) {
-        console.warn(`Invalid hex byte at ${i}: ${byteHex}`);
+        console.warn(`Invalid hex byte at ${(i+2)}: ${byteHex}`);
         return "";
       }
       bytes.push(byte);
@@ -6067,8 +6112,8 @@ export class lpu237 extends hid {
       // ──────────────────────────────
       let keyStr = lpu237._get_key_symbol_string_by_hid_key_code_number(keycode);//reverseKeyMap.get(keycode);
       if (!keyStr) {
-        // 매핑이 없으면 16진수 두 자리로 표현
-        keyStr = "?0x" + keycode.toString(16).padStart(2, "0").toLocaleLowerCase();
+        // 매핑이 없으면 16진수 두 자리로 표현 0x 로 시작.
+        keyStr = "0x" + keycode.toString(16).padStart(2, "0").toLocaleLowerCase();
       }
 
       const keyPart = "[" + keyStr + "]";
@@ -12982,10 +13027,10 @@ export class lpu237 extends hid {
               root.appendChild(globalElem);
 
               if (this_device._s_global_prefix && this_device._s_global_prefix.length > 0) {
-                  globalElem.setAttribute("prefix", lpu237._convert_tag_to_file_format(this_device._n_language_index,this_device._s_global_prefix));
+                  globalElem.setAttribute("prefix", lpu237._convert_tag_to_file_format(false,this_device._n_language_index,this_device._s_global_prefix));
               }
               if (this_device._s_global_postfix && this_device._s_global_postfix.length > 0) {
-                  globalElem.setAttribute("postfix", lpu237._convert_tag_to_file_format(this_device._n_language_index,this_device._s_global_postfix));
+                  globalElem.setAttribute("postfix", lpu237._convert_tag_to_file_format(false,this_device._n_language_index,this_device._s_global_postfix));
               }
 
               // ──────────────────────────────
@@ -13008,10 +13053,10 @@ export class lpu237 extends hid {
                       const post = this_device._s_private_postfix[track][c];
 
                       if (pre && pre.length > 0) {
-                          isoElem.setAttribute(`prefix${c}`, lpu237._convert_tag_to_file_format(this_device._n_language_index,pre));
+                          isoElem.setAttribute(`prefix${c}`, lpu237._convert_tag_to_file_format(false,this_device._n_language_index,pre));
                       }
                       if (post && post.length > 0) {
-                          isoElem.setAttribute(`postfix${c}`, lpu237._convert_tag_to_file_format(this_device._n_language_index,post));
+                          isoElem.setAttribute(`postfix${c}`, lpu237._convert_tag_to_file_format(false,this_device._n_language_index,post));
                       }
 
                       // max_size
@@ -13069,32 +13114,19 @@ export class lpu237 extends hid {
               root.appendChild(ibuttonElem);
 
               if (this_device._s_prefix_ibutton) {
-                  ibuttonElem.setAttribute("prefix", lpu237._convert_tag_to_file_format(this_device._n_language_index,this_device._s_prefix_ibutton));
+                  ibuttonElem.setAttribute("prefix", lpu237._convert_tag_to_file_format(false,this_device._n_language_index,this_device._s_prefix_ibutton));
               }
               if (this_device._s_postfix_ibutton) {
-                  ibuttonElem.setAttribute("postfix", lpu237._convert_tag_to_file_format(this_device._n_language_index,this_device._s_postfix_ibutton));
+                  ibuttonElem.setAttribute("postfix", lpu237._convert_tag_to_file_format(false,this_device._n_language_index,this_device._s_postfix_ibutton));
               }
               if (this_device._s_ibutton_remove) {
-                  ibuttonElem.setAttribute("remove", lpu237._convert_tag_to_file_format(this_device._n_language_index,this_device._s_ibutton_remove));
+                  ibuttonElem.setAttribute("remove", lpu237._convert_tag_to_file_format(true,this_device._n_language_index,this_device._s_ibutton_remove));
               }
               if (this_device._s_prefix_ibutton_remove) {
-                  ibuttonElem.setAttribute("prefix_remove", lpu237._convert_tag_to_file_format(this_device._n_language_index,this_device._s_prefix_ibutton_remove));
+                  ibuttonElem.setAttribute("prefix_remove", lpu237._convert_tag_to_file_format(false,this_device._n_language_index,this_device._s_prefix_ibutton_remove));
               }
               if (this_device._s_postfix_ibutton_remove) {
-                  ibuttonElem.setAttribute("postfix_remove", lpu237._convert_tag_to_file_format(this_device._n_language_index,this_device._s_postfix_ibutton_remove));
-              }
-
-              // ──────────────────────────────
-              // 5. <uart> 또는 <rs232> 요소
-              // ──────────────────────────────
-              const uartElem = doc.createElement("uart");  // 또는 "rs232" 로 변경 가능
-              root.appendChild(uartElem);
-
-              if (this_device._s_prefix_uart) {
-                  uartElem.setAttribute("prefix", lpu237._convert_tag_to_file_format(this_device._n_language_index,this_device._s_prefix_uart));
-              }
-              if (this_device._s_postfix_uart) {
-                  uartElem.setAttribute("postfix", lpu237._convert_tag_to_file_format(this_device._n_language_index,this_device._s_postfix_uart));
+                  ibuttonElem.setAttribute("postfix_remove", lpu237._convert_tag_to_file_format(false,this_device._n_language_index,this_device._s_postfix_ibutton_remove));
               }
 
               //──────────────────────────────────────────────

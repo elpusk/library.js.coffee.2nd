@@ -24,6 +24,11 @@ export interface LoadingState {
   message: string;
 }
 
+export interface NotificationState {
+  message: string;
+  type: 'success' | 'error' | 'info';
+}
+
 export interface DeviceConfig {
   interface: string;
   buzzer: boolean;
@@ -55,6 +60,7 @@ export interface AppState {
   config: DeviceConfig;
   keyMaps: Record<string, KeyMapEntry[]>; // Unified key mapping state
   loading: LoadingState | null; // Added loading state
+  notification: NotificationState | null; // Added for toast alerts
 }
 
 export const KEYBOARD_LAYOUT = [

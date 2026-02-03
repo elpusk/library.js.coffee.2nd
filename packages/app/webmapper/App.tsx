@@ -8,6 +8,7 @@ import DeviceTab from './components/DeviceTab';
 import CommonTab from './components/CommonTab';
 import KeyMapTab from './components/KeyMapTab';
 import LoadingOverlay from './components/LoadingOverlay';
+import { CheckCircle2, AlertCircle, Info, X } from 'lucide-react';
 
 const App: React.FC = () => {
   const [state, setState] = useState<AppState>({
@@ -24,6 +25,7 @@ const App: React.FC = () => {
     config: { ...DEFAULT_CONFIG },
     keyMaps: {}, // Centralized keyMaps within state
     loading: null, // Initialize loading as null
+    notification: null,
   });
   const stateRef = useRef(state);
 
@@ -42,9 +44,15 @@ const App: React.FC = () => {
     }));
   };
 
-  // Initialize the central handlers
-  // Note: handlers are memoized but reconstructed when state changes to ensure fresh closures
-  const handlers = useMemo(() => createHandlers(stateRef,setState, addLog), []);
+  // Notification cleanup timer
+  useEffect(() => {
+    if (state.notification) {
+      const timer = setTimeout(() => {
+        setState(prev => ({ ...prev, notification: null }));
+      }, 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [state.notification]);
 
   // Sync selectedPath when devicePaths is first populated
   useEffect(() => {
@@ -52,6 +60,10 @@ const App: React.FC = () => {
       setSelectedPath(state.devicePaths[0]);
     }
   }, [state.devicePaths]);
+
+  // Initialize the central handlers
+  // Note: handlers are memoized but reconstructed when state changes to ensure fresh closures
+  const handlers = useMemo(() => createHandlers(stateRef,setState, addLog), []);
 
   // Requirement: Call the initialization function on startup and cleanup on termination
   useEffect(() => {
@@ -159,6 +171,28 @@ const App: React.FC = () => {
     <div className="min-h-screen bg-gray-100 flex flex-col font-sans text-gray-800">
       {state.loading && <LoadingOverlay loading={state.loading} />}
       
+      {/* Toast Notification Container */}
+      {state.notification && (
+        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[110] animate-in fade-in slide-in-from-top-4 duration-300">
+          <div className={`flex items-center gap-3 px-6 py-3 rounded-lg shadow-xl border ${
+            state.notification.type === 'success' ? 'bg-green-50 border-green-200 text-green-800' :
+            state.notification.type === 'error' ? 'bg-red-50 border-red-200 text-red-800' :
+            'bg-blue-50 border-blue-200 text-blue-800'
+          }`}>
+            {state.notification.type === 'success' && <CheckCircle2 size={18} className="text-green-600" />}
+            {state.notification.type === 'error' && <AlertCircle size={18} className="text-red-600" />}
+            {state.notification.type === 'info' && <Info size={18} className="text-blue-600" />}
+            <span className="text-sm font-bold">{state.notification.message}</span>
+            <button 
+              onClick={() => setState(prev => ({ ...prev, notification: null }))}
+              className="ml-2 p-1 hover:bg-black/5 rounded-full transition-colors"
+            >
+              <X size={14} />
+            </button>
+          </div>
+        </div>
+      )}
+
       <Header 
         status={state.status} 
         serverStatus={state.serverStatus}
