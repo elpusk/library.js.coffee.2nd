@@ -61,6 +61,8 @@ export interface AppState {
   keyMaps: Record<string, KeyMapEntry[]>; // Unified key mapping state
   loading: LoadingState | null; // Added loading state
   notification: NotificationState | null; // Added for toast alerts
+  isDownloadModalOpen: boolean; // For filename input modal
+  exportFileName: string; // Stored filename for export  
 }
 
 export const KEYBOARD_LAYOUT = [

@@ -8,7 +8,7 @@ import DeviceTab from './components/DeviceTab';
 import CommonTab from './components/CommonTab';
 import KeyMapTab from './components/KeyMapTab';
 import LoadingOverlay from './components/LoadingOverlay';
-import { CheckCircle2, AlertCircle, Info, X } from 'lucide-react';
+import { CheckCircle2, AlertCircle, Info, X, Download, FileJson } from 'lucide-react';
 
 const App: React.FC = () => {
   const [state, setState] = useState<AppState>({
@@ -26,6 +26,8 @@ const App: React.FC = () => {
     keyMaps: {}, // Centralized keyMaps within state
     loading: null, // Initialize loading as null
     notification: null,
+    isDownloadModalOpen: false,
+    exportFileName: 'lpu237_settings.xml',    
   });
   const stateRef = useRef(state);
 
@@ -96,6 +98,19 @@ const App: React.FC = () => {
     addLog(`Key map updated for ${tabId.replace(/-/g, ' ')} (${newKeys.length} keys)`);
   };
 
+  const openDownloadModal = () => {
+    setState(prev => ({ ...prev, isDownloadModalOpen: true }));
+  };
+
+  const closeDownloadModal = () => {
+    setState(prev => ({ ...prev, isDownloadModalOpen: false }));
+  };
+
+  const executeDownload = () => {
+    handlers.onDownloadSettings();
+    closeDownloadModal();
+  };
+
   const renderContent = () => {
     if (state.activeTab === 'device') {
       return (
@@ -114,7 +129,7 @@ const App: React.FC = () => {
           onApply={handlers.onApply}
           onLoadSettings={handlers.onLoadSettings}
           onLoadFirmware={handlers.onLoadFirmware}
-          onDownloadSettings={handlers.onDownloadSettings}
+          onDownloadSettings={openDownloadModal} // Change to open modal
           deviceName={state.deviceName} // Pass dynamic device name
           deviceUid={state.deviceUid} // Pass dynamic UID
           deviceFirmware={state.deviceFirmware} // Pass firmware version
@@ -171,6 +186,55 @@ const App: React.FC = () => {
     <div className="min-h-screen bg-gray-100 flex flex-col font-sans text-gray-800">
       {state.loading && <LoadingOverlay loading={state.loading} />}
       
+      {/* Filename Input Modal (Replaces window.prompt) */}
+      {state.isDownloadModalOpen && (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md mx-4 overflow-hidden border border-slate-200 animate-in zoom-in-95 duration-200">
+            <div className="bg-slate-50 px-6 py-4 border-b border-slate-200 flex justify-between items-center">
+              <h3 className="font-bold text-slate-700 flex items-center gap-2">
+                <Download size={18} className="text-blue-600" />
+                Save Configuration
+              </h3>
+              <button onClick={closeDownloadModal} className="text-slate-400 hover:text-slate-600 transition-colors">
+                <X size={20} />
+              </button>
+            </div>
+            <div className="p-6 space-y-4">
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Filename</label>
+                <div className="relative">
+                  <FileJson className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                  <input 
+                    type="text" 
+                    autoFocus
+                    className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-500 outline-none transition-all text-sm font-medium"
+                    placeholder="settings.xml"
+                    value={state.exportFileName}
+                    onChange={(e) => setState(prev => ({ ...prev, exportFileName: e.target.value }))}
+                    onKeyDown={(e) => e.key === 'Enter' && executeDownload()}
+                  />
+                </div>
+                <p className="text-[10px] text-slate-400 italic">Example: my_lpu237_config.xml</p>
+              </div>
+            </div>
+            <div className="bg-slate-50 px-6 py-4 flex justify-end gap-3 border-t border-slate-100">
+              <button 
+                onClick={closeDownloadModal}
+                className="px-4 py-2 text-sm font-bold text-slate-500 hover:bg-slate-200 rounded-lg transition-colors"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={executeDownload}
+                className="px-6 py-2 text-sm font-bold bg-blue-600 text-white rounded-lg hover:bg-blue-700 shadow-md shadow-blue-200 transition-all active:scale-95"
+              >
+                Download
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Toast Notification Container */}
       {state.notification && (
         <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[110] animate-in fade-in slide-in-from-top-4 duration-300">

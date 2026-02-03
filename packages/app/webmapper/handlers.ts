@@ -699,11 +699,16 @@ export const createHandlers = (
         return;
       }
 
-      addLog("Starting settings download to lpu237_settings.xml...");
-      g_lpu_device.save_to_file("lpu237_settings.xml")
+      const fileNameFromState = stateRef.current.exportFileName;
+      const sanitizedName = fileNameFromState.trim() || "lpu237_settings.xml";
+      // Ensure it ends with .xml for consistency
+      const finalName = sanitizedName.toLowerCase().endsWith(".xml") ? sanitizedName : sanitizedName + ".xml";
+
+      addLog(`Starting settings download to ${finalName}...`);
+      g_lpu_device.save_to_file(finalName)
           .then((success) => {
             if (success) {
-              addLog("Settings saved successfully.");
+              addLog(`Settings saved successfully as ${finalName}.`);
               showNotification('Download complete', 'success');
             } else {
               addLog("Failed to save settings. This may be restricted by your browser in a preview environment.");
