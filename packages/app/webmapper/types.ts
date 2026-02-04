@@ -92,4 +92,4 @@ export const DEFAULT_CONFIG: DeviceConfig = {
 };
 
 // 중앙 관리용 애플리케이션 버전 상수
-export const APP_VERSION = '0.8';
+export const APP_VERSION = '0.9';

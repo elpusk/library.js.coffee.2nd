@@ -529,7 +529,7 @@ export const createHandlers = (
       g_coffee.device_update_set_parameter(devIdx, "model_name", g_lpu_device.get_name())
         .then(() => g_coffee.device_update_set_parameter(devIdx, "system_version", g_lpu_device!.get_system_version_by_string()))
         .then(() => g_coffee.device_update_set_parameter(devIdx, "_cf_bl_progress_", "true"))
-        .then(() => g_coffee.device_update_set_parameter(devIdx, "_cf_bl_window_", "true"))
+        .then(() => g_coffee.device_update_set_parameter(devIdx, "_cf_bl_window_", "false"))
         .then(() => {
           addLog("Starting firmware update...");
           setState(prev => ({
