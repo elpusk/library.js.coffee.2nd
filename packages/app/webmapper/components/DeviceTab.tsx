@@ -68,6 +68,16 @@ const DeviceTab: React.FC<DeviceTabProps> = ({
     }
   };
 
+  const handleRomButtonClick = () => {
+    // 사용자의 요청에 따라 파일 선택 버튼 클릭 시 이름을 초기화합니다.
+    setFirmwareFileName('Select firmware (.rom)...');
+    if (firmwareFileInputRef.current) {
+      // 동일한 파일을 다시 선택할 때도 onChange 이벤트가 발생하도록 input value를 초기화합니다.
+      firmwareFileInputRef.current.value = "";
+      firmwareFileInputRef.current.click();
+    }
+  };
+
   // Connect 버튼 활성화 조건: 
   // 1. 이미 연결된 경우 (Disconnect 버튼으로 작동하므로 활성)
   // 2. 미연결 시: 서버가 연결되어 있어야 하고, 선택 가능한 장치 경로가 존재하며, 실제 경로가 선택되어 있어야 함.
@@ -181,7 +191,7 @@ const DeviceTab: React.FC<DeviceTabProps> = ({
              <div className="flex gap-2">
                 <input type="file" ref={firmwareFileInputRef} className="hidden" accept=".rom,.bin" onChange={handleFirmwareFileChange} />
                 <button 
-                  onClick={() => firmwareFileInputRef.current?.click()}
+                  onClick={handleRomButtonClick}
                   className="flex items-center gap-2 px-4 py-2 bg-gray-100 border border-gray-300 rounded text-sm font-medium text-gray-700 hover:bg-gray-200 transition-colors"
                 >
                   <RefreshCw size={16} /> ROM File

@@ -17,7 +17,7 @@ const LoadingOverlay: React.FC<LoadingOverlayProps> = ({ loading }) => {
           <Loader2 size={48} className="text-blue-600 animate-spin" />
         </div>
         
-        <h2 className="text-xl font-bold text-slate-800 mb-2">Syncing Data</h2>
+        <h2 className="text-xl font-bold text-slate-800 mb-2">Processing</h2>
         <p className="text-slate-500 text-sm text-center mb-8 h-10 px-4 leading-relaxed">
           {loading.message}
         </p>

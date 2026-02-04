@@ -24,6 +24,7 @@ let g_ctl: ctl_lpu237 | null = null;
 // Global callbacks to trigger UI updates from non-React events
 let g_force_cleanup: (() => void) | null = null;
 let g_refresh_device_list: (() => void) | null = null;
+let g_b_updating = false;//fw updating .......
 
 /**
  * MAPPING HELPERS: HW <-> UI
@@ -284,10 +285,16 @@ function _cb_system_event(s_action_code: any, s_data_field: any) {
       for (let i = 0; i < s_data_field.length; i++) {
         if (g_ctl.get_device().get_path() === s_data_field[i]) {
           // found the removed device.
-          // need that disconnect the removed device and disconnect server.
-          // Trigger the cleanup logic to update UI and close connections
-          if (typeof g_force_cleanup === 'function') {
-            g_force_cleanup();
+          if(!g_b_updating){
+            // need that disconnect the removed device and disconnect server.
+            // Trigger the cleanup logic to update UI and close connections
+            if (typeof g_force_cleanup === 'function') {
+              g_force_cleanup();
+            }
+
+            if (typeof g_refresh_device_list === 'function') {
+              g_refresh_device_list();
+            }
           }
           break;
         }
@@ -456,9 +463,46 @@ export const createHandlers = (
   };
 
 
+ /**
+   * Firmware update process callback.
+   * Handles progress updates and completion/error states.
+   */
+  const _cb_update_firmware = (b_result: boolean, n_current: number, n_total: number, s_message: string) => {
+    if (!b_result) {
+      g_b_updating = false;
+      addLog(`Firmware update error: ${s_message}`);
+      setState(prev => ({ ...prev, loading: null }));
+      showNotification('Firmware update failed', 'error');
+      return;
+    }
+
+    if( n_total <= 0){
+      addLog(`Warning invalid fw total step : ${n_total}`);
+      return;
+    }
+    // Check for completion based on progress or specific message from library
+    if ((n_current+1) >= n_total) {//n_current is zero-base step index.
+      g_b_updating = false;
+      addLog(`Firmware update successful: ${s_message}`);
+      setState(prev => ({ ...prev, loading: null }));
+      showNotification('Firmware update complete', 'success');
+      // After update, usually the device reboots, so we should clean up local handle
+      onDisconnect(); 
+    } else {
+      setState(prev => ({
+        ...prev,
+        loading: {
+          current: n_current+1,
+          total: n_total,
+          message: `Updating device firmware: ${s_message}`
+        }
+      }));
+    }
+  };
+
   /**
-   * Firmware update progress callback.
-   * Updates UI loading overlay with current byte transfer status.
+   * Firmware file transfer progress callback.
+   * After transfer is complete, it sets parameters and starts the actual update.
    */
   const _cb_progress_fw_copy = (b_result: boolean, n_progress: number, n_file_size: number, s_message: string) => {
     if (!b_result) {
@@ -470,8 +514,50 @@ export const createHandlers = (
 
     if( n_progress > 0 && n_progress === n_file_size ){
       addLog(`Firmware successfully uploaded to server cache (${n_file_size} bytes).`);
-      setState(prev => ({ ...prev, loading: null }));
-      showNotification('Firmware upload complete', 'success');
+
+      if (!g_lpu_device){
+        addLog(`Firmware Configuring update sequence failed. none device instance.`);
+        setState(prev => ({ ...prev, loading: null }));
+        showNotification('Firmware Configuring update sequence failed', 'error');
+        return;
+      }
+      addLog(`Firmware uploaded. Configuring update sequence...`);
+
+      const devIdx = g_lpu_device.get_device_index();
+      
+      // Chain parameter settings for the bootloader then start the update process
+      g_coffee.device_update_set_parameter(devIdx, "model_name", g_lpu_device.get_name())
+        .then(() => g_coffee.device_update_set_parameter(devIdx, "system_version", g_lpu_device!.get_system_version_by_string()))
+        .then(() => g_coffee.device_update_set_parameter(devIdx, "_cf_bl_progress_", "true"))
+        .then(() => g_coffee.device_update_set_parameter(devIdx, "_cf_bl_window_", "true"))
+        .then(() => {
+          addLog("Starting firmware update...");
+          setState(prev => ({
+            ...prev,
+            loading: {
+              current: 0,
+              total: 100,
+              message: 'Initializing firmware flash...'
+            }
+          }));
+          // Start the firmware update using the callback
+          g_b_updating = true; // 이 변수의 동기화를 위해 먼저 true 해야 한다.
+          if( g_coffee.device_update_start_with_callback(devIdx, 0, 0, _cb_update_firmware) ){
+            addLog(`Firmware Update have been Started.`);
+          }
+          else{
+            g_b_updating = false;
+            addLog(`Firmware Update Starting - failed`);
+            setState(prev => ({ ...prev, loading: null }));
+            showNotification('Firmware Update Starting - failed', 'error');
+          }
+        })
+        .catch((err: any) => {
+          addLog(`Firmware Update Setup Error: ${err.message}`);
+          setState(prev => ({ ...prev, loading: null }));
+          showNotification('Update initialization failed', 'error');
+        });
+
     } else {
       // Show progress in UI overlay
       setState(prev => ({
@@ -494,7 +580,7 @@ export const createHandlers = (
       // This ensures it points to the most recent closure's handlers even if StrictMode re-mounts.
       g_force_cleanup = () => {
         addLog("Device removal detected. Auto-disconnecting...");
-        onDisconnectServer(); // This also triggers device disconnect
+        onDisconnect(); // This also triggers device disconnect
       };
 
       g_refresh_device_list = async () => {
@@ -561,7 +647,7 @@ export const createHandlers = (
               loading: {
                 current: cur,
                 total: total,
-                message: `Syncing registers (${cur}/${total})`,
+                message: `Loading parameters (${cur}/${total})`,
               },
             }));
           },
