@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { ConnectionStatus, DeviceType, AppState, KeyMapEntry, DEFAULT_CONFIG } from './types';
+import { ConnectionStatus, DeviceType, AppState, KeyMapEntry, DEFAULT_CONFIG, APP_VERSION } from './types';
 import { createHandlers } from './handlers';
 import Header from './components/Header';
 import Footer from './components/Footer';
@@ -21,7 +21,7 @@ const App: React.FC = () => {
     deviceType: DeviceType.MSR_IBUTTON,
     devicePaths: [], // Initially empty
     activeTab: 'device',
-    logs: ['Welcome to Web Mapper 0.8'],
+    logs: [`Welcome to Web Mapper ${APP_VERSION}`],
     config: { ...DEFAULT_CONFIG },
     keyMaps: {}, // Centralized keyMaps within state
     loading: null, // Initialize loading as null

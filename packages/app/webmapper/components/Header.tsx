@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { ConnectionStatus } from '../types';
+import { ConnectionStatus, APP_VERSION } from '../types';
 import { CreditCard, HardDrive, Server, Globe } from 'lucide-react';
 
 interface HeaderProps {
@@ -22,7 +22,7 @@ const Header: React.FC<HeaderProps> = ({ status, serverStatus, deviceUid, onTogg
           <CreditCard size={24} />
         </div>
         <div>
-          <h1 className="text-xl font-bold text-slate-800 leading-tight">Elpusk Card Reader Web Mapper 0.8</h1>
+          <h1 className="text-xl font-bold text-slate-800 leading-tight">Elpusk Card Reader Web Mapper {APP_VERSION}</h1>
           <p className="text-xs text-slate-500 font-medium">For LPU237, LPU-207 and LPU208</p>
         </div>
       </div>

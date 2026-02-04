@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { DeviceType } from '../types';
+import { DeviceType, APP_VERSION } from '../types';
 import { Settings, Keyboard, Usb, CreditCard, Key } from 'lucide-react';
 
 interface SidebarProps {
@@ -77,7 +77,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange, deviceType, i
         })}
       </nav>
       <div className="p-4 bg-slate-900 text-xs text-slate-500 text-center">
-        v0.8 Build 2026
+        v{APP_VERSION} Build 2026
       </div>
     </aside>
   );

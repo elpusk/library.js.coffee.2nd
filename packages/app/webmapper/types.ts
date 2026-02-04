@@ -90,3 +90,6 @@ export const DEFAULT_CONFIG: DeviceConfig = {
   msrGlobalSendCondition: 'One more track is normal',
   msrSuccessIndCondition: 'No Error in all tracks',
 };
+
+// 중앙 관리용 애플리케이션 버전 상수
+export const APP_VERSION = '0.8';
