@@ -77,7 +77,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange, deviceType, i
         })}
       </nav>
       <div className="p-4 bg-slate-900 text-xs text-slate-500 text-center">
-        v0.7.0 Build 2026
+        v0.8 Build 2026
       </div>
     </aside>
   );
