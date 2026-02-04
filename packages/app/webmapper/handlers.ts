@@ -455,6 +455,36 @@ export const createHandlers = (
     }));
   };
 
+
+  /**
+   * Firmware update progress callback.
+   * Updates UI loading overlay with current byte transfer status.
+   */
+  const _cb_progress_fw_copy = (b_result: boolean, n_progress: number, n_file_size: number, s_message: string) => {
+    if (!b_result) {
+      addLog(`Firmware transfer error: ${s_message}`);
+      setState(prev => ({ ...prev, loading: null }));
+      showNotification('Firmware transfer failed', 'error');
+      return;
+    }
+
+    if( n_progress > 0 && n_progress === n_file_size ){
+      addLog(`Firmware successfully uploaded to server cache (${n_file_size} bytes).`);
+      setState(prev => ({ ...prev, loading: null }));
+      showNotification('Firmware upload complete', 'success');
+    } else {
+      // Show progress in UI overlay
+      setState(prev => ({
+        ...prev,
+        loading: {
+          current: n_progress,
+          total: n_file_size,
+          message: `Transferring ROM to server: ${Math.round((n_progress / n_file_size) * 100)}%`
+        }
+      }));
+    }
+  };
+
   return {
     initializeSystem: () => {
       if (typeof (window as any).cf2_initialize === "function") {
@@ -573,7 +603,7 @@ export const createHandlers = (
         if(typeof s_session_number !== "string"){
           throw Error("fail connects server.");
         }
-        addLog("Session number:${s_session_number}");
+        addLog('Session number:${s_session_number}');
 
         const dev_list = await g_coffee.get_device_list(
           "hid#vid_134b&pid_0206&mi_01",
@@ -730,9 +760,28 @@ export const createHandlers = (
         addLog(`File Load Error: ${e.message}`);
       }
     },
-    onLoadFirmware: (n: string) => {
-      addLog(`Loading ROM: ${n}`)
+
+    onLoadFirmware: (file: File) => {
+      if (!file) return;
+      
+      addLog(`Initiating firmware transfer: ${file.name}`);
+      
+      // Initialize loading state for transfer
+      setState(prev => ({
+        ...prev,
+        loading: {
+          current: 0,
+          total: file.size,
+          message: 'Starting firmware upload to server...'
+        }
+      }));
+
+      // Call library to perform chunked file transfer to server's firmware cache
+      // 10*1024 is the default packet size for transfer
+      const n_packet_size = 10*1024; //10K bytes
+      g_coffee.file_Copy_firmware_callback(file, n_packet_size, _cb_progress_fw_copy);
     },
+
     onDownloadSettings: () => {
       if(!g_lpu_device){
         addLog("Error: Device not connected. Cannot download settings.");

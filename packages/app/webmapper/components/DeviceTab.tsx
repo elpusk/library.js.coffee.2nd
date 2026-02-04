@@ -16,7 +16,7 @@ interface DeviceTabProps {
   setDeviceType: (type: DeviceType) => void;
   onApply: () => void;
   onLoadSettings: (file: File) => void; // Changed from string to File
-  onLoadFirmware: (fileName: string) => void;
+  onLoadFirmware: (file: File) => void; // Changed from string to File
   onDownloadSettings: () => void;
   deviceName?: string; // New prop for model name
   deviceUid?: string; // New prop for serial/UID
@@ -62,9 +62,9 @@ const DeviceTab: React.FC<DeviceTabProps> = ({
 
   const handleFirmwareFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      const name = e.target.files[0].name;
-      setFirmwareFileName(name);
-      onLoadFirmware(name);
+      const file = e.target.files[0]; // Get actual File object
+      setFirmwareFileName(file.name);
+      onLoadFirmware(file); // Pass the File object
     }
   };
 
