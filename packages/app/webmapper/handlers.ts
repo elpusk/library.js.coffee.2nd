@@ -21,8 +21,9 @@ import * as elpusk_util_keyboard_const from "@lib/elpusk.util.keyboard.const"
 let g_coffee = coffee.get_instance();
 let g_lpu_device: lpu237 | null = null;
 let g_ctl: ctl_lpu237 | null = null;
-// Global callback to trigger UI cleanup when hardware is unplugged
+// Global callbacks to trigger UI updates from non-React events
 let g_force_cleanup: (() => void) | null = null;
+let g_refresh_device_list: (() => void) | null = null;
 
 /**
  * MAPPING HELPERS: HW <-> UI
@@ -137,6 +138,7 @@ const _get_tag_string = (b_shift:boolean, b_ctl:boolean, b_alt:boolean, s_hex_hi
   return s_hex_tag;
 }
 
+// Completed fix for _set_ui_tag_to_device to handle all tab labels
 const _set_ui_tag_to_device = (state: AppState,s_tab_lable:string):void => {
       const hw = g_lpu_device;
       if(hw === null){
@@ -295,6 +297,9 @@ function _cb_system_event(s_action_code: any, s_data_field: any) {
     if( s_action_code === "P"){
         //a device have been plugged in connected server status.
         ++g_n_system_event;
+        if (typeof g_refresh_device_list === 'function') {
+          g_refresh_device_list();
+        }
         continue;
     }//the end of "P" event
 
@@ -461,6 +466,28 @@ export const createHandlers = (
         onDisconnectServer(); // This also triggers device disconnect
       };
 
+      g_refresh_device_list = async () => {
+        try {
+          if (g_coffee.get_session_number()) {
+            const dev_list = await g_coffee.get_device_list(
+              "hid#vid_134b&pid_0206&mi_01",
+            );
+
+            let filtered_list:string[] = [];
+
+            if(Array.isArray(dev_list) ){
+              if(dev_list.length > 0){
+                filtered_list = dev_list.filter(
+                (str) => !/&(ibutton|msr|(scr|switch)\d+)$/.test(str),
+              );
+              }
+            }
+            setState(prev => ({ ...prev, devicePaths: filtered_list }));
+          }
+        } catch (e) {
+          console.error("Refresh device list failed", e);
+        }
+      };
       addLog("System components initialized.");
     },
 
@@ -469,6 +496,7 @@ export const createHandlers = (
         (window as any).cf2_uninitialize();
       }
       g_force_cleanup = null;
+      g_refresh_device_list = null;
     },
 
     onConnect: async (path: string) => {
