@@ -21,7 +21,7 @@ const App: React.FC = () => {
     deviceType: DeviceType.MSR_IBUTTON,
     devicePaths: [], // Initially empty
     activeTab: 'device',
-    logs: ['Welcome to Web Mapper 0.7'],
+    logs: ['Welcome to Web Mapper 0.8'],
     config: { ...DEFAULT_CONFIG },
     keyMaps: {}, // Centralized keyMaps within state
     loading: null, // Initialize loading as null

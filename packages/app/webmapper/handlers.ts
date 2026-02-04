@@ -268,6 +268,7 @@ function _cb_system_event(s_action_code: any, s_data_field: any) {
     }
 
     if (s_action_code === "c") {
+      // 중요 +_+ 이 이벤트는 현재 open 된 장비가 있어야 발생함.
       //a device is plugged out in the connected device status. 
       ++g_n_system_event;
 

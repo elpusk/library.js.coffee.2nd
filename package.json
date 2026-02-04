@@ -10,11 +10,13 @@
     "dev": "pnpm --filter webmapper dev",
     "preview": "pnpm --filter webmapper preview"
   },
-
   "devDependencies": {
-    "typescript": "^5.9.3",
     "@tailwindcss/vite": "^4.1.18",
-    "tailwindcss": "^4.1.18"
+    "tailwindcss": "^4.1.18",
+    "typescript": "^5.9.3"
   },
-  "packageManager": "pnpm@10.27.0"
+  "packageManager": "pnpm@10.27.0",
+  "dependencies": {
+    "new-package": "^0.1.0"
+  }
 }
