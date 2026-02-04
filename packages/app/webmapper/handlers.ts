@@ -22,7 +22,7 @@ let g_coffee = coffee.get_instance();
 let g_lpu_device: lpu237 | null = null;
 let g_ctl: ctl_lpu237 | null = null;
 // Global callbacks to trigger UI updates from non-React events
-let g_force_cleanup: (() => void) | null = null;
+let g_plugout_cleanup: (() => void) | null = null;
 let g_refresh_device_list: (() => void) | null = null;
 let g_b_updating = false;//fw updating .......
 
@@ -288,8 +288,8 @@ function _cb_system_event(s_action_code: any, s_data_field: any) {
           if(!g_b_updating){
             // need that disconnect the removed device and disconnect server.
             // Trigger the cleanup logic to update UI and close connections
-            if (typeof g_force_cleanup === 'function') {
-              g_force_cleanup();
+            if (typeof g_plugout_cleanup === 'function') {
+              g_plugout_cleanup();
             }
 
             if (typeof g_refresh_device_list === 'function') {
@@ -578,9 +578,25 @@ export const createHandlers = (
       }
       // Re-assign the global cleanup callback on initialization
       // This ensures it points to the most recent closure's handlers even if StrictMode re-mounts.
-      g_force_cleanup = () => {
+      g_plugout_cleanup = () => {
+        // plugout 되면 cf2 에서 자동으로 device close 하므로, 그냥 해당 instance 만 제거.
         addLog("Device removal detected. Auto-disconnecting...");
-        onDisconnect(); // This also triggers device disconnect
+
+        g_ctl = null;
+        g_lpu_device = null;
+
+        setState((prev) => ({
+          ...prev,
+          status: ConnectionStatus.DISCONNECTED,
+          devicePath: "",
+          deviceUid: "", // Reset device UID
+          deviceName: "", // Reset device name
+          deviceFirmware: "", // Reset firmware version
+          activeTab: "device",
+          keyMaps: {}, // Clear key maps
+          logs: [...prev.logs, "Disconnected."],
+        }));
+        showNotification('Device disconnected', 'info');        
       };
 
       g_refresh_device_list = async () => {
@@ -612,7 +628,7 @@ export const createHandlers = (
       if (typeof (window as any).cf2_uninitialize === "function") {
         (window as any).cf2_uninitialize();
       }
-      g_force_cleanup = null;
+      g_plugout_cleanup = null;
       g_refresh_device_list = null;
     },
 
