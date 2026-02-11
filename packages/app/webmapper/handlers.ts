@@ -654,9 +654,11 @@ export const createHandlers = (
         g_ctl = new ctl_lpu237(g_coffee, g_lpu_device);
 
         await g_ctl.open_with_promise();
-        await g_ctl.load_min_parameter_from_device_with_promise();
+        //await g_ctl.load_min_parameter_from_device_with_promise();
+        await g_ctl.load_basic_info_from_device_with_promise();
 
-        await g_ctl.load_all_parameter_from_device_with_promise(
+        //await g_ctl.load_all_parameter_from_device_with_promise(
+        await g_ctl.load_all_parameter_from_device_with_promise_by_hyper(
           (idx, total, cur) => {
             setState((prev) => ({
               ...prev,

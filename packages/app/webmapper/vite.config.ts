@@ -20,6 +20,15 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
-    emptyOutDir: true
+    emptyOutDir: true,
+    rollupOptions:{
+      output:{
+        manualChunks(id){
+          if(id.includes('node_modules')){
+            return 'vendor'; // 라이브러리들을 vendor.js로 따로 뽑아냅니다.
+          }
+        }
+      }
+    }
   }
 });

@@ -129,6 +129,54 @@ export class ctl_lpu237{
     
 
     /**
+     * @description Generate get baic info start IO.
+     * 
+     * enter_config, 
+     * 
+     * gt_read_uid, gt_support_mmd1000, 
+     * 
+     * gt_type_ibutton, gt_type_device, 
+     * 
+     * leave_config 명령 실행 시작.
+     */
+    private _gen_get_basic_info_start_io(
+        server: coffee,
+        device: lpu237,
+        cb_complete_sys_info: type_cb_received,
+        cb_error_sys_info: type_cb_error
+    ): number {
+        let n_req = 0;
+        let s_request: string | null = null;
+
+        do {
+            device.clear_transaction();
+
+            n_req = device.generate_get_basic_information();
+            if (n_req <= 0) {
+                continue;
+            }
+            s_request = device.get_tx_transaction();
+            if (s_request === null) {
+                n_req = 0;
+                continue;
+            }
+
+            const b_result = server.device_transmit_with_callback(
+                device.get_device_index(), 0, 0, s_request,
+                cb_complete_sys_info,
+                cb_error_sys_info,
+                true
+            );
+            if (!b_result) {
+                n_req = 0;
+                device.clear_transaction();
+                continue;
+            }
+        } while (false);
+        return n_req;
+    }
+
+    /**
      * Generate get system info start IO.
      * 
      * enter_config, get_system_version, get_structure_version, get_device_type, get_system_name, leave_config 명령 실행 시작.
@@ -164,6 +212,48 @@ export class ctl_lpu237{
             if (!b_result) {
                 n_req = 0;
                 device.clear_transaction();
+                continue;
+            }
+        } while (false);
+        return n_req;
+    }
+
+    /**
+     * Generate get parameter start IO with hyper speed.
+     */
+    private _gen_get_para_start_io_by_hyper_speed(
+        server: coffee,
+        device: lpu237,
+        cb_complete_get_parameter: type_cb_received,
+        cb_error_get_parameter: type_cb_error
+    ): number {
+        let s_request: string | null = null;
+        let n_req = 0;
+
+        do {
+            device.clear_transaction();
+
+            n_req = device.generate_get_parameters_by_hyper_speed();
+            if (n_req <= 0) {
+                n_req = 0;
+                continue;
+            }
+
+            s_request = device.get_tx_transaction();
+            if (s_request === null) {
+                n_req = 0;
+                continue;
+            }
+
+            const b_result = server.device_transmit_with_callback(
+                device.get_device_index(), 0, 0, s_request,
+                cb_complete_get_parameter,
+                cb_error_get_parameter,
+                true
+            );
+            if (!b_result) {
+                device.clear_transaction();
+                n_req = 0;
                 continue;
             }
         } while (false);
@@ -723,6 +813,71 @@ export class ctl_lpu237{
         }
     }
 
+
+    /**
+     * @description Callback complete get parameter by hyper method.
+     * 
+     * 일반 get_parameter 콜백과 다르게, 수신된 응답값을 큐에 저장만하고,
+     * 
+     * 모든 수신이 완료되면, 그때 load_parameter_with_hyper_rx() 를 이용해서, 
+     * 
+     * 한 번에 파씽해서 해결 한다. 
+     */
+    private _cb_complete_get_parameter_by_hyper = (n_device_index: number, s_rx: Array<string> | string) => {
+        let b_result = false;
+        let parameter = util.map_of_queue_front(this._map_q_para, n_device_index);
+        do {
+            if (parameter === null) {
+                continue;
+            }
+            if( typeof s_rx !== 'string' ){
+                continue;
+            }   
+            if (!parameter.device.set_rx_transaction(s_rx)) {
+                continue;
+            }
+            if (!parameter.device.set_from_rx()) {
+                continue;
+            }
+           
+            if (typeof parameter.cb_progress === 'function') {
+                parameter.stage_cur!++;
+                parameter.cb_progress(n_device_index, parameter.stage_max!, parameter.stage_cur!);
+            }
+            
+            const s_request = parameter.device.get_tx_transaction();
+            if (s_request === null) {
+                // 모든 request 전송 완료.
+                parameter.device.load_parameter_with_hyper_rx()
+                parameter.device.clear_transaction();
+                this._notify_received(parameter);
+                parameter = null;
+                b_result = true;
+                continue;
+            }
+            
+            b_result = parameter.server.device_transmit_with_callback(
+                parameter.device.get_device_index(), 0, 0, s_request,
+                this._cb_complete_get_parameter_by_hyper,
+                this._cb_error_common,
+                true
+            );
+            if (!b_result) {
+                continue;
+            }
+
+            b_result = true;
+        } while (false);
+
+        if (parameter) {
+            if (b_result) {
+                util.map_of_queue_push(this._map_q_para, n_device_index, parameter);
+            } else {
+                parameter.device.clear_transaction();
+                this._notify_error(parameter);
+            }
+        }
+    }    
     /**
      * Callback complete get parameter
      */
@@ -843,6 +998,68 @@ export class ctl_lpu237{
         }
     }
 
+
+    /**
+     * Callback complete basic info only
+     */
+    private _cb_complete_basic_info_only = (n_device_index: number, s_rx: Array<string> | string) => {
+        console.info("_cb_complete_basic_info_only : ",this);
+        let b_result = false;
+        let parameter = util.map_of_queue_front(this._map_q_para, n_device_index);
+        do {
+            if (parameter === null) {
+                console.info("_cb_complete_basic_info_only : parameter is null");
+                continue;
+            }
+            if (typeof s_rx !== 'string') {
+                console.info("_cb_complete_basic_info_only : s_rx isn't string");
+                continue;
+            }
+            if (!parameter.device.set_rx_transaction(s_rx)) {
+                console.info("_cb_complete_basic_info_only : set_rx_transaction : error");
+                continue;
+            }
+            if (!parameter.device.set_from_rx()) {
+                console.info("_cb_complete_basic_info_only : set_from_rx : error");
+                continue;
+            }
+
+            if (typeof parameter.cb_progress === 'function') {
+                parameter.stage_cur!++;
+                parameter.cb_progress(n_device_index, parameter.stage_max!, parameter.stage_cur!);
+            }
+
+            const s_request = parameter.device.get_tx_transaction();
+            if (s_request === null) {
+                parameter.device.clear_transaction();
+                this._notify_received(parameter);
+                parameter = null;
+                b_result = true;
+                continue;
+            }
+
+            b_result = parameter.server.device_transmit_with_callback(
+                parameter.device.get_device_index(), 0, 0, s_request,
+                this._cb_complete_basic_info_only,
+                this._cb_error_common,
+                true
+            );
+            if (!b_result) {
+                continue;
+            }
+            b_result = true;
+        } while (false);
+
+        if (parameter) {
+            if (b_result) {
+                util.map_of_queue_push(this._map_q_para, n_device_index, parameter);
+            } else {
+                parameter.device.clear_transaction();
+                this._notify_error(parameter);
+            }
+        }
+    }    
+
     /**
      * Callback complete system info only
      */
@@ -933,7 +1150,7 @@ export class ctl_lpu237{
                 continue;
             }
             if (!parameter.device.set_from_rx()) {
-                console.error("E : _cb_complete_set_parameter : set_from_rx failure");
+                console.error(`E : _cb_complete_set_parameter : set_from_rx failure : ${parameter.device.last_error}`);
                 continue;
             }
 
@@ -1247,6 +1464,65 @@ export class ctl_lpu237{
         }
     }
 
+
+    /**
+     * @public
+     * @function load_all_parameter_from_device_with_promise_by_hyper
+     * @param {Function} [cb_progress] - 진행 상태 콜백 (n_idx, n_total, n_current) => void
+     * @returns {Promise<string>} 모든 파라미터 로드 완료 시 "success" 반환.
+     * @description 장치로부터 시스템 정보 및 모든 파라미터를 읽어옵니다.
+     */
+    public async load_all_parameter_from_device_with_promise_by_hyper(
+        cb_progress?: (n_device_index: number, n_total: number, n_current: number) => void
+    ): Promise<string> {
+        const server = this._server;
+        const device = this._device;
+
+        // 1. 서버/장치 상태 확인 및 중복 요청 방지
+        if (!this._check_server_and_device(server, device)) {
+            throw new Error("error");
+        }
+
+        if (!util.map_of_queue_is_empty(this._map_q_para, device.get_device_index())) {
+            // 이미 다른 작업(트랜잭션)이 진행 중임
+            throw new Error("error");
+        }
+
+        return new Promise((resolve, reject) => {
+            let n_request = 0;
+
+            // 2. 시스템 정보 조회를 위한 첫 번째 IO 시작 및 전체 단계 수 획득
+            // _cb_complete_get_parameter_by_hyper 수신 성공 시 실행될 내부 콜백
+            n_request = this._gen_get_para_start_io_by_hyper_speed(
+                server, 
+                device, 
+                this._cb_complete_get_parameter_by_hyper, 
+                this._cb_error_common
+            );
+
+            if (n_request <= 0) {
+                return reject(new Error("error"));
+            }
+
+            // 3. 비동기 체이닝을 위한 파라미터 컨텍스트 구성
+            const parameter = {
+                server: server,
+                device: device,
+                resolve: resolve,
+                reject: reject,
+                b_read: undefined,
+                cb_received: undefined,
+                cb_error: undefined,
+                cb_progress: cb_progress,
+                stage_max: n_request,
+                stage_cur: 0
+            };
+
+            // 4. 전역 큐에 컨텍스트를 푸시하여 연속적인 콜백 처리가 가능하게 함
+            util.map_of_queue_push(this._map_q_para, device.get_device_index(), parameter);
+        });
+    }
+
     /**
      * @public
      * @function load_all_parameter_from_device_with_promise
@@ -1302,6 +1578,61 @@ export class ctl_lpu237{
 
             // 4. 전역 큐에 컨텍스트를 푸시하여 연속적인 콜백 처리가 가능하게 함
             util.map_of_queue_push(this._map_q_para, device.get_device_index(), parameter);
+        });
+    }
+
+        
+    /**
+     * @public
+     * @function load_basic_info_from_device_with_promise
+     * @param {Function} [cb_progress] - 시스템 정보 획득 단계별 콜백.
+     * @returns {Promise<string>} 성공 시 "success" 반환.
+     * @description MSR/iButton 데이터 읽기 전 장치 기본 정보를 신속하게 로드할 때 사용합니다.
+     * 
+     * enter_config, gt_read_uid, gt_support_mmd1000,  gt_type_ibutton, gt_type_device, leave_config 명령 실행.
+     */
+    public async load_basic_info_from_device_with_promise(
+        cb_progress?: (n_device_index: number, n_total: number, n_current: number) => void
+    ): Promise<string> {
+        const server = this._server;
+        const device = this._device;
+
+        // 1. 상태 검증 및 중복 실행 방지
+        if (!this._check_server_and_device(server, device) || 
+            !util.map_of_queue_is_empty(this._map_q_para, device.get_device_index())) {
+            throw new Error("error");
+        }
+
+        return new Promise((resolve, reject) => {
+            // 2. 시스템 정보 조회를 위한 IO 시작
+            // 여기서는 '_cb_complete_basic_info_only'를 사용하여 추가 파라미터 조회를 생략함
+            const n_request = this._gen_get_basic_info_start_io(
+                server, 
+                device, 
+                this._cb_complete_basic_info_only, 
+                this._cb_error_common
+            );
+
+            if (n_request <= 0) {
+                return reject(new Error("error"));
+            }
+
+            // 3. 트랜잭션 컨텍스트 구성
+            const parameter = {
+                server: server,
+                device: device,
+                resolve: resolve,
+                reject: reject,
+                b_read: undefined,
+                cb_received: undefined,
+                cb_error: undefined,
+                cb_progress: cb_progress,
+                stage_max: n_request,
+                stage_cur: 0
+            };
+
+            util.map_of_queue_push(this._map_q_para, device.get_device_index(), parameter);
+            console.info("pushed:", this);
         });
     }
 

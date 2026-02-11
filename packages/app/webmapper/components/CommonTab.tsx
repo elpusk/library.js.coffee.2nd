@@ -98,6 +98,7 @@ const CommonTab: React.FC<CommonTabProps> = ({ deviceType, config, handlers, onA
                  </label>
                  <select 
                    className="w-full border-gray-300 rounded-lg text-sm p-2.5 bg-white border focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-all outline-none"
+                   disabled
                    value={config.language}
                    onChange={(e) => handlers.onLanguageChange(e.target.value)}
                  >

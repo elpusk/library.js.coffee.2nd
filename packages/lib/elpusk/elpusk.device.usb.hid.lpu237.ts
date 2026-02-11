@@ -69,6 +69,7 @@ import { hid } from "./elpusk.device.usb.hid";
 import * as elpusk_util_keyboard_const from "./elpusk.util.keyboard.const";
 import * as elpusk_util_keyboard_map from "./elpusk.util.keyboard.map";
 import { util } from "./elpusk.util";
+import {Lpu237SysInfoManager} from "./elpusk.util.Lpu237SysInfoManager";
 
 /**
  * enum for changed paramemter type.
@@ -239,6 +240,7 @@ enum _type_change_parameter {
  */
 
 enum _type_generated_tx_type {
+  gt_unknown = -1,
   gt_read_uid = 0,
   gt_change_authkey = 1,
   gt_change_status = 2,
@@ -254,309 +256,311 @@ enum _type_generated_tx_type {
   gt_type_device = 12,
 
   // get config series
-  gt_get_version = 13,
-  gt_get_name = 14,
-  gt_get_global_prepostfix_send_condition = 15,
-  gt_get_blank_4byets = 16,
+  gt_get_version ,
+  gt_get_name ,
+  gt_get_global_prepostfix_send_condition ,
+  gt_get_blank_4byets ,
 
-  gt_get_interface = 17,
-  gt_get_language = 18,
-  gt_get_buzzer_count = 19,
-  gt_get_boot_run_time = 20,
-  gt_get_enable_iso1 = 21,
-  gt_get_enable_iso2 = 22,
-  gt_get_enable_iso3 = 23,
-  gt_get_direction1 = 24,
-  gt_get_direction2 = 25,
-  gt_get_direction3 = 26,
-  gt_get_global_prefix = 27,
-  gt_get_global_postfix = 28,
+  gt_get_interface ,
+  gt_get_language ,
+  gt_get_buzzer_count ,
+  gt_get_boot_run_time ,
+  gt_get_enable_iso1 ,
+  gt_get_enable_iso2 ,
+  gt_get_enable_iso3 ,
+  gt_get_direction1 ,
+  gt_get_direction2 ,
+  gt_get_direction3 ,
+  gt_get_global_prefix ,
+  gt_get_global_postfix ,
 
-  gt_get_iso1_number_combi = 29,
-  gt_get_iso2_number_combi = 30,
-  gt_get_iso3_number_combi = 31,
+  gt_get_iso1_number_combi ,
+  gt_get_iso2_number_combi ,
+  gt_get_iso3_number_combi ,
 
-  gt_get_iso1_Combi0_MaxSize = 32,
-  gt_get_iso1_Combi1_MaxSize = 33,
-  gt_get_iso1_Combi2_MaxSize = 34,
-  gt_get_iso2_Combi0_MaxSize = 35,
-  gt_get_iso2_Combi1_MaxSize = 36,
-  gt_get_iso2_Combi2_MaxSize = 37,
-  gt_get_iso3_Combi0_MaxSize = 38,
-  gt_get_iso3_Combi1_MaxSize = 39,
-  gt_get_iso3_Combi2_MaxSize = 40,
+  gt_get_iso1_Combi0_MaxSize ,
+  gt_get_iso1_Combi1_MaxSize ,
+  gt_get_iso1_Combi2_MaxSize ,
+  gt_get_iso2_Combi0_MaxSize ,
+  gt_get_iso2_Combi1_MaxSize ,
+  gt_get_iso2_Combi2_MaxSize ,
+  gt_get_iso3_Combi0_MaxSize ,
+  gt_get_iso3_Combi1_MaxSize ,
+  gt_get_iso3_Combi2_MaxSize ,
 
-  gt_get_iso1_Combi0_BitSize = 41,
-  gt_get_iso1_Combi1_BitSize = 42,
-  gt_get_iso1_Combi2_BitSize = 43,
-  gt_get_iso2_Combi0_BitSize = 44,
-  gt_get_iso2_Combi1_BitSize = 45,
-  gt_get_iso2_Combi2_BitSize = 46,
-  gt_get_iso3_Combi0_BitSize = 47,
-  gt_get_iso3_Combi1_BitSize = 48,
-  gt_get_iso3_Combi2_BitSize = 49,
+  gt_get_iso1_Combi0_BitSize ,
+  gt_get_iso1_Combi1_BitSize ,
+  gt_get_iso1_Combi2_BitSize ,
+  gt_get_iso2_Combi0_BitSize ,
+  gt_get_iso2_Combi1_BitSize ,
+  gt_get_iso2_Combi2_BitSize ,
+  gt_get_iso3_Combi0_BitSize ,
+  gt_get_iso3_Combi1_BitSize ,
+  gt_get_iso3_Combi2_BitSize ,
 
-  gt_get_iso1_Combi0_DataMask = 50,
-  gt_get_iso1_Combi1_DataMask = 51,
-  gt_get_iso1_Combi2_DataMask = 52,
-  gt_get_iso2_Combi0_DataMask = 53,
-  gt_get_iso2_Combi1_DataMask = 54,
-  gt_get_iso2_Combi2_DataMask = 55,
-  gt_get_iso3_Combi0_DataMask = 56,
-  gt_get_iso3_Combi1_DataMask = 57,
-  gt_get_iso3_Combi2_DataMask = 58,
+  gt_get_iso1_Combi0_DataMask ,
+  gt_get_iso1_Combi1_DataMask ,
+  gt_get_iso1_Combi2_DataMask ,
+  gt_get_iso2_Combi0_DataMask ,
+  gt_get_iso2_Combi1_DataMask ,
+  gt_get_iso2_Combi2_DataMask ,
+  gt_get_iso3_Combi0_DataMask ,
+  gt_get_iso3_Combi1_DataMask ,
+  gt_get_iso3_Combi2_DataMask ,
 
-  gt_get_iso1_Combi0_UseParity = 59,
-  gt_get_iso1_Combi1_UseParity = 60,
-  gt_get_iso1_Combi2_UseParity = 61,
-  gt_get_iso2_Combi0_UseParity = 62,
-  gt_get_iso2_Combi1_UseParity = 63,
-  gt_get_iso2_Combi2_UseParity = 64,
-  gt_get_iso3_Combi0_UseParity = 65,
-  gt_get_iso3_Combi1_UseParity = 66,
-  gt_get_iso3_Combi2_UseParity = 67,
+  gt_get_iso1_Combi0_UseParity ,
+  gt_get_iso1_Combi1_UseParity ,
+  gt_get_iso1_Combi2_UseParity ,
+  gt_get_iso2_Combi0_UseParity ,
+  gt_get_iso2_Combi1_UseParity ,
+  gt_get_iso2_Combi2_UseParity ,
+  gt_get_iso3_Combi0_UseParity ,
+  gt_get_iso3_Combi1_UseParity ,
+  gt_get_iso3_Combi2_UseParity ,
 
-  gt_get_iso1_Combi0_ParityType = 68,
-  gt_get_iso1_Combi1_ParityType = 69,
-  gt_get_iso1_Combi2_ParityType = 70,
-  gt_get_iso2_Combi0_ParityType = 71,
-  gt_get_iso2_Combi1_ParityType = 72,
-  gt_get_iso2_Combi2_ParityType = 73,
-  gt_get_iso3_Combi0_ParityType = 74,
-  gt_get_iso3_Combi1_ParityType = 75,
-  gt_get_iso3_Combi2_ParityType = 76,
+  gt_get_iso1_Combi0_ParityType ,
+  gt_get_iso1_Combi1_ParityType ,
+  gt_get_iso1_Combi2_ParityType ,
+  gt_get_iso2_Combi0_ParityType ,
+  gt_get_iso2_Combi1_ParityType ,
+  gt_get_iso2_Combi2_ParityType ,
+  gt_get_iso3_Combi0_ParityType ,
+  gt_get_iso3_Combi1_ParityType ,
+  gt_get_iso3_Combi2_ParityType ,
 
-  gt_get_iso1_Combi0_STX_L = 77,
-  gt_get_iso1_Combi1_STX_L = 78,
-  gt_get_iso1_Combi2_STX_L = 79,
-  gt_get_iso2_Combi0_STX_L = 80,
-  gt_get_iso2_Combi1_STX_L = 81,
-  gt_get_iso2_Combi2_STX_L = 82,
-  gt_get_iso3_Combi0_STX_L = 83,
-  gt_get_iso3_Combi1_STX_L = 84,
-  gt_get_iso3_Combi2_STX_L = 85,
+  gt_get_iso1_Combi0_STX_L ,
+  gt_get_iso1_Combi1_STX_L ,
+  gt_get_iso1_Combi2_STX_L ,
+  gt_get_iso2_Combi0_STX_L ,
+  gt_get_iso2_Combi1_STX_L ,
+  gt_get_iso2_Combi2_STX_L ,
+  gt_get_iso3_Combi0_STX_L ,
+  gt_get_iso3_Combi1_STX_L ,
+  gt_get_iso3_Combi2_STX_L ,
 
-  gt_get_iso1_Combi0_ETX_L = 86,
-  gt_get_iso1_Combi1_ETX_L = 87,
-  gt_get_iso1_Combi2_ETX_L = 88,
-  gt_get_iso2_Combi0_ETX_L = 89,
-  gt_get_iso2_Combi1_ETX_L = 90,
-  gt_get_iso2_Combi2_ETX_L = 91,
-  gt_get_iso3_Combi0_ETX_L = 92,
-  gt_get_iso3_Combi1_ETX_L = 93,
-  gt_get_iso3_Combi2_ETX_L = 94,
+  gt_get_iso1_Combi0_ETX_L ,
+  gt_get_iso1_Combi1_ETX_L ,
+  gt_get_iso1_Combi2_ETX_L ,
+  gt_get_iso2_Combi0_ETX_L ,
+  gt_get_iso2_Combi1_ETX_L ,
+  gt_get_iso2_Combi2_ETX_L ,
+  gt_get_iso3_Combi0_ETX_L ,
+  gt_get_iso3_Combi1_ETX_L ,
+  gt_get_iso3_Combi2_ETX_L ,
 
-  gt_get_iso1_Combi0_UseErrorCorrect = 95,
-  gt_get_iso1_Combi1_UseErrorCorrect = 96,
-  gt_get_iso1_Combi2_UseErrorCorrect = 97,
-  gt_get_iso2_Combi0_UseErrorCorrect = 98,
-  gt_get_iso2_Combi1_UseErrorCorrect = 99,
-  gt_get_iso2_Combi2_UseErrorCorrect = 100,
-  gt_get_iso3_Combi0_UseErrorCorrect = 101,
-  gt_get_iso3_Combi1_UseErrorCorrect = 102,
-  gt_get_iso3_Combi2_UseErrorCorrect = 103,
+  gt_get_iso1_Combi0_UseErrorCorrect ,
+  gt_get_iso1_Combi1_UseErrorCorrect ,
+  gt_get_iso1_Combi2_UseErrorCorrect ,
+  gt_get_iso2_Combi0_UseErrorCorrect ,
+  gt_get_iso2_Combi1_UseErrorCorrect ,
+  gt_get_iso2_Combi2_UseErrorCorrect ,
+  gt_get_iso3_Combi0_UseErrorCorrect ,
+  gt_get_iso3_Combi1_UseErrorCorrect ,
+  gt_get_iso3_Combi2_UseErrorCorrect ,
 
-  gt_get_iso1_Combi0_ECMType = 104,
-  gt_get_iso1_Combi1_ECMType = 105,
-  gt_get_iso1_Combi2_ECMType = 106,
-  gt_get_iso2_Combi0_ECMType = 107,
-  gt_get_iso2_Combi1_ECMType = 108,
-  gt_get_iso2_Combi2_ECMType = 109,
-  gt_get_iso3_Combi0_ECMType = 110,
-  gt_get_iso3_Combi1_ECMType = 111,
-  gt_get_iso3_Combi2_ECMType = 112,
+  gt_get_iso1_Combi0_ECMType ,
+  gt_get_iso1_Combi1_ECMType ,
+  gt_get_iso1_Combi2_ECMType ,
+  gt_get_iso2_Combi0_ECMType ,
+  gt_get_iso2_Combi1_ECMType ,
+  gt_get_iso2_Combi2_ECMType ,
+  gt_get_iso3_Combi0_ECMType ,
+  gt_get_iso3_Combi1_ECMType ,
+  gt_get_iso3_Combi2_ECMType ,
 
-  gt_get_iso1_Combi0_AddValue = 113,
-  gt_get_iso1_Combi1_AddValue = 114,
-  gt_get_iso1_Combi2_AddValue = 115,
-  gt_get_iso2_Combi0_AddValue = 116,
-  gt_get_iso2_Combi1_AddValue = 117,
-  gt_get_iso2_Combi2_AddValue = 118,
-  gt_get_iso3_Combi0_AddValue = 119,
-  gt_get_iso3_Combi1_AddValue = 120,
-  gt_get_iso3_Combi2_AddValue = 121,
+  gt_get_iso1_Combi0_AddValue ,
+  gt_get_iso1_Combi1_AddValue ,
+  gt_get_iso1_Combi2_AddValue ,
+  gt_get_iso2_Combi0_AddValue ,
+  gt_get_iso2_Combi1_AddValue ,
+  gt_get_iso2_Combi2_AddValue ,
+  gt_get_iso3_Combi0_AddValue ,
+  gt_get_iso3_Combi1_AddValue ,
+  gt_get_iso3_Combi2_AddValue ,
 
-  gt_get_private_prefix10 = 122,
-  gt_get_private_prefix11 = 123,
-  gt_get_private_prefix12 = 124,
-  gt_get_private_prefix20 = 125,
-  gt_get_private_prefix21 = 126,
-  gt_get_private_prefix22 = 127,
-  gt_get_private_prefix30 = 128,
-  gt_get_private_prefix31 = 129,
-  gt_get_private_prefix32 = 130,
+  gt_get_private_prefix10 ,
+  gt_get_private_prefix11 ,
+  gt_get_private_prefix12 ,
+  gt_get_private_prefix20 ,
+  gt_get_private_prefix21 ,
+  gt_get_private_prefix22 ,
+  gt_get_private_prefix30 ,
+  gt_get_private_prefix31 ,
+  gt_get_private_prefix32 ,
 
-  gt_get_private_postfix10 = 131,
-  gt_get_private_postfix11 = 132,
-  gt_get_private_postfix12 = 133,
-  gt_get_private_postfix20 = 134,
-  gt_get_private_postfix21 = 135,
-  gt_get_private_postfix22 = 136,
-  gt_get_private_postfix30 = 137,
-  gt_get_private_postfix31 = 138,
-  gt_get_private_postfix32 = 139,
+  gt_get_private_postfix10 ,
+  gt_get_private_postfix11 ,
+  gt_get_private_postfix12 ,
+  gt_get_private_postfix20 ,
+  gt_get_private_postfix21 ,
+  gt_get_private_postfix22 ,
+  gt_get_private_postfix30 ,
+  gt_get_private_postfix31 ,
+  gt_get_private_postfix32 ,
 
-  gt_get_prefix_ibutton = 140,
-  gt_get_postfix_ibutton = 141,
-  gt_get_prefix_uart = 142,
-  gt_get_postfix_uart = 143,
-  gt_get_track_order = 144,
+  gt_get_prefix_ibutton ,
+  gt_get_postfix_ibutton ,
+  gt_get_prefix_uart ,
+  gt_get_postfix_uart ,
+  gt_get_track_order ,
+
+  gt_get_version_structure ,
+  gt_get_ibutton_remove ,
+  gt_get_prefix_ibutton_remove ,
+  gt_get_postfix_ibutton_remove ,
 
   // set config series
-  gt_set_global_prepostfix_send_condition = 145,
-  gt_set_blank_4byets = 146,
+  gt_set_global_prepostfix_send_condition ,
+  gt_set_blank_4byets ,
 
-  gt_set_interface = 147,
-  gt_set_language = 148,
-  get_set_keymap = 149,
-  gt_set_buzzer_count = 150,
-  gt_set_enable_iso1 = 151,
-  gt_set_enable_iso2 = 152,
-  gt_set_enable_iso3 = 153,
-  gt_set_direction1 = 154,
-  gt_set_direction2 = 155,
-  gt_set_direction3 = 156,
-  gt_set_global_prefix = 157,
-  gt_set_global_postfix = 158,
+  gt_set_interface ,
+  gt_set_language ,
+  get_set_keymap ,
+  gt_set_buzzer_count ,
+  gt_set_enable_iso1 ,
+  gt_set_enable_iso2 ,
+  gt_set_enable_iso3 ,
+  gt_set_direction1 ,
+  gt_set_direction2 ,
+  gt_set_direction3 ,
+  gt_set_global_prefix ,
+  gt_set_global_postfix ,
 
-  gt_set_iso1_number_combi = 159,
-  gt_set_iso2_number_combi = 160,
-  gt_set_iso3_number_combi = 161,
+  gt_set_iso1_number_combi ,
+  gt_set_iso2_number_combi ,
+  gt_set_iso3_number_combi ,
 
-  gt_set_iso1_Combi0_MaxSize = 162,
-  gt_set_iso1_Combi1_MaxSize = 163,
-  gt_set_iso1_Combi2_MaxSize = 164,
-  gt_set_iso2_Combi0_MaxSize = 165,
-  gt_set_iso2_Combi1_MaxSize = 166,
-  gt_set_iso2_Combi2_MaxSize = 167,
-  gt_set_iso3_Combi0_MaxSize = 168,
-  gt_set_iso3_Combi1_MaxSize = 169,
-  gt_set_iso3_Combi2_MaxSize = 170,
+  gt_set_iso1_Combi0_MaxSize ,
+  gt_set_iso1_Combi1_MaxSize ,
+  gt_set_iso1_Combi2_MaxSize ,
+  gt_set_iso2_Combi0_MaxSize ,
+  gt_set_iso2_Combi1_MaxSize ,
+  gt_set_iso2_Combi2_MaxSize ,
+  gt_set_iso3_Combi0_MaxSize ,
+  gt_set_iso3_Combi1_MaxSize ,
+  gt_set_iso3_Combi2_MaxSize ,
 
-  gt_set_iso1_Combi0_BitSize = 171,
-  gt_set_iso1_Combi1_BitSize = 172,
-  gt_set_iso1_Combi2_BitSize = 173,
-  gt_set_iso2_Combi0_BitSize = 174,
-  gt_set_iso2_Combi1_BitSize = 175,
-  gt_set_iso2_Combi2_BitSize = 176,
-  gt_set_iso3_Combi0_BitSize = 177,
-  gt_set_iso3_Combi1_BitSize = 178,
-  gt_set_iso3_Combi2_BitSize = 179,
+  gt_set_iso1_Combi0_BitSize ,
+  gt_set_iso1_Combi1_BitSize ,
+  gt_set_iso1_Combi2_BitSize ,
+  gt_set_iso2_Combi0_BitSize ,
+  gt_set_iso2_Combi1_BitSize ,
+  gt_set_iso2_Combi2_BitSize ,
+  gt_set_iso3_Combi0_BitSize ,
+  gt_set_iso3_Combi1_BitSize ,
+  gt_set_iso3_Combi2_BitSize ,
 
-  gt_set_iso1_Combi0_DataMask = 180,
-  gt_set_iso1_Combi1_DataMask = 181,
-  gt_set_iso1_Combi2_DataMask = 182,
-  gt_set_iso2_Combi0_DataMask = 183,
-  gt_set_iso2_Combi1_DataMask = 184,
-  gt_set_iso2_Combi2_DataMask = 185,
-  gt_set_iso3_Combi0_DataMask = 186,
-  gt_set_iso3_Combi1_DataMask = 187,
-  gt_set_iso3_Combi2_DataMask = 188,
+  gt_set_iso1_Combi0_DataMask ,
+  gt_set_iso1_Combi1_DataMask ,
+  gt_set_iso1_Combi2_DataMask ,
+  gt_set_iso2_Combi0_DataMask ,
+  gt_set_iso2_Combi1_DataMask ,
+  gt_set_iso2_Combi2_DataMask ,
+  gt_set_iso3_Combi0_DataMask ,
+  gt_set_iso3_Combi1_DataMask ,
+  gt_set_iso3_Combi2_DataMask ,
 
-  gt_set_iso1_Combi0_UseParity = 189,
-  gt_set_iso1_Combi1_UseParity = 190,
-  gt_set_iso1_Combi2_UseParity = 191,
-  gt_set_iso2_Combi0_UseParity = 192,
-  gt_set_iso2_Combi1_UseParity = 193,
-  gt_set_iso2_Combi2_UseParity = 194,
-  gt_set_iso3_Combi0_UseParity = 195,
-  gt_set_iso3_Combi1_UseParity = 196,
-  gt_set_iso3_Combi2_UseParity = 197,
+  gt_set_iso1_Combi0_UseParity ,
+  gt_set_iso1_Combi1_UseParity ,
+  gt_set_iso1_Combi2_UseParity ,
+  gt_set_iso2_Combi0_UseParity ,
+  gt_set_iso2_Combi1_UseParity ,
+  gt_set_iso2_Combi2_UseParity ,
+  gt_set_iso3_Combi0_UseParity ,
+  gt_set_iso3_Combi1_UseParity ,
+  gt_set_iso3_Combi2_UseParity ,
 
-  gt_set_iso1_Combi0_ParityType = 198,
-  gt_set_iso1_Combi1_ParityType = 199,
-  gt_set_iso1_Combi2_ParityType = 200,
-  gt_set_iso2_Combi0_ParityType = 201,
-  gt_set_iso2_Combi1_ParityType = 202,
-  gt_set_iso2_Combi2_ParityType = 203,
-  gt_set_iso3_Combi0_ParityType = 204,
-  gt_set_iso3_Combi1_ParityType = 205,
-  gt_set_iso3_Combi2_ParityType = 206,
+  gt_set_iso1_Combi0_ParityType ,
+  gt_set_iso1_Combi1_ParityType ,
+  gt_set_iso1_Combi2_ParityType ,
+  gt_set_iso2_Combi0_ParityType ,
+  gt_set_iso2_Combi1_ParityType ,
+  gt_set_iso2_Combi2_ParityType ,
+  gt_set_iso3_Combi0_ParityType ,
+  gt_set_iso3_Combi1_ParityType ,
+  gt_set_iso3_Combi2_ParityType ,
 
-  gt_set_iso1_Combi0_STX_L = 207,
-  gt_set_iso1_Combi1_STX_L = 208,
-  gt_set_iso1_Combi2_STX_L = 209,
-  gt_set_iso2_Combi0_STX_L = 210,
-  gt_set_iso2_Combi1_STX_L = 211,
-  gt_set_iso2_Combi2_STX_L = 212,
-  gt_set_iso3_Combi0_STX_L = 213,
-  gt_set_iso3_Combi1_STX_L = 214,
-  gt_set_iso3_Combi2_STX_L = 215,
+  gt_set_iso1_Combi0_STX_L ,
+  gt_set_iso1_Combi1_STX_L ,
+  gt_set_iso1_Combi2_STX_L ,
+  gt_set_iso2_Combi0_STX_L ,
+  gt_set_iso2_Combi1_STX_L ,
+  gt_set_iso2_Combi2_STX_L ,
+  gt_set_iso3_Combi0_STX_L ,
+  gt_set_iso3_Combi1_STX_L ,
+  gt_set_iso3_Combi2_STX_L ,
 
-  gt_set_iso1_Combi0_ETX_L = 216,
-  gt_set_iso1_Combi1_ETX_L = 217,
-  gt_set_iso1_Combi2_ETX_L = 218,
-  gt_set_iso2_Combi0_ETX_L = 219,
-  gt_set_iso2_Combi1_ETX_L = 220,
-  gt_set_iso2_Combi2_ETX_L = 221,
-  gt_set_iso3_Combi0_ETX_L = 222,
-  gt_set_iso3_Combi1_ETX_L = 223,
-  gt_set_iso3_Combi2_ETX_L = 224,
+  gt_set_iso1_Combi0_ETX_L ,
+  gt_set_iso1_Combi1_ETX_L ,
+  gt_set_iso1_Combi2_ETX_L ,
+  gt_set_iso2_Combi0_ETX_L ,
+  gt_set_iso2_Combi1_ETX_L ,
+  gt_set_iso2_Combi2_ETX_L ,
+  gt_set_iso3_Combi0_ETX_L ,
+  gt_set_iso3_Combi1_ETX_L ,
+  gt_set_iso3_Combi2_ETX_L ,
 
-  gt_set_iso1_Combi0_UseErrorCorrect = 225,
-  gt_set_iso1_Combi1_UseErrorCorrect = 226,
-  gt_set_iso1_Combi2_UseErrorCorrect = 227,
-  gt_set_iso2_Combi0_UseErrorCorrect = 228,
-  gt_set_iso2_Combi1_UseErrorCorrect = 229,
-  gt_set_iso2_Combi2_UseErrorCorrect = 230,
-  gt_set_iso3_Combi0_UseErrorCorrect = 231,
-  gt_set_iso3_Combi1_UseErrorCorrect = 232,
-  gt_set_iso3_Combi2_UseErrorCorrect = 233,
+  gt_set_iso1_Combi0_UseErrorCorrect ,
+  gt_set_iso1_Combi1_UseErrorCorrect ,
+  gt_set_iso1_Combi2_UseErrorCorrect ,
+  gt_set_iso2_Combi0_UseErrorCorrect ,
+  gt_set_iso2_Combi1_UseErrorCorrect ,
+  gt_set_iso2_Combi2_UseErrorCorrect ,
+  gt_set_iso3_Combi0_UseErrorCorrect ,
+  gt_set_iso3_Combi1_UseErrorCorrect ,
+  gt_set_iso3_Combi2_UseErrorCorrect ,
 
-  gt_set_iso1_Combi0_ECMType = 234,
-  gt_set_iso1_Combi1_ECMType = 235,
-  gt_set_iso1_Combi2_ECMType = 236,
-  gt_set_iso2_Combi0_ECMType = 237,
-  gt_set_iso2_Combi1_ECMType = 238,
-  gt_set_iso2_Combi2_ECMType = 239,
-  gt_set_iso3_Combi0_ECMType = 240,
-  gt_set_iso3_Combi1_ECMType = 241,
-  gt_set_iso3_Combi2_ECMType = 242,
+  gt_set_iso1_Combi0_ECMType ,
+  gt_set_iso1_Combi1_ECMType ,
+  gt_set_iso1_Combi2_ECMType ,
+  gt_set_iso2_Combi0_ECMType ,
+  gt_set_iso2_Combi1_ECMType ,
+  gt_set_iso2_Combi2_ECMType ,
+  gt_set_iso3_Combi0_ECMType ,
+  gt_set_iso3_Combi1_ECMType ,
+  gt_set_iso3_Combi2_ECMType ,
 
-  gt_set_iso1_Combi0_AddValue = 243,
-  gt_set_iso1_Combi1_AddValue = 244,
-  gt_set_iso1_Combi2_AddValue = 245,
-  gt_set_iso2_Combi0_AddValue = 246,
-  gt_set_iso2_Combi1_AddValue = 247,
-  gt_set_iso2_Combi2_AddValue = 248,
-  gt_set_iso3_Combi0_AddValue = 249,
-  gt_set_iso3_Combi1_AddValue = 250,
-  gt_set_iso3_Combi2_AddValue = 251,
+  gt_set_iso1_Combi0_AddValue ,
+  gt_set_iso1_Combi1_AddValue ,
+  gt_set_iso1_Combi2_AddValue ,
+  gt_set_iso2_Combi0_AddValue ,
+  gt_set_iso2_Combi1_AddValue ,
+  gt_set_iso2_Combi2_AddValue ,
+  gt_set_iso3_Combi0_AddValue ,
+  gt_set_iso3_Combi1_AddValue ,
+  gt_set_iso3_Combi2_AddValue ,
 
-  gt_set_private_prefix10 = 252,
-  gt_set_private_prefix11 = 253,
-  gt_set_private_prefix12 = 254,
-  gt_set_private_prefix20 = 255,
-  gt_set_private_prefix21 = 256,
-  gt_set_private_prefix22 = 257,
-  gt_set_private_prefix30 = 258,
-  gt_set_private_prefix31 = 259,
-  gt_set_private_prefix32 = 260,
+  gt_set_private_prefix10 ,
+  gt_set_private_prefix11 ,
+  gt_set_private_prefix12 ,
+  gt_set_private_prefix20 ,
+  gt_set_private_prefix21 ,
+  gt_set_private_prefix22 ,
+  gt_set_private_prefix30 ,
+  gt_set_private_prefix31 ,
+  gt_set_private_prefix32 ,
 
-  gt_set_private_postfix10 = 261,
-  gt_set_private_postfix11 = 262,
-  gt_set_private_postfix12 = 263,
-  gt_set_private_postfix20 = 264,
-  gt_set_private_postfix21 = 265,
-  gt_set_private_postfix22 = 266,
-  gt_set_private_postfix30 = 267,
-  gt_set_private_postfix31 = 268,
-  gt_set_private_postfix32 = 269,
+  gt_set_private_postfix10 ,
+  gt_set_private_postfix11 ,
+  gt_set_private_postfix12 ,
+  gt_set_private_postfix20 ,
+  gt_set_private_postfix21 ,
+  gt_set_private_postfix22 ,
+  gt_set_private_postfix30 ,
+  gt_set_private_postfix31 ,
+  gt_set_private_postfix32 ,
 
-  gt_set_prefix_ibutton = 270,
-  gt_set_postfix_ibutton = 271,
-  gt_set_prefix_uart = 272,
-  gt_set_postfix_uart = 273,
-  gt_set_track_order = 274,
+  gt_set_prefix_ibutton ,
+  gt_set_postfix_ibutton ,
+  gt_set_prefix_uart ,
+  gt_set_postfix_uart ,
+  gt_set_track_order ,
 
-  gt_get_version_structure = 275,
-  gt_get_ibutton_remove = 276,
-  gt_get_prefix_ibutton_remove = 277,
-  gt_get_postfix_ibutton_remove = 278,
+  gt_set_ibutton_remove ,
+  gt_set_prefix_ibutton_remove ,
+  gt_set_postfix_ibutton_remove ,
 
-  gt_set_ibutton_remove = 279,
-  gt_set_prefix_ibutton_remove = 280,
-  gt_set_postfix_ibutton_remove = 281,
+  gt_get_hyper ,
 }
 
 /**
@@ -838,6 +842,8 @@ export enum type_function {
 /**
  * @readonly
  * @description 마그네틱 카드 읽기 방향 정의
+ * 
+ * 이 정의 값은 fw 에 정의된 값과 동일해야한다.
  */
 export enum type_direction {
   /** 양방향 읽기 (순방향 및 역방향) */
@@ -918,6 +924,7 @@ export enum type_ibutton_mode {
 }
 
 export class lpu237 extends hid {
+
   private static readonly _const_min_size_request_header: number = 3;
   private static readonly _const_min_size_response_header: number = 3;
   private static readonly _const_the_number_of_track: number = 3;
@@ -943,6 +950,8 @@ export class lpu237 extends hid {
   private static readonly _const_default_buzzer_count_for_off: number = 5000; // default buzzer count of plus generator for buzzer off status.
 
   // 내부 큐 및 모드 상태
+  // set_from_rx 에서 _deque_generated_tx 에서 마지막으로 확인된 생성된 tx.
+  private _last_generated_tx:_type_generated_tx_type = _type_generated_tx_type.gt_unknown;
   private _deque_generated_tx: number[] = [];
   private _dequeu_s_tx: string[] = [];
   private _dequeu_s_rx: string[] = [];
@@ -983,8 +992,8 @@ export class lpu237 extends hid {
     type_direction.dir_bidectional,
   ];
   private _n_order: number[] = [0, 1, 2];
-  private _s_global_prefix: string | null = null;
-  private _s_global_postfix: string | null = null;
+  private _s_global_prefix: string | null = null; //16진수 문자열, 첫두문자를 숫자로 변경하면, 나머지 문자열을 byte array 로 변경 했을 때, array 길이와 동일해야 한다.
+  private _s_global_postfix: string | null = null; //16진수 문자열, 첫두문자를 숫자로 변경하면, 나머지 문자열을 byte array 로 변경 했을 때, array 길이와 동일해야 한다.
 
   // MSR 트랙별 조합(Combination 0~2) 설정 - 3x3 행렬 구조
   private _n_number_combination: number[] = [1, 1, 1];
@@ -1039,22 +1048,22 @@ export class lpu237 extends hid {
     [0, 0, 0],
   ];
   private _s_private_prefix: (string | null)[][] = [
-    [null, null, null],
-    [null, null, null],
-    [null, null, null],
+    [null, null, null], //16진수 문자열, 첫두문자를 숫자로 변경하면, 나머지 문자열을 byte array 로 변경 했을 때, array 길이와 동일해야 한다.
+    [null, null, null], //16진수 문자열, 첫두문자를 숫자로 변경하면, 나머지 문자열을 byte array 로 변경 했을 때, array 길이와 동일해야 한다.
+    [null, null, null], //16진수 문자열, 첫두문자를 숫자로 변경하면, 나머지 문자열을 byte array 로 변경 했을 때, array 길이와 동일해야 한다.
   ];
   private _s_private_postfix: (string | null)[][] = [
-    [null, null, null],
-    [null, null, null],
-    [null, null, null],
+    [null, null, null], //16진수 문자열, 첫두문자를 숫자로 변경하면, 나머지 문자열을 byte array 로 변경 했을 때, array 길이와 동일해야 한다.
+    [null, null, null], //16진수 문자열, 첫두문자를 숫자로 변경하면, 나머지 문자열을 byte array 로 변경 했을 때, array 길이와 동일해야 한다.
+    [null, null, null], //16진수 문자열, 첫두문자를 숫자로 변경하면, 나머지 문자열을 byte array 로 변경 했을 때, array 길이와 동일해야 한다.
   ];
 
   // iButton 관련 설정
-  private _s_prefix_ibutton: string | null = null;
-  private _s_postfix_ibutton: string | null = null;
-  private _s_ibutton_remove: string | null = null;
-  private _s_prefix_ibutton_remove: string | null = null;
-  private _s_postfix_ibutton_remove: string | null = null;
+  private _s_prefix_ibutton: string | null = null; //16진수 문자열, 첫두문자를 숫자로 변경하면, 나머지 문자열을 byte array 로 변경 했을 때, array 길이와 동일해야 한다.
+  private _s_postfix_ibutton: string | null = null; //16진수 문자열, 첫두문자를 숫자로 변경하면, 나머지 문자열을 byte array 로 변경 했을 때, array 길이와 동일해야 한다.
+  private _s_ibutton_remove: string | null = null; //16진수 문자열, 첫두문자를 숫자로 변경하면, 나머지 문자열을 byte array 로 변경 했을 때, array 길이와 동일해야 한다.
+  private _s_prefix_ibutton_remove: string | null = null; //16진수 문자열, 첫두문자를 숫자로 변경하면, 나머지 문자열을 byte array 로 변경 했을 때, array 길이와 동일해야 한다.
+  private _s_postfix_ibutton_remove: string | null = null; //16진수 문자열, 첫두문자를 숫자로 변경하면, 나머지 문자열을 byte array 로 변경 했을 때, array 길이와 동일해야 한다.
 
   // 시스템 예약/기타 설정 (cBlank)
   private _c_blank: number[] = [0, 0, 0, 0];
@@ -1065,6 +1074,9 @@ export class lpu237 extends hid {
   private _token_format: number = _type_format.ef_decimal;
   private _s_name: string | null = null;
 
+  //hyper get 을 위해 사용하는 helper.
+  private _sysinfo_manager: Lpu237SysInfoManager;
+
   // 실시간 데이터 상태 (MSR)
   private _array_s_card_data: string[] = ["", "", ""];
   private _array_n_card_error_code: number[] = [0, 0, 0];
@@ -1073,6 +1085,16 @@ export class lpu237 extends hid {
   private _s_ibutton_data: string = "";
   private _n_ibutton_error_code: number = 0;
   private _b_ignore_ibutton_data: boolean = true;
+
+  //
+  // 마지막 에러정보. 현재는 
+  // set_from_rx() 함수 사용 직후 에만 동작함.
+  private _s_last_error:string = ""; 
+  get last_error():string{
+    return this._s_last_error;
+  }
+  
+  
 
   public static readonly DIRECTION_MAP: Record<string, number> = {
     Bidirectional: type_direction.dir_bidectional,
@@ -3996,6 +4018,43 @@ export class lpu237 extends hid {
 
   /**
    * @private
+   * @function _get_tag_hex_string_from_c_format
+   * @description c 포맷을 그대로 매핑한 형태로 부터 16진수 문자열형으로 변한한 tag 값을 얻음.
+   * @param {number} n_tag - array_n_tags 에 의미있는 데이터의 수.
+   * @param {number[]} array_n_tags - tag 를 나타내는 짝수 길의의 배열. 
+   * @returns {string | null} Hex 문자열 형식, 에러 시 null, 문자열의 시작 두 문자는 나머지 문자열을 byte 로 변경했을때의 개수.
+   */
+  private static _get_tag_hex_string_from_c_format(n_tag:number,array_n_tags: number[] ):string|null{
+    let s_tag:string|null = null;
+
+    do{
+      s_tag = "";
+      if(n_tag<=0){
+        continue;
+      }
+      if(array_n_tags.length <= 0){
+        continue;
+      }
+      if(array_n_tags.length%2 !== 0 || n_tag %2 !== 0){
+        continue;
+      }
+      if(n_tag>array_n_tags.length){
+        continue;
+      }
+      //
+      const s_len = n_tag.toString(16).padStart(2, '0').toLowerCase();
+      s_tag = s_len;
+      for( let i = 0; i<array_n_tags.length; i++ ){
+        const s = array_n_tags[i].toString(16).padStart(2, '0').toLowerCase();
+        s_tag += s;
+      } //end for
+
+    }while(false);
+    return s_tag;
+  }
+  
+  /**
+   * @private
    * @function _get_ibutton_postfix_from_response
    * @description iButton 접촉 시 데이터 뒤에 붙는 전역 접미사를 가져옵니다.
    * @returns {string | null} Hex 문자열 형식, 에러 시 null
@@ -5276,12 +5335,12 @@ export class lpu237 extends hid {
    * @description 장치의 키보드 언어 레이아웃(Map Index)을 설정합니다.
    * @param {string[]} queue_s_tx - 요청이 저장될 큐
    * @param {number} n_language - 설정할 언어 인덱스 코드
-   * @returns {boolean} 모든 요청 생성 성공 여부
+   * @return {[boolean,number]} 생성결과, 생성된 명령의 수. 
    */
   private _generate_set_language = (
     queue_s_tx: string[],
     n_language: number,
-  ): boolean => {
+  ): [result:boolean,the_number_of_generated:number] => {
     // 1. 공통 데이터 준비 (DWORD 형태의 Hex 문자열)
     const s_data = util.get_dword_hex_string_from_number(n_language);
 
@@ -5290,7 +5349,7 @@ export class lpu237 extends hid {
     let n_size: number = _type_system_size.SYS_SIZE_CONTAINER_MAP_INDEX;
 
     if (!this._generate_config_set(queue_s_tx, n_offset, n_size, s_data)) {
-      return false;
+      return [false,0];
     }
 
     // 3. 각 트랙별 언어 설정 동기화 (InformSR Map Index)
@@ -5300,11 +5359,11 @@ export class lpu237 extends hid {
       n_size = _type_system_size.SYS_SIZE_INFOMSR_MAP_INDEX[i];
 
       if (!this._generate_config_set(queue_s_tx, n_offset, n_size, s_data)) {
-        return false; // 하나라도 실패하면 즉시 중단
+        return [false,i]; // 하나라도 실패하면 즉시 중단
       }
     }
 
-    return true;
+    return [true,1+3];
   };
 
   /**
@@ -5346,13 +5405,14 @@ export class lpu237 extends hid {
    * @description 트랙 읽기 방향 설정 (정방향/역방향/양방향 등)
    * @param n_track 트랙 인덱스 (0~2)
    * @param n_direction 방향 설정 코드
+   * @return {[boolean,number]} 생성결과, 생성된 명령의 수. 
    */
   private _generate_set_direction = (
     queue_s_tx: string[],
     n_track: number,
     n_direction: number,
-  ): boolean => {
-    if (n_track < 0 || n_track > 2) return false;
+  ): [result:boolean,the_number_of_generated:number] => {
+    if (n_track < 0 || n_track > 2) return [false,0];
 
     const n_offset = _type_system_offset.SYS_OFFSET_DIRECTION[n_track];
     const n_size = _type_system_size.SYS_SIZE_DIRECTION[n_track];
@@ -5361,11 +5421,11 @@ export class lpu237 extends hid {
     // 3개의 combination 이 사용되지만, 기존 mapper 가 0 번 combination 만을 사용해서, 0 번 값을 전부 복사.
     for( let i=0; i<3; i++){
       if( !this._generate_config_set(queue_s_tx, n_offset+i, n_size, s_data) ){
-        return false;
+        return [false,i];
       }
     }
 
-    return true;
+    return [true,3];
   };
 
   /**
@@ -5647,55 +5707,47 @@ export class lpu237 extends hid {
    * @description 선택된 언어에 해당하는 HID 및 PS2 키 매핑 테이블을 장치에 기록합니다.
    * @param {string[]} queue_s_tx - 요청 패킷이 저장될 큐
    * @param {number} n_language - 언어 인덱스
-   * @returns {boolean} 모든 매핑 데이터 기록 성공 여부
+   * @return {[boolean,number]} 생성결과, 생성된 명령의 수. 
    */
   private _generate_set_key_map = (
     queue_s_tx: string[],
     n_language: number,
-  ): boolean => {
+  ): [result:boolean,the_number_of_generated:number] => {
     // 최대 ASCII 코드 변환 크기 (보통 128 또는 256)
     const n_max_cvt = elpusk_util_keyboard_const.FOR_CVT_MAX_ASCII_CODE;
 
+    let [b_gen_usb,n_gen_usb] = [false,0];
+    let [b_gen_ps2,n_gen_ps2] = [false,0];
+
     // --- 1. USB HID Key Map 설정 ---
-    let s_full_data =
-      elpusk_util_keyboard_map.get_ascii_to_hid_key_map_string(n_language);
-    if (
-      !this._send_split_config(
-        queue_s_tx,
-        lpu237._const_address_system_hid_key_map_offset,
-        n_max_cvt,
-        s_full_data,
-      )
-    ) {
-      return false;
+    let s_full_data = elpusk_util_keyboard_map.get_ascii_to_hid_key_map_string(n_language);
+
+    [b_gen_usb,n_gen_usb] = this._send_split_config(queue_s_tx,lpu237._const_address_system_hid_key_map_offset,n_max_cvt,s_full_data,);
+    if (!b_gen_usb) {
+      return [b_gen_usb,n_gen_usb];
     }
 
     // --- 2. PS/2 Key Map 설정 ---
-    s_full_data =
-      elpusk_util_keyboard_map.get_ascii_to_ps2_key_map_string(n_language);
-    if (
-      !this._send_split_config(
-        queue_s_tx,
-        lpu237._const_address_system_ps2_key_map_offset,
-        n_max_cvt,
-        s_full_data,
-      )
-    ) {
-      return false;
+    s_full_data =  elpusk_util_keyboard_map.get_ascii_to_ps2_key_map_string(n_language);
+
+    [b_gen_ps2,n_gen_ps2] = this._send_split_config(queue_s_tx,lpu237._const_address_system_ps2_key_map_offset,n_max_cvt,s_full_data,);
+    if (!b_gen_ps2) {
+      return [b_gen_ps2,n_gen_ps2];
     }
 
-    return true;
+    return [true,n_gen_usb+n_gen_ps2];
   };
 
   /**
    * @description 데이터를 절반으로 나누어 장치에 기록하는 헬퍼 함수
+   * @return {[boolean,number]} 생성결과, 생성된 명령의 수. 
    */
   private _send_split_config = (
     queue_s_tx: string[],
     n_base_offset: number,
     n_size: number,
     s_full_data: string,
-  ): boolean => {
+  ): [result:boolean,the_number_of_generated:number] => {
     const half_len = Math.floor(s_full_data.length / 2);
 
     // 전반부 기록
@@ -5708,7 +5760,7 @@ export class lpu237 extends hid {
         s_first_half,
       )
     ) {
-      return false;
+      return [false,0];
     }
 
     // 후반부 기록 (오프셋을 n_size만큼 이동)
@@ -5721,10 +5773,10 @@ export class lpu237 extends hid {
         s_second_half,
       )
     ) {
-      return false;
+      return [false,1];
     }
 
-    return true;
+    return [true,2];
   };
 
   // === iButton 접촉(Attach) 관련 설정 기록 ===
@@ -6365,6 +6417,7 @@ export class lpu237 extends hid {
 
     // 생성 시점의 로직은 필드 초기화로 대부분 처리되었으므로,
     // 추가적인 런타임 초기화가 필요하다면 여기에 작성합니다.
+    this._sysinfo_manager = new Lpu237SysInfoManager(this._generate_config_get, this._generate_config_set); 
   }
 
   /**
@@ -7311,6 +7364,53 @@ export class lpu237 extends hid {
     this._dequeu_s_tx.length = 0;
   };
 
+  
+
+  /**
+   * @public
+   * @description 장치의 시스템 정보를 가져오기 위한 일련의 요청 패킷들을 생성합니다
+   * 
+   * enter_config, gt_read_uid, gt_support_mmd1000, gt_type_ibutton, gt_type_device, leave_config 명령 패킷 생성.
+   * 
+   * gt_get_ 이나 gt_set_ 이 아닌 독립 요청을 모드 읽음. 
+   * @returns {number} 생성된 요청의 개수 (실패 시 0)
+   */
+  public generate_get_basic_information = (): number => {
+    let b_result = false;
+
+    // 시퀀스 생성 도중 하나라도 실패하면 전체 롤백하기 위해 do-while 패턴 유지 혹은 try-catch 활용
+    do {
+      if (!this._generate_enter_config_mode(this._dequeu_s_tx)) break;
+      this._deque_generated_tx.push(_type_generated_tx_type.gt_enter_config);
+
+      if (!this._generate_get_uid(this._dequeu_s_tx)) break;
+      this._deque_generated_tx.push(_type_generated_tx_type.gt_read_uid);
+
+      if (!this._generate_get_device_support_mmd1000(this._dequeu_s_tx)) break;
+      this._deque_generated_tx.push(_type_generated_tx_type.gt_support_mmd1000);
+
+      if (!this._generate_get_device_type(this._dequeu_s_tx)) break;
+      this._deque_generated_tx.push(_type_generated_tx_type.gt_type_device);
+      //
+      if (!this._generate_get_device_ibutton_type(this._dequeu_s_tx)) break;
+      this._deque_generated_tx.push(_type_generated_tx_type.gt_type_ibutton);
+
+      if (!this._generate_leave_config_mode(this._dequeu_s_tx)) break;
+      this._deque_generated_tx.push(_type_generated_tx_type.gt_leave_config);
+
+      b_result = true;
+    } while (false);
+
+    // 시퀀스 생성 중 실패 시, 불완전한 큐를 모두 비움
+    if (!b_result) {
+      this._dequeu_s_tx.length = 0;
+      this._deque_generated_tx.length = 0;
+      return 0;
+    }
+
+    return this._deque_generated_tx.length;
+  };
+
   /**
    * @public
    * @description 장치의 시스템 정보를 가져오기 위한 일련의 요청 패킷들을 생성합니다.
@@ -7364,6 +7464,65 @@ export class lpu237 extends hid {
 
     return this._deque_generated_tx.length;
   };
+
+   /**
+   * @public
+   * @description 장치의 SYSINFO 읽어오기 위한 패킷 시퀀스를 생성합니다. 최고의 성능에 중점을 둔 디자인 코드.
+   * @returns {number} 생성된 총 요청 패킷의 개수
+   */
+  public generate_get_parameters_by_hyper_speed = (): number => {
+    let b_result = false;
+
+    do{
+      // 설정 모드 진입
+      if (!this._generate_enter_config_mode(this._dequeu_s_tx)) continue;
+      this._deque_generated_tx.push(_type_generated_tx_type.gt_enter_config);
+
+      try {
+        let offset = 0;
+        let remaining_size = Lpu237SysInfoManager.SYSINFO_SIZE;
+
+        b_result = true;
+        // SYSINFO 구조체를 MAX_GET_SIZE 단위로 나누어 읽기
+        while (remaining_size > 0) {
+          const read_size = Math.min(remaining_size, Lpu237SysInfoManager.MAX_GET_SIZE);
+          
+          const success = this._generate_config_get(this._dequeu_s_tx, offset, read_size);
+          if (!success) {
+            b_result = false;
+            console.error(`Failed to generate get command at offset ${offset}`);
+            break;
+          }
+          this._deque_generated_tx.push(_type_generated_tx_type.gt_get_hyper);
+
+          offset += read_size;
+          remaining_size -= read_size;
+        }
+
+        if(!b_result){
+          continue;
+        }
+      } catch (error) {
+        console.error('Error generating read SYSINFO commands:', error);
+        b_result = false;
+        continue;
+      }
+
+      b_result = false;
+
+      // 설정 모드 탈출
+      if (!this._generate_leave_config_mode(this._dequeu_s_tx)) continue;
+      this._deque_generated_tx.push(_type_generated_tx_type.gt_leave_config);
+
+      b_result = true;
+    }while(false);
+
+    if(!b_result){
+      this.clear_transaction();
+      return 0;
+    }
+    return this._deque_generated_tx.length;
+  }
 
   /**
    * @public
@@ -9679,6 +9838,7 @@ export class lpu237 extends hid {
     return s_description;
   }
 
+
   /**
    * @public
    * @description 설정 기능한 모든 system parameter 설정을 위한 request packet 를 생성한다.
@@ -9925,27 +10085,19 @@ export class lpu237 extends hid {
           _type_change_parameter.cp_Language,
         ) >= 0
       ) {
-        if (
-          !this._generate_set_language(
-            this._dequeu_s_tx,
-            this._n_language_index,
-          )
-        ) {
+        const [b_gen,n_gen] = this._generate_set_language(this._dequeu_s_tx,this._n_language_index,);
+        if (!b_gen) {
           continue;
         }
-        this._deque_generated_tx.push(_type_generated_tx_type.gt_set_language);
+        this._deque_generated_tx.push(...Array(n_gen).fill(_type_generated_tx_type.gt_set_language),);
 
         //set key map
         if (this._b_removed_key_map_table) {
-          if (
-            !this._generate_set_key_map(
-              this._dequeu_s_tx,
-              this._n_language_index,
-            )
-          ) {
+          const [b_gkm,n_gkm] = this._generate_set_key_map(this._dequeu_s_tx,this._n_language_index,);
+          if(!b_gkm){
             continue;
           }
-          this._deque_generated_tx.push(_type_generated_tx_type.get_set_keymap);
+          this._deque_generated_tx.push(...Array(n_gkm).fill(_type_generated_tx_type.get_set_keymap),);
         }
       }
 
@@ -10039,18 +10191,11 @@ export class lpu237 extends hid {
           _type_change_parameter.cp_Direction1,
         ) >= 0
       ) {
-        if (
-          !this._generate_set_direction(
-            this._dequeu_s_tx,
-            _type_msr_track_Numer.iso1_track,
-            this._n_direction[_type_msr_track_Numer.iso1_track],
-          )
-        ) {
+        const [b_gen,n_gen] = this._generate_set_direction(this._dequeu_s_tx,_type_msr_track_Numer.iso1_track,this._n_direction[_type_msr_track_Numer.iso1_track],);
+        if (!b_gen) {
           continue;
         }
-        this._deque_generated_tx.push(
-          _type_generated_tx_type.gt_set_direction1,
-        );
+        this._deque_generated_tx.push(...Array(n_gen).fill(_type_generated_tx_type.gt_set_direction1),);
       }
       if (
         util.find_from_set(
@@ -10058,18 +10203,11 @@ export class lpu237 extends hid {
           _type_change_parameter.cp_Direction2,
         ) >= 0
       ) {
-        if (
-          !this._generate_set_direction(
-            this._dequeu_s_tx,
-            _type_msr_track_Numer.iso2_track,
-            this._n_direction[_type_msr_track_Numer.iso2_track],
-          )
-        ) {
+        const [b_gen,n_gen] = this._generate_set_direction(this._dequeu_s_tx,_type_msr_track_Numer.iso2_track,this._n_direction[_type_msr_track_Numer.iso2_track],);
+        if (!b_gen) {
           continue;
         }
-        this._deque_generated_tx.push(
-          _type_generated_tx_type.gt_set_direction2,
-        );
+        this._deque_generated_tx.push(...Array(n_gen).fill(_type_generated_tx_type.gt_set_direction2),);
       }
       if (
         util.find_from_set(
@@ -10077,18 +10215,11 @@ export class lpu237 extends hid {
           _type_change_parameter.cp_Direction3,
         ) >= 0
       ) {
-        if (
-          !this._generate_set_direction(
-            this._dequeu_s_tx,
-            _type_msr_track_Numer.iso3_track,
-            this._n_direction[_type_msr_track_Numer.iso3_track],
-          )
-        ) {
+        const [b_gen,n_gen] = this._generate_set_direction(this._dequeu_s_tx,_type_msr_track_Numer.iso3_track,this._n_direction[_type_msr_track_Numer.iso3_track],);
+        if (!b_gen) {
           continue;
         }
-        this._deque_generated_tx.push(
-          _type_generated_tx_type.gt_set_direction3,
-        );
+        this._deque_generated_tx.push(...Array(n_gen).fill(_type_generated_tx_type.gt_set_direction3),);
       }
 
       // . global prefix.............................................
@@ -10661,19 +10792,101 @@ export class lpu237 extends hid {
   /**
    * @public
    * @return {boolean} processing result
+   * @description hyper 방법으로 얻은 SYSINFO을 복원후, 이 class member 에 설정.
+   * 
+   * hyper 방법으로 얻은 SYSINFO 를 모두 수신 후, 호출되어야 한다.
+   * 
+   * 이 함수 호출시, this._dequeu_s_rx 에 수신된 데이터가 모두 있어야 한다
+   */
+  public load_parameter_with_hyper_rx = (): boolean =>{
+    let b_result: boolean = false;
+
+    do{
+      if (this._dequeu_s_rx.length <= 0) {
+        continue;
+      }
+
+      const s = this._sysinfo_manager.parseResponses(this._dequeu_s_rx);
+      if(!s){
+        continue;
+      }
+      this._c_blank = s.cBlank;
+      this._version_structure = s.sStrucVer;
+      this._s_name = s.sName;
+      this._version = s.sSysVer;
+      this._n_interface = s.Interface;
+      this._dw_buzzer_count = s.nBuzzerFrequency;
+
+      if(s.ContainerInfoMsrObj.nGlobalTagCondition>0)  this._b_global_pre_postfix_send_condition = true;
+      else this._b_global_pre_postfix_send_condition = false;
+
+      this._n_order = s.ContainerInfoMsrObj.nOrderObject;
+      this._n_language_index = s.ContainerInfoMsrObj.KeyMap.nMappingTableIndex;
+
+      this._s_global_prefix = lpu237._get_tag_hex_string_from_c_format(s.ContainerInfoMsrObj.GlobalPrefix.cSize,s.ContainerInfoMsrObj.GlobalPrefix.sTag);
+      this._s_global_postfix = lpu237._get_tag_hex_string_from_c_format(s.ContainerInfoMsrObj.GlobalPostfix.cSize,s.ContainerInfoMsrObj.GlobalPostfix.sTag);
+
+      for( let i=0; i<3; i++){
+        if(s.InfoMsr[i].cEnableTrack>0) this._b_enable_iso[i] = true;
+        else this._b_enable_iso[i] = false;
+
+        this._n_number_combination[i] = s.InfoMsr[i].cSupportNum;
+        this._n_direction[i] = s.InfoMsr[i].cRDirect[0];
+        
+        for( let j=0; j<3; j++){
+
+          this._n_max_size[i][j] = s.InfoMsr[i].cMaxSize[j];
+          this._n_bit_size[i][j] = s.InfoMsr[i].cBitSize[j];
+          this._c_data_mask[i][j] = s.InfoMsr[i].cDataMask[j];
+
+          if(s.InfoMsr[i].bUseParity[j]>0) this._b_use_parity[i][j] = true;
+          else this._b_use_parity[i][j] = false;
+
+          this._n_parity_type[i][j] = s.InfoMsr[i].cParityType[j];
+          this._c_stxl[i][j] = s.InfoMsr[i].cSTX_L[j];
+          this._c_etxl[i][j] = s.InfoMsr[i].cETX_L[j];
+
+          if(s.InfoMsr[i].bUseErrorCorrect[j]>0) this._b_use_ecm[i][j] = true;
+          else this._b_use_ecm[i][j] = false;
+
+          this._n_ecm_type[i][j] = s.InfoMsr[i].cECMType[j];
+          this._n_add_value[i][j] = s.InfoMsr[i].cAddValue[j];
+
+          this._s_private_prefix[i][j] = lpu237._get_tag_hex_string_from_c_format(s.InfoMsr[i].PrivatePrefix[j].cSize,s.InfoMsr[i].PrivatePrefix[j].sTag);
+          this._s_private_postfix[i][j] = lpu237._get_tag_hex_string_from_c_format(s.InfoMsr[i].PrivatePostfix[j].cSize,s.InfoMsr[i].PrivatePostfix[j].sTag);
+        }//end for j
+      }//end for i
+
+      this._s_prefix_ibutton = lpu237._get_tag_hex_string_from_c_format(s.InfoIButton.GlobalPrefix.cSize,s.InfoIButton.GlobalPrefix.sTag);
+      this._s_postfix_ibutton = lpu237._get_tag_hex_string_from_c_format(s.InfoIButton.GlobalPostfix.cSize,s.InfoIButton.GlobalPostfix.sTag);
+
+      this._s_ibutton_remove = lpu237._get_tag_hex_string_from_c_format(s.RemoveItemTag.cSize,s.RemoveItemTag.sTag);
+      
+      this._s_prefix_ibutton_remove = lpu237._get_tag_hex_string_from_c_format(s.InfoIButtonRemove.GlobalPrefix.cSize,s.InfoIButtonRemove.GlobalPrefix.sTag);
+      this._s_postfix_ibutton_remove = lpu237._get_tag_hex_string_from_c_format(s.InfoIButtonRemove.GlobalPostfix.cSize,s.InfoIButtonRemove.GlobalPostfix.sTag);
+
+      b_result = true;
+    }while(false);
+    return b_result;
+  }
+
+  /**
+   * @public
+   * @return {boolean} processing result
    * @description analysis and save from response.
    */
   public set_from_rx = (): boolean => {
     let b_result: boolean = false;
     do {
       if (this._deque_generated_tx.length <= 0) {
+        this._s_last_error = "this._deque_generated_tx.length <= 0";
         continue;
       }
       if (this._dequeu_s_rx.length <= 0) {
+        this._s_last_error = "this._dequeu_s_rx.length <= 0";
         continue;
       }
-      const s_response: string = this._dequeu_s_rx.shift()!;
-
+      
       let b_value: boolean | null = null;
       let s_value: string | null = null;
       let n_value: number = 0;
@@ -10682,10 +10895,30 @@ export class lpu237 extends hid {
       let order: number[] | null = [];
       const n_generated_tx: number = this._deque_generated_tx.shift()!;
 
+      if(n_generated_tx === _type_generated_tx_type.gt_get_hyper){
+        // 이 타입의 경우는 모든 partial response 를 하나로 모아 parsing 하여 처리하므로
+        // 여기서는 큐에 있는 response 값을 그냥 나둠.
+        this._last_generated_tx = n_generated_tx;
+        b_result = true;
+        continue;
+      }
+
+      let s_response: string = "";
+      //여기는 현재 얻은 tx type 의 hyper type이 아닌 경우임.
+      if(this._last_generated_tx === _type_generated_tx_type.gt_get_hyper){
+        s_response = this._dequeu_s_rx.pop() ?? "";
+      }
+      else{
+        s_response = this._dequeu_s_rx.shift() ?? "";
+      }
+      this._last_generated_tx = n_generated_tx;
+      
+
       switch (n_generated_tx) {
         case _type_generated_tx_type.gt_get_version:
           version = lpu237._get_version_from_response(s_response);
           if (version === null) {
+            this._s_last_error = "version === null";
             break;
           }
           if (
@@ -10716,6 +10949,7 @@ export class lpu237 extends hid {
               }
             }
           } else {
+            this._s_last_error = "version is less then 1.1.";
             break;
           }
           //
@@ -10725,6 +10959,7 @@ export class lpu237 extends hid {
         case _type_generated_tx_type.gt_get_version_structure:
           version = lpu237._get_version_structure_from_response(s_response);
           if (version === null) {
+            this._s_last_error = "strcuture version === null";
             break;
           }
           //
@@ -10754,11 +10989,17 @@ export class lpu237 extends hid {
             this._s_uid = s_value;
             b_result = true;
           }
+          else{
+            this._s_last_error = "uid === null";
+          }
           break;
         case _type_generated_tx_type.gt_enter_config:
           b_result = lpu237._is_success_response(s_response);
           if (b_result) {
             this._b_config_mode = true;
+          }
+          else{
+            this._s_last_error = "enter_config.fail";
           }
           break;
         case _type_generated_tx_type.gt_leave_config:
@@ -10766,17 +11007,26 @@ export class lpu237 extends hid {
           if (b_result) {
             this._b_config_mode = false;
           }
+          else{
+            this._s_last_error = "leave_config.fail";
+          }
           break;
         case _type_generated_tx_type.gt_enter_opos:
           b_result = lpu237._is_success_response(s_response);
           if (b_result) {
             this._b_opos_mode = true;
           }
+          else{
+            this._s_last_error = "enter_opos.fail";
+          }
           break;
         case _type_generated_tx_type.gt_leave_opos:
           b_result = lpu237._is_success_response(s_response);
           if (b_result) {
             this._b_opos_mode = false;
+          }
+          else{
+            this._s_last_error = "leave_opos.fail";
           }
           break;
         case _type_generated_tx_type.gt_change_authkey:
@@ -10785,16 +11035,21 @@ export class lpu237 extends hid {
         case _type_generated_tx_type.gt_apply:
         case _type_generated_tx_type.gt_goto_boot:
           b_result = lpu237._is_success_response(s_response);
+          if(!b_result){
+            this._s_last_error = `${this._last_generated_tx}.fail`;
+          }
           break;
         case _type_generated_tx_type.gt_support_mmd1000:
-          this._b_device_is_mmd1000 =
-            lpu237._get_support_mmd1000_from_response(s_response);
+          this._b_device_is_mmd1000 = lpu237._get_support_mmd1000_from_response(s_response);
           b_result = true;
           break;
         case _type_generated_tx_type.gt_get_name:
           this._s_name = lpu237._get_name_from_response(s_response);
           if (this._s_name !== null) {
             b_result = true;
+          }
+          else{
+            this._s_last_error = "name === null";
           }
           break;
         case _type_generated_tx_type.gt_get_global_prepostfix_send_condition:
@@ -10806,12 +11061,18 @@ export class lpu237 extends hid {
             this._b_global_pre_postfix_send_condition = b_value;
             b_result = true;
           }
+          else{
+            this._s_last_error = "global_pre_postfix_send_conditio === null";
+          }
           break;
         case _type_generated_tx_type.gt_get_track_order:
           order = lpu237._get_track_order_from_response(s_response);
           if (order !== null) {
             this._n_order = order;
             b_result = true;
+          }
+          else{
+            this._s_last_error = "track_order === null";
           }
           break;
         case _type_generated_tx_type.gt_get_blank_4byets:
@@ -10820,12 +11081,18 @@ export class lpu237 extends hid {
             this._c_blank = blank;
             b_result = true;
           }
+          else{
+            this._s_last_error = "blank_4bytes === null";
+          }
           break;
         case _type_generated_tx_type.gt_get_interface:
           n_value = lpu237._get_interface_from_response(s_response);
           if (n_value >= 0) {
             this._n_interface = n_value;
             b_result = true;
+          }
+          else{
+            this._s_last_error = "interface === null";
           }
           break;
         case _type_generated_tx_type.gt_get_language:
@@ -10834,6 +11101,9 @@ export class lpu237 extends hid {
             this._n_language_index = n_value;
             b_result = true;
           }
+          else{
+            this._s_last_error = "language === null";
+          }
           break;
         case _type_generated_tx_type.gt_get_buzzer_count:
           n_value = lpu237._get_buzzer_count_from_response(s_response);
@@ -10841,12 +11111,18 @@ export class lpu237 extends hid {
             this._dw_buzzer_count = n_value;
             b_result = true;
           }
+          else{
+            this._s_last_error = "buzzer === null";
+          }
           break;
         case _type_generated_tx_type.gt_get_boot_run_time:
           n_value = lpu237._get_boot_run_time_from_response(s_response);
           if (n_value >= 0) {
             this._dw_boot_run_time = n_value;
             b_result = true;
+          }
+          else{
+            this._s_last_error = "boot run time === null";
           }
           break;
         case _type_generated_tx_type.gt_get_enable_iso1:
@@ -10858,6 +11134,9 @@ export class lpu237 extends hid {
             this._b_enable_iso[_type_msr_track_Numer.iso1_track] = b_value;
             b_result = true;
           }
+          else{
+            this._s_last_error = "enable track1 === null";
+          }
           break;
         case _type_generated_tx_type.gt_get_enable_iso2:
           b_value = lpu237._get_enable_track_from_response(
@@ -10867,6 +11146,9 @@ export class lpu237 extends hid {
           if (b_value !== null) {
             this._b_enable_iso[_type_msr_track_Numer.iso2_track] = b_value;
             b_result = true;
+          }
+          else{
+            this._s_last_error = "enable track2 === null";
           }
           break;
         case _type_generated_tx_type.gt_get_enable_iso3:
@@ -10878,6 +11160,9 @@ export class lpu237 extends hid {
             this._b_enable_iso[_type_msr_track_Numer.iso3_track] = b_value;
             b_result = true;
           }
+          else{
+            this._s_last_error = "enable track3 === null";
+          }
           break;
         case _type_generated_tx_type.gt_get_direction1:
           n_value = lpu237._get_direction_from_response(
@@ -10887,6 +11172,9 @@ export class lpu237 extends hid {
           if (n_value >= 0) {
             this._n_direction[_type_msr_track_Numer.iso1_track] = n_value;
             b_result = true;
+          }
+          else{
+            this._s_last_error = "direction1 < 0";
           }
           break;
         case _type_generated_tx_type.gt_get_direction2:
@@ -10898,6 +11186,9 @@ export class lpu237 extends hid {
             this._n_direction[_type_msr_track_Numer.iso2_track] = n_value;
             b_result = true;
           }
+          else{
+            this._s_last_error = "direction2 < 0";
+          }
           break;
         case _type_generated_tx_type.gt_get_direction3:
           n_value = lpu237._get_direction_from_response(
@@ -10908,6 +11199,9 @@ export class lpu237 extends hid {
             this._n_direction[_type_msr_track_Numer.iso3_track] = n_value;
             b_result = true;
           }
+          else{
+            this._s_last_error = "direction3 < 0";
+          }
           break;
         case _type_generated_tx_type.gt_get_global_prefix:
           s_value = lpu237._get_global_prefix_from_response(s_response);
@@ -10915,12 +11209,18 @@ export class lpu237 extends hid {
             this._s_global_prefix = s_value;
             b_result = true;
           }
+          else{
+            this._s_last_error = "global_prefix === null";
+          }
           break;
         case _type_generated_tx_type.gt_get_global_postfix:
           s_value = lpu237._get_global_postfix_from_response(s_response);
           if (s_value !== null) {
             this._s_global_postfix = s_value;
             b_result = true;
+          }
+          else{
+            this._s_last_error = "global_postfix === null";
           }
           break;
         //
@@ -10936,6 +11236,9 @@ export class lpu237 extends hid {
               n_generated_tx - _type_generated_tx_type.gt_get_iso1_number_combi
             ] = n_value;
             b_result = true;
+          }
+          else{
+            this._s_last_error = `number combi < 0 : ${this._last_generated_tx}`;
           }
           break;
         case _type_generated_tx_type.gt_get_iso1_Combi0_MaxSize:
@@ -10953,6 +11256,9 @@ export class lpu237 extends hid {
             ] = n_value;
             b_result = true;
           }
+          else{
+            this._s_last_error = `max size < 0 : ${this._last_generated_tx}`;
+          }
           break;
         case _type_generated_tx_type.gt_get_iso2_Combi0_MaxSize:
         case _type_generated_tx_type.gt_get_iso2_Combi1_MaxSize:
@@ -10968,6 +11274,9 @@ export class lpu237 extends hid {
                 _type_generated_tx_type.gt_get_iso2_Combi0_MaxSize
             ] = n_value;
             b_result = true;
+          }
+          else{
+            this._s_last_error = `max size < 0 : ${this._last_generated_tx}`;
           }
           break;
         case _type_generated_tx_type.gt_get_iso3_Combi0_MaxSize:
@@ -10985,6 +11294,9 @@ export class lpu237 extends hid {
             ] = n_value;
             b_result = true;
           }
+          else{
+            this._s_last_error = `max size < 0 : ${this._last_generated_tx}`;
+          }
           break;
         case _type_generated_tx_type.gt_get_iso1_Combi0_BitSize:
         case _type_generated_tx_type.gt_get_iso1_Combi1_BitSize:
@@ -11000,6 +11312,9 @@ export class lpu237 extends hid {
                 _type_generated_tx_type.gt_get_iso1_Combi0_BitSize
             ] = n_value;
             b_result = true;
+          }
+          else{
+            this._s_last_error = `bit size < 0 : ${this._last_generated_tx}`;
           }
           break;
         case _type_generated_tx_type.gt_get_iso2_Combi0_BitSize:
@@ -11017,6 +11332,9 @@ export class lpu237 extends hid {
             ] = n_value;
             b_result = true;
           }
+          else{
+            this._s_last_error = `bit size < 0 : ${this._last_generated_tx}`;
+          }
           break;
         case _type_generated_tx_type.gt_get_iso3_Combi0_BitSize:
         case _type_generated_tx_type.gt_get_iso3_Combi1_BitSize:
@@ -11032,6 +11350,9 @@ export class lpu237 extends hid {
                 _type_generated_tx_type.gt_get_iso3_Combi0_BitSize
             ] = n_value;
             b_result = true;
+          }
+          else{
+            this._s_last_error = `bit size < 0 : ${this._last_generated_tx}`;
           }
           break;
         case _type_generated_tx_type.gt_get_iso1_Combi0_DataMask:
@@ -11050,6 +11371,9 @@ export class lpu237 extends hid {
             ] = n_value;
             b_result = true;
           }
+          else{
+            this._s_last_error = `data mask < 0 : ${this._last_generated_tx}`;
+          }
           break;
         case _type_generated_tx_type.gt_get_iso2_Combi0_DataMask:
         case _type_generated_tx_type.gt_get_iso2_Combi1_DataMask:
@@ -11066,6 +11390,9 @@ export class lpu237 extends hid {
                 _type_generated_tx_type.gt_get_iso2_Combi0_DataMask
             ] = n_value;
             b_result = true;
+          }
+          else{
+            this._s_last_error = `data mask < 0 : ${this._last_generated_tx}`;
           }
           break;
         case _type_generated_tx_type.gt_get_iso3_Combi0_DataMask:
@@ -11084,6 +11411,9 @@ export class lpu237 extends hid {
             ] = n_value;
             b_result = true;
           }
+          else{
+            this._s_last_error = `data mask < 0 : ${this._last_generated_tx}`;
+          }
           break;
         case _type_generated_tx_type.gt_get_iso1_Combi0_UseParity: // this._b_use_parity
         case _type_generated_tx_type.gt_get_iso1_Combi1_UseParity:
@@ -11100,6 +11430,9 @@ export class lpu237 extends hid {
                 _type_generated_tx_type.gt_get_iso1_Combi0_UseParity
             ] = b_value;
             b_result = true;
+          }
+          else{
+            this._s_last_error = `use parity === null : ${this._last_generated_tx}`;
           }
           break;
         case _type_generated_tx_type.gt_get_iso2_Combi0_UseParity:
@@ -11118,6 +11451,9 @@ export class lpu237 extends hid {
             ] = b_value;
             b_result = true;
           }
+          else{
+            this._s_last_error = `use parity === null : ${this._last_generated_tx}`;
+          }
           break;
         case _type_generated_tx_type.gt_get_iso3_Combi0_UseParity:
         case _type_generated_tx_type.gt_get_iso3_Combi1_UseParity:
@@ -11134,6 +11470,9 @@ export class lpu237 extends hid {
                 _type_generated_tx_type.gt_get_iso3_Combi0_UseParity
             ] = b_value;
             b_result = true;
+          }
+          else{
+            this._s_last_error = `use parity === null : ${this._last_generated_tx}`;
           }
           break;
         case _type_generated_tx_type.gt_get_iso1_Combi0_ParityType: //this._n_parity_type
@@ -11152,6 +11491,9 @@ export class lpu237 extends hid {
             ] = n_value;
             b_result = true;
           }
+          else{
+            this._s_last_error = `parity type < 0 : ${this._last_generated_tx}`;
+          }
           break;
         case _type_generated_tx_type.gt_get_iso2_Combi0_ParityType:
         case _type_generated_tx_type.gt_get_iso2_Combi1_ParityType:
@@ -11168,6 +11510,9 @@ export class lpu237 extends hid {
                 _type_generated_tx_type.gt_get_iso2_Combi0_ParityType
             ] = n_value;
             b_result = true;
+          }
+          else{
+            this._s_last_error = `parity type < 0 : ${this._last_generated_tx}`;
           }
           break;
         case _type_generated_tx_type.gt_get_iso3_Combi0_ParityType:
@@ -11186,6 +11531,9 @@ export class lpu237 extends hid {
             ] = n_value;
             b_result = true;
           }
+          else{
+            this._s_last_error = `parity type < 0 : ${this._last_generated_tx}`;
+          }
           break;
         case _type_generated_tx_type.gt_get_iso1_Combi0_STX_L: //this._c_stxl
         case _type_generated_tx_type.gt_get_iso1_Combi1_STX_L:
@@ -11200,6 +11548,9 @@ export class lpu237 extends hid {
               n_generated_tx - _type_generated_tx_type.gt_get_iso1_Combi0_STX_L
             ] = n_value;
             b_result = true;
+          }
+          else{
+            this._s_last_error = `stxl < 0 : ${this._last_generated_tx}`;
           }
           break;
         case _type_generated_tx_type.gt_get_iso2_Combi0_STX_L:
@@ -11216,6 +11567,9 @@ export class lpu237 extends hid {
             ] = n_value;
             b_result = true;
           }
+          else{
+            this._s_last_error = `stxl < 0 : ${this._last_generated_tx}`;
+          }
           break;
         case _type_generated_tx_type.gt_get_iso3_Combi0_STX_L:
         case _type_generated_tx_type.gt_get_iso3_Combi1_STX_L:
@@ -11230,6 +11584,9 @@ export class lpu237 extends hid {
               n_generated_tx - _type_generated_tx_type.gt_get_iso3_Combi0_STX_L
             ] = n_value;
             b_result = true;
+          }
+          else{
+            this._s_last_error = `stxl < 0 : ${this._last_generated_tx}`;
           }
           break;
         case _type_generated_tx_type.gt_get_iso1_Combi0_ETX_L: //this._c_etxl
@@ -11246,6 +11603,9 @@ export class lpu237 extends hid {
             ] = n_value;
             b_result = true;
           }
+          else{
+            this._s_last_error = `etxl < 0 : ${this._last_generated_tx}`;
+          }
           break;
         case _type_generated_tx_type.gt_get_iso2_Combi0_ETX_L:
         case _type_generated_tx_type.gt_get_iso2_Combi1_ETX_L:
@@ -11261,6 +11621,9 @@ export class lpu237 extends hid {
             ] = n_value;
             b_result = true;
           }
+          else{
+            this._s_last_error = `etxl < 0 : ${this._last_generated_tx}`;
+          }
           break;
         case _type_generated_tx_type.gt_get_iso3_Combi0_ETX_L:
         case _type_generated_tx_type.gt_get_iso3_Combi1_ETX_L:
@@ -11275,6 +11638,9 @@ export class lpu237 extends hid {
               n_generated_tx - _type_generated_tx_type.gt_get_iso3_Combi0_ETX_L
             ] = n_value;
             b_result = true;
+          }
+          else{
+            this._s_last_error = `etxl < 0 : ${this._last_generated_tx}`;
           }
           break;
         case _type_generated_tx_type.gt_get_iso1_Combi0_UseErrorCorrect: //this._b_use_ecm
@@ -11293,6 +11659,9 @@ export class lpu237 extends hid {
             ] = b_value;
             b_result = true;
           }
+          else{
+            this._s_last_error = `use ecm === null : ${this._last_generated_tx}`;
+          }
           break;
         case _type_generated_tx_type.gt_get_iso2_Combi0_UseErrorCorrect:
         case _type_generated_tx_type.gt_get_iso2_Combi1_UseErrorCorrect:
@@ -11309,6 +11678,9 @@ export class lpu237 extends hid {
                 _type_generated_tx_type.gt_get_iso2_Combi0_UseErrorCorrect
             ] = b_value;
             b_result = true;
+          }
+          else{
+            this._s_last_error = `use ecm === null : ${this._last_generated_tx}`;
           }
           break;
         case _type_generated_tx_type.gt_get_iso3_Combi0_UseErrorCorrect:
@@ -11327,6 +11699,9 @@ export class lpu237 extends hid {
             ] = b_value;
             b_result = true;
           }
+          else{
+            this._s_last_error = `use ecm === null : ${this._last_generated_tx}`;
+          }
           break;
         case _type_generated_tx_type.gt_get_iso1_Combi0_ECMType: //this._n_ecm_type
         case _type_generated_tx_type.gt_get_iso1_Combi1_ECMType:
@@ -11342,6 +11717,9 @@ export class lpu237 extends hid {
                 _type_generated_tx_type.gt_get_iso1_Combi0_ECMType
             ] = n_value;
             b_result = true;
+          }
+          else{
+            this._s_last_error = `ecm type < 0 : ${this._last_generated_tx}`;
           }
           break;
         case _type_generated_tx_type.gt_get_iso2_Combi0_ECMType:
@@ -11359,6 +11737,9 @@ export class lpu237 extends hid {
             ] = n_value;
             b_result = true;
           }
+          else{
+            this._s_last_error = `ecm type < 0 : ${this._last_generated_tx}`;
+          }
           break;
         case _type_generated_tx_type.gt_get_iso3_Combi0_ECMType:
         case _type_generated_tx_type.gt_get_iso3_Combi1_ECMType:
@@ -11374,6 +11755,9 @@ export class lpu237 extends hid {
                 _type_generated_tx_type.gt_get_iso3_Combi0_ECMType
             ] = n_value;
             b_result = true;
+          }
+          else{
+            this._s_last_error = `ecm type < 0 : ${this._last_generated_tx}`;
           }
           break;
         case _type_generated_tx_type.gt_get_iso1_Combi0_AddValue: //this._n_add_value
@@ -11392,6 +11776,9 @@ export class lpu237 extends hid {
             ] = n_value;
             b_result = true;
           }
+          else{
+            this._s_last_error = `add value < 0 : ${this._last_generated_tx}`;
+          }
           break;
         case _type_generated_tx_type.gt_get_iso2_Combi0_AddValue:
         case _type_generated_tx_type.gt_get_iso2_Combi1_AddValue:
@@ -11408,6 +11795,9 @@ export class lpu237 extends hid {
                 _type_generated_tx_type.gt_get_iso2_Combi0_AddValue
             ] = n_value;
             b_result = true;
+          }
+          else{
+            this._s_last_error = `add value < 0 : ${this._last_generated_tx}`;
           }
           break;
         case _type_generated_tx_type.gt_get_iso3_Combi0_AddValue:
@@ -11426,6 +11816,9 @@ export class lpu237 extends hid {
             ] = n_value;
             b_result = true;
           }
+          else{
+            this._s_last_error = `add value < 0 : ${this._last_generated_tx}`;
+          }
           break;
         //
         case _type_generated_tx_type.gt_get_private_prefix10:
@@ -11442,6 +11835,9 @@ export class lpu237 extends hid {
             ] = s_value;
             b_result = true;
           }
+          else{
+            this._s_last_error = `private_prefix === null : ${this._last_generated_tx}`;
+          }
           break;
         case _type_generated_tx_type.gt_get_private_prefix20:
         case _type_generated_tx_type.gt_get_private_prefix21:
@@ -11456,6 +11852,9 @@ export class lpu237 extends hid {
               n_generated_tx - _type_generated_tx_type.gt_get_private_prefix20
             ] = s_value;
             b_result = true;
+          }
+          else{
+            this._s_last_error = `private_prefix === null : ${this._last_generated_tx}`;
           }
           break;
         case _type_generated_tx_type.gt_get_private_prefix30:
@@ -11472,6 +11871,9 @@ export class lpu237 extends hid {
             ] = s_value;
             b_result = true;
           }
+          else{
+            this._s_last_error = `private_prefix === null : ${this._last_generated_tx}`;
+          }
           break;
         case _type_generated_tx_type.gt_get_private_postfix10:
         case _type_generated_tx_type.gt_get_private_postfix11:
@@ -11486,6 +11888,9 @@ export class lpu237 extends hid {
               n_generated_tx - _type_generated_tx_type.gt_get_private_postfix10
             ] = s_value;
             b_result = true;
+          }
+          else{
+            this._s_last_error = `private_postfix === null : ${this._last_generated_tx}`;
           }
           break;
         case _type_generated_tx_type.gt_get_private_postfix20:
@@ -11502,6 +11907,9 @@ export class lpu237 extends hid {
             ] = s_value;
             b_result = true;
           }
+          else{
+            this._s_last_error = `private_postfix === null : ${this._last_generated_tx}`;
+          }
           break;
         case _type_generated_tx_type.gt_get_private_postfix30:
         case _type_generated_tx_type.gt_get_private_postfix31:
@@ -11517,12 +11925,18 @@ export class lpu237 extends hid {
             ] = s_value;
             b_result = true;
           }
+          else{
+            this._s_last_error = `private_postfix === null : ${this._last_generated_tx}`;
+          }
           break;
         case _type_generated_tx_type.gt_get_prefix_ibutton:
           s_value = lpu237._get_ibutton_prefix_from_response(s_response);
           if (s_value !== null) {
             this._s_prefix_ibutton = s_value;
             b_result = true;
+          }
+          else{
+            this._s_last_error = `ibutton_prefix === null : ${this._last_generated_tx}`;
           }
           break;
         case _type_generated_tx_type.gt_get_postfix_ibutton:
@@ -11531,12 +11945,18 @@ export class lpu237 extends hid {
             this._s_postfix_ibutton = s_value;
             b_result = true;
           }
+          else{
+            this._s_last_error = `ibutton_postfix === null : ${this._last_generated_tx}`;
+          }
           break;
         case _type_generated_tx_type.gt_get_ibutton_remove:
           s_value = lpu237._get_ibutton_remove_from_response(s_response);
           if (s_value !== null) {
             this._s_ibutton_remove = s_value;
             b_result = true;
+          }
+          else{
+            this._s_last_error = `ibutton_remove === null : ${this._last_generated_tx}`;
           }
           break;
         case _type_generated_tx_type.gt_get_prefix_ibutton_remove:
@@ -11545,12 +11965,18 @@ export class lpu237 extends hid {
             this._s_prefix_ibutton_remove = s_value;
             b_result = true;
           }
+          else{
+            this._s_last_error = `ibutton_remove_prefix === null : ${this._last_generated_tx}`;
+          }
           break;
         case _type_generated_tx_type.gt_get_postfix_ibutton_remove:
           s_value = lpu237._get_ibutton_postfix_remove_from_response(s_response);
           if (s_value !== null) {
             this._s_postfix_ibutton_remove = s_value;
             b_result = true;
+          }
+          else{
+            this._s_last_error = `ibutton_remove_postfix === null : ${this._last_generated_tx}`;
           }
           break;
         case _type_generated_tx_type.gt_get_prefix_uart:
@@ -11559,12 +11985,18 @@ export class lpu237 extends hid {
             this._s_prefix_uart = s_value;
             b_result = true;
           }
+          else{
+            this._s_last_error = `uart_prefix === null : ${this._last_generated_tx}`;
+          }
           break;
         case _type_generated_tx_type.gt_get_postfix_uart:
           s_value = lpu237._get_uart_postfix_from_response(s_response);
           if (s_value !== null) {
             this._s_postfix_uart = s_value;
             b_result = true;
+          }
+          else{
+            this._s_last_error = `uart_postfix === null : ${this._last_generated_tx}`;
           }
           break;
         case _type_generated_tx_type.gt_set_global_prepostfix_send_condition:
@@ -11703,6 +12135,9 @@ export class lpu237 extends hid {
         case _type_generated_tx_type.gt_set_prefix_uart:
         case _type_generated_tx_type.gt_set_postfix_uart:
           b_result = lpu237._is_success_response(s_response);
+          if(!b_result){
+            this._s_last_error = `${this._last_generated_tx} : error response`;
+          }
           break;
         default:
           continue;
