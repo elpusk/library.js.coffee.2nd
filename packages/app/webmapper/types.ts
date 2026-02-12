@@ -46,6 +46,13 @@ export interface DeviceConfig {
   msrSuccessIndCondition: string;
 }
 
+export interface RomItemInfo {
+  index: number;
+  model: string;
+  version: string;
+  condition: number;
+}
+
 export interface AppState {
   status: ConnectionStatus;
   serverStatus: ConnectionStatus;
@@ -63,6 +70,13 @@ export interface AppState {
   notification: NotificationState | null; // Added for toast alerts
   isDownloadModalOpen: boolean; // For filename input modal
   exportFileName: string; // Stored filename for export  
+  
+  // Firmware Update related state
+  isFirmwareModalOpen: boolean;
+  romItems: RomItemInfo[];
+  compatibleItemIndex: number;
+  selectedRomItemIndex: number;
+  pendingFirmwareFile: File | null;  
 }
 
 export const KEYBOARD_LAYOUT = [

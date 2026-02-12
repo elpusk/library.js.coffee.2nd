@@ -8,7 +8,7 @@ import DeviceTab from './components/DeviceTab';
 import CommonTab from './components/CommonTab';
 import KeyMapTab from './components/KeyMapTab';
 import LoadingOverlay from './components/LoadingOverlay';
-import { CheckCircle2, AlertCircle, Info, X, Download, FileJson } from 'lucide-react';
+import { CheckCircle2, AlertCircle, Info, X, Download, FileJson, Cpu, AlertTriangle, ShieldCheck } from 'lucide-react';
 
 const App: React.FC = () => {
   const [state, setState] = useState<AppState>({
@@ -28,6 +28,13 @@ const App: React.FC = () => {
     notification: null,
     isDownloadModalOpen: false,
     exportFileName: 'lpu237_settings.xml',    
+    
+    // Firmware Update related state
+    isFirmwareModalOpen: false,
+    romItems: [],
+    compatibleItemIndex: -1,
+    selectedRomItemIndex: -1,
+    pendingFirmwareFile: null,    
   });
   const stateRef = useRef(state);
 
@@ -111,6 +118,23 @@ const App: React.FC = () => {
     closeDownloadModal();
   };
 
+  const handleFirmwareConfirm = () => {
+    const isRom = state.romItems.length > 0;
+    const isCompatible = !isRom || state.selectedRomItemIndex === state.compatibleItemIndex;
+    
+    if (!isCompatible) {
+      if (!window.confirm("The selected firmware is not compatible with this device. Do you really want to proceed?")) {
+        return;
+      }
+    } else if (!isRom) {
+      if (!window.confirm("This file is not a standard ROM format. Proceeed with incompatible firmware update anyway?")) {
+        return;
+      }
+    }
+
+    handlers.onFirmwareSelected(isRom ? state.selectedRomItemIndex : undefined);
+  };
+
   const renderContent = () => {
     if (state.activeTab === 'device') {
       return (
@@ -186,6 +210,123 @@ const App: React.FC = () => {
     <div className="min-h-screen bg-gray-100 flex flex-col font-sans text-gray-800">
       {state.loading && <LoadingOverlay loading={state.loading} />}
       
+      {/* Firmware Selection Modal */}
+      {state.isFirmwareModalOpen && (
+        <div className="fixed inset-0 z-[130] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl mx-4 overflow-hidden border border-slate-200 animate-in zoom-in-95 duration-200">
+            <div className="bg-slate-50 px-6 py-4 border-b border-slate-200 flex justify-between items-center">
+              <h3 className="font-bold text-slate-700 flex items-center gap-2 text-lg">
+                <Cpu size={20} className="text-blue-600" />
+                Firmware Selection
+              </h3>
+              <button onClick={handlers.onCancelFirmwareModal} className="text-slate-400 hover:text-slate-600 transition-colors">
+                <X size={24} />
+              </button>
+            </div>
+            
+            <div className="p-6 space-y-6">
+              {state.romItems.length > 0 ? (
+                <>
+                  <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 flex items-start gap-3">
+                    {state.compatibleItemIndex >= 0 ? (
+                      <>
+                        <ShieldCheck className="text-blue-600 shrink-0 mt-0.5" size={20} />
+                        <div>
+                          <p className="text-sm font-bold text-blue-900">Compatible firmware found.</p>
+                          <p className="text-xs text-blue-700 font-medium">We've identified the best match for your {state.deviceName}.</p>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <AlertCircle className="text-amber-600 shrink-0 mt-0.5" size={20} />
+                        <div>
+                          <p className="text-sm font-bold text-amber-900">No direct compatibility match found.</p>
+                          <p className="text-xs text-amber-700 font-medium">Please select a firmware manually and proceed with caution.</p>
+                        </div>
+                      </>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-xs font-black text-slate-500 uppercase tracking-widest px-1">Available Firmware Items</label>
+                    <div className="border border-slate-200 rounded-lg overflow-hidden">
+                      <div className="max-h-60 overflow-y-auto">
+                        <table className="w-full text-sm text-left border-collapse">
+                          <thead className="bg-slate-100 text-slate-600 font-bold sticky top-0">
+                            <tr>
+                              <th className="px-4 py-2.5 w-12 text-center">Sel</th>
+                              <th className="px-4 py-2.5">Model Name</th>
+                              <th className="px-4 py-2.5 w-24">Version</th>
+                              <th className="px-4 py-2.5 w-24 text-right">Condition</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100">
+                            {state.romItems.map((item) => (
+                              <tr 
+                                key={item.index} 
+                                className={`cursor-pointer transition-colors ${state.selectedRomItemIndex === item.index ? 'bg-blue-50' : 'hover:bg-slate-50'}`}
+                                onClick={() => setState(prev => ({ ...prev, selectedRomItemIndex: item.index }))}
+                              >
+                                <td className="px-4 py-3 text-center">
+                                  <input 
+                                    type="radio" 
+                                    name="rom_item" 
+                                    checked={state.selectedRomItemIndex === item.index}
+                                    onChange={() => setState(prev => ({ ...prev, selectedRomItemIndex: item.index }))}
+                                    className="w-4 h-4 text-blue-600"
+                                  />
+                                </td>
+                                <td className="px-4 py-3 font-bold text-slate-700">
+                                  {item.model}
+                                  {item.index === state.compatibleItemIndex && (
+                                    <span className="ml-2 text-[9px] bg-blue-600 text-white px-1.5 py-0.5 rounded font-black uppercase">Auto</span>
+                                  )}
+                                </td>
+                                <td className="px-4 py-3 font-mono text-xs text-slate-500">{item.version}</td>
+                                <td className="px-4 py-3 text-right font-mono text-xs text-slate-400">0x{item.condition.toString(16).toUpperCase()}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div className="flex flex-col items-center py-8 text-center space-y-4">
+                  <div className="bg-amber-50 p-4 rounded-full">
+                    <AlertTriangle size={48} className="text-amber-600" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-slate-800">Non-Standard Firmware File</h4>
+                    <p className="text-sm text-slate-500 max-w-xs mt-1">
+                      This file does not contain a standard ROM header. 
+                      Proceeding will flash the raw binary to your device.
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="bg-slate-50 px-6 py-4 flex justify-end gap-3 border-t border-slate-100">
+              <button 
+                onClick={handlers.onCancelFirmwareModal}
+                className="px-5 py-2 text-sm font-bold text-slate-500 hover:bg-slate-200 rounded-lg transition-colors"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleFirmwareConfirm}
+                className="px-8 py-2 text-sm font-bold bg-blue-600 text-white rounded-lg hover:bg-blue-700 shadow-md shadow-blue-200 transition-all active:scale-95 flex items-center gap-2"
+              >
+                <Download size={16} />
+                Update Firmware
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Filename Input Modal (Replaces window.prompt) */}
       {state.isDownloadModalOpen && (
         <div className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200">

@@ -1,13 +1,6 @@
 // Fix for line 22: Import React to provide the React namespace for Dispatch and SetStateAction types
 import React from "react";
-import {
-  AppState,
-  ConnectionStatus,
-  DeviceType,
-  DeviceConfig,
-  KeyMapEntry,
-  NotificationState
-} from "./types";
+import { AppState, ConnectionStatus, DeviceType, DeviceConfig, KeyMapEntry, NotificationState, RomItemInfo } from './types';
 import { coffee } from "@lib/elpusk.framework.coffee";
 import {
   lpu237,
@@ -16,6 +9,7 @@ import {
 import { ctl_lpu237 } from "@lib/elpusk.framework.coffee.ctl_lpu237";
 import * as elpusk_util_keyboard_map from "@lib/elpusk.util.keyboard.map";
 import * as elpusk_util_keyboard_const from "@lib/elpusk.util.keyboard.const"
+import { TgRom, RomFileHead, TypeResult } from '@lib/elpusk.util.TgRom';
 
 // Global instances for library management
 let g_coffee = coffee.get_instance();
@@ -501,10 +495,57 @@ export const createHandlers = (
   };
 
   /**
-   * Firmware file transfer progress callback.
-   * After transfer is complete, it sets parameters and starts the actual update.
+   * Actual logic to start the firmware update after file upload and user selection/confirmation.
    */
-  const _cb_progress_fw_copy = (b_result: boolean, n_progress: number, n_file_size: number, s_message: string) => {
+  const onStartFirmwareUpdate = async (itemIndex?: number) => {
+    if (!g_lpu_device) return;
+    const devIdx = g_lpu_device.get_device_index();
+
+    addLog("Configuring update sequence parameters...");
+    setState(prev => ({
+      ...prev,
+      isFirmwareModalOpen: false,
+      loading: {
+        current: 0,
+        total: 100,
+        message: 'Initializing firmware flash...'
+      }
+    }));
+
+    try {
+      // Chain parameter settings as requested
+      await g_coffee.device_update_set_parameter(devIdx, "model_name", g_lpu_device.get_name());
+      await g_coffee.device_update_set_parameter(devIdx, "system_version", g_lpu_device.get_system_version_by_string());
+      await g_coffee.device_update_set_parameter(devIdx, "_cf_bl_progress_", "true");
+      await g_coffee.device_update_set_parameter(devIdx, "_cf_bl_window_", "false");
+      
+      // If an item was selected from a ROM file, tell the server which one to use
+      if (typeof itemIndex === 'number') {
+        await g_coffee.device_update_set_parameter(devIdx, "item_index", itemIndex.toString());
+      }
+
+      addLog("Starting firmware update...");
+      g_b_updating = true;
+      if (g_coffee.device_update_start_with_callback(devIdx, 0, 0, _cb_update_firmware)) {
+        addLog(`Firmware update process started.`);
+      } else {
+        g_b_updating = false;
+        addLog(`Firmware update failed to start.`);
+        setState(prev => ({ ...prev, loading: null }));
+        showNotification('Update failed to start', 'error');
+      }
+    } catch (err: any) {
+      addLog(`Firmware Update Setup Error: ${err.message}`);
+      setState(prev => ({ ...prev, loading: null }));
+      showNotification('Update initialization failed', 'error');
+    }
+  };
+
+  /**
+   * Firmware file transfer progress callback.
+   * After transfer is complete, it analyzes the file (if .rom) and prompts the user.
+   */
+  const _cb_progress_fw_copy = async (b_result: boolean, n_progress: number, n_file_size: number, s_message: string) => {
     if (!b_result) {
       addLog(`Firmware transfer error: ${s_message}`);
       setState(prev => ({ ...prev, loading: null }));
@@ -513,51 +554,73 @@ export const createHandlers = (
     }
 
     if( n_progress > 0 && n_progress === n_file_size ){
-      addLog(`Firmware successfully uploaded to server cache (${n_file_size} bytes).`);
-
-      if (!g_lpu_device){
-        addLog(`Firmware Configuring update sequence failed. none device instance.`);
+      addLog(`Firmware successfully uploaded to server cache.`);
+      
+      const file = stateRef.current.pendingFirmwareFile;
+      if (!file) {
         setState(prev => ({ ...prev, loading: null }));
-        showNotification('Firmware Configuring update sequence failed', 'error');
         return;
       }
-      addLog(`Firmware uploaded. Configuring update sequence...`);
 
-      const devIdx = g_lpu_device.get_device_index();
-      
-      // Chain parameter settings for the bootloader then start the update process
-      g_coffee.device_update_set_parameter(devIdx, "model_name", g_lpu_device.get_name())
-        .then(() => g_coffee.device_update_set_parameter(devIdx, "system_version", g_lpu_device!.get_system_version_by_string()))
-        .then(() => g_coffee.device_update_set_parameter(devIdx, "_cf_bl_progress_", "true"))
-        .then(() => g_coffee.device_update_set_parameter(devIdx, "_cf_bl_window_", "false"))
-        .then(() => {
-          addLog("Starting firmware update...");
+      const isRomFile = file.name.toLowerCase().endsWith('.rom');
+
+      if (isRomFile) {
+        // Analysis of .rom file using TgRom
+        const tgRom = new TgRom();
+        const header: RomFileHead = {
+          dwHeaderSize: 0,
+          sFormatVersion: [],
+          sRFU: new Uint8Array(0),
+          dwItem: 0,
+          Item: []
+        };
+
+        const loadResult = await tgRom.tg_rom_load_header(file, header);
+        if (loadResult === TypeResult.RESULT_SUCCESS) {
+          const items: RomItemInfo[] = [];
+          for (let i = 0; i < header.dwItem; i++) {
+            const it = header.Item[i];
+            items.push({
+              index: i,
+              model: it.sModel,
+              version: it.sVersion.join('.'),
+              condition: it.dwUpdateCondition
+            });
+          }
+
+          let updatableIndex = -1;
+          if (g_lpu_device) {
+            const ver = g_lpu_device.get_system_version();
+            updatableIndex = tgRom.tg_rom_get_updatable_item_index(
+              header,
+              g_lpu_device.get_name(),
+              ver[0], ver[1], ver[2], ver[3]
+            );
+          }
+
           setState(prev => ({
             ...prev,
-            loading: {
-              current: 0,
-              total: 100,
-              message: 'Initializing firmware flash...'
-            }
+            loading: null,
+            romItems: items,
+            compatibleItemIndex: updatableIndex,
+            selectedRomItemIndex: updatableIndex >= 0 ? updatableIndex : 0,
+            isFirmwareModalOpen: true
           }));
-          // Start the firmware update using the callback
-          g_b_updating = true; // 이 변수의 동기화를 위해 먼저 true 해야 한다.
-          if( g_coffee.device_update_start_with_callback(devIdx, 0, 0, _cb_update_firmware) ){
-            addLog(`Firmware Update have been Started.`);
-          }
-          else{
-            g_b_updating = false;
-            addLog(`Firmware Update Starting - failed`);
-            setState(prev => ({ ...prev, loading: null }));
-            showNotification('Firmware Update Starting - failed', 'error');
-          }
-        })
-        .catch((err: any) => {
-          addLog(`Firmware Update Setup Error: ${err.message}`);
-          setState(prev => ({ ...prev, loading: null }));
-          showNotification('Update initialization failed', 'error');
-        });
-
+        } else {
+          addLog("Failed to parse ROM header. Treating as non-ROM file.");
+          setState(prev => ({ ...prev, loading: null, isFirmwareModalOpen: true, romItems: [], compatibleItemIndex: -1 }));
+        }
+      } else {
+        // Not a .rom file (e.g., .bin)
+        setState(prev => ({
+          ...prev,
+          loading: null,
+          isFirmwareModalOpen: true,
+          romItems: [],
+          compatibleItemIndex: -1,
+          selectedRomItemIndex: -1
+        }));
+      }
     } else {
       // Show progress in UI overlay
       setState(prev => ({
@@ -707,7 +770,7 @@ export const createHandlers = (
         if(typeof s_session_number !== "string"){
           throw Error("fail connects server.");
         }
-        addLog('Session number:${s_session_number}');
+        addLog(`Session number:${s_session_number}`);
 
         const dev_list = await g_coffee.get_device_list(
           "hid#vid_134b&pid_0206&mi_01",
@@ -873,6 +936,7 @@ export const createHandlers = (
       // Initialize loading state for transfer
       setState(prev => ({
         ...prev,
+        pendingFirmwareFile: file,
         loading: {
           current: 0,
           total: file.size,
@@ -916,5 +980,14 @@ export const createHandlers = (
           .finally(() => {
           });
     },
+
+    onFirmwareSelected: (itemIndex?: number) => {
+      onStartFirmwareUpdate(itemIndex);
+    },
+
+    onCancelFirmwareModal: () => {
+      setState(prev => ({ ...prev, isFirmwareModalOpen: false, pendingFirmwareFile: null }));
+      addLog("Firmware update cancelled by user.");
+    }    
   };
 };

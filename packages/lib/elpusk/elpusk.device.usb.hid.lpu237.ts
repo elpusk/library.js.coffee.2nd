@@ -3268,7 +3268,7 @@ export class lpu237 extends hid {
    * @private
    * @function _get_name_from_response
    * @param {string} s_response - lpu237 프로토콜 패킷
-   * @returns {string | null} 시스템 이름, 실패 시 null
+   * @returns {string | null} 시스템 이름, 실패 시 null. 끝에 붙는 space 제거.
    */
   private static _get_name_from_response(s_response: string): string | null{
     if (!lpu237._is_success_response(s_response)) {
@@ -3280,7 +3280,13 @@ export class lpu237 extends hid {
       return null;
     }
 
-    return lpu237._get_data_field_member_of_response_by_string(s_response);
+    const s = lpu237._get_data_field_member_of_response_by_string(s_response);
+    if(s){
+      return s.trimEnd();
+    }
+    else{
+      return null;
+    }
   };
 
   /**

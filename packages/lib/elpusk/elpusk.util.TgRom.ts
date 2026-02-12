@@ -457,7 +457,7 @@ export class TgRom {
      * 아이템 크기 계산
      */
     private getItemSize(): number {
-        return 4 + 4 + 4 + (MAX_MODEL_NAME_SIZE + 1) + 4 + 32;
+        return 4 + 4 + 4 + (MAX_MODEL_NAME_SIZE + 1) + 4 + 128;
     }
 
     /**

@@ -560,7 +560,7 @@ export class Lpu237SysInfoManager {
       const sStrucVer = this.readBytes(data, offset, 4);
       offset += 4;
 
-      const sName = this.readString(data, offset, 16);
+      const sName = this.readString(data, offset, 16).trimEnd();
       offset += 16;
 
       const sSysVer = this.readBytes(data, offset, 4);
