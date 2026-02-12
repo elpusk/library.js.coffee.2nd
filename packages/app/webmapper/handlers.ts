@@ -987,7 +987,20 @@ export const createHandlers = (
 
     onCancelFirmwareModal: () => {
       setState(prev => ({ ...prev, isFirmwareModalOpen: false, pendingFirmwareFile: null }));
-      addLog("Firmware update cancelled by user.");
+      addLog("Firmware update cancelled by user. Deleting temporary file...");
+      
+      // 사용자의 요청에 따라 취소 시 서버에 업로드된 파일을 삭제합니다.
+      g_coffee.file_firmware_delete()
+        .then((s_rx) => {
+          if (Array.isArray(s_rx) && s_rx[0] === "success") {
+            addLog("Temporary firmware file successfully deleted from server.");
+          } else {
+            addLog("Warning: Failed to delete temporary firmware file from server.");
+          }
+        })
+        .catch((err) => {
+          addLog(`File deletion error: ${err.message}`);
+        });
     }    
   };
 };
