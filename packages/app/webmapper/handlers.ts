@@ -497,7 +497,7 @@ export const createHandlers = (
   /**
    * Actual logic to start the firmware update after file upload and user selection/confirmation.
    */
-  const onStartFirmwareUpdate = async (itemIndex?: number) => {
+  const onStartFirmwareUpdate = async (fwIndex?: number) => {
     if (!g_lpu_device) return;
     const devIdx = g_lpu_device.get_device_index();
 
@@ -514,14 +514,15 @@ export const createHandlers = (
 
     try {
       // Chain parameter settings as requested
-      await g_coffee.device_update_set_parameter(devIdx, "model_name", g_lpu_device.get_name());
-      await g_coffee.device_update_set_parameter(devIdx, "system_version", g_lpu_device.get_system_version_by_string());
-      await g_coffee.device_update_set_parameter(devIdx, "_cf_bl_progress_", "true");
-      await g_coffee.device_update_set_parameter(devIdx, "_cf_bl_window_", "false");
+      await g_coffee.device_update_set_parameter(devIdx, "model_name", g_lpu_device.get_name());//targert device name
+      await g_coffee.device_update_set_parameter(devIdx, "system_version", g_lpu_device.get_system_version_by_string());//target device system version
+      await g_coffee.device_update_set_parameter(devIdx, "_cf_bl_progress_", "true");//진행 상태를 pipe 를 통해 알릴까요? yes
+      await g_coffee.device_update_set_parameter(devIdx, "_cf_bl_window_", "false");//독립 window 를 띄울까요? no ( 리눅스에서는 독립 window 동작 안함.)
       
       // If an item was selected from a ROM file, tell the server which one to use
-      if (typeof itemIndex === 'number') {
-        await g_coffee.device_update_set_parameter(devIdx, "item_index", itemIndex.toString());
+      if (typeof fwIndex === 'number') {
+        //rom 파일의 경우, 사용자가 선택한 zero firmware index. 이 parameter 가 없으면, 자동.
+        await g_coffee.device_update_set_parameter(devIdx, "firmware_index", fwIndex.toString());
       }
 
       addLog("Starting firmware update...");
@@ -981,8 +982,8 @@ export const createHandlers = (
           });
     },
 
-    onFirmwareSelected: (itemIndex?: number) => {
-      onStartFirmwareUpdate(itemIndex);
+    onFirmwareSelected: (fwIndex?: number) => {
+      onStartFirmwareUpdate(fwIndex);
     },
 
     onCancelFirmwareModal: () => {
