@@ -10,6 +10,7 @@ import { ctl_lpu237 } from "@lib/elpusk.framework.coffee.ctl_lpu237";
 import * as elpusk_util_keyboard_map from "@lib/elpusk.util.keyboard.map";
 import * as elpusk_util_keyboard_const from "@lib/elpusk.util.keyboard.const"
 import { TgRom, RomFileHead, TypeResult } from '@lib/elpusk.util.TgRom';
+import { util } from '@lib/elpusk.util';
 
 // Global instances for library management
 let g_coffee = coffee.get_instance();
@@ -772,6 +773,49 @@ export const createHandlers = (
           throw Error("fail connects server.");
         }
         addLog(`Session number:${s_session_number}`);
+
+        // 서버 버전 체크 로직 추가( 타임아웃 적용)
+        let server_version = "0.0.0";
+        try {
+          const versionPromise = g_coffee.get_version();
+          const timeoutPromise = new Promise<string>((_, reject) => 
+            setTimeout(() => reject(new Error("Server version request timeout")), 2000)
+          );
+          
+          server_version = await Promise.race([versionPromise, timeoutPromise]);
+        } catch (e) {
+          addLog("Server version check timed out or failed (2s). Assuming old version.");
+          server_version = "0.0.0";
+        }
+
+        addLog(`Server version: ${server_version}`);
+        
+        let sa = "0.0.0";
+        if(Array.isArray(server_version) && server_version.length>0){
+          sa = server_version[0];
+        }
+        else{
+          sa = server_version;
+        }
+        if (!util.is_a_greater_than_equal_b(sa, "2.7.0")) {
+          addLog(`Incompatible server version: ${server_version}. Required 2.7.0 or higher.`);
+          showNotification('Please update your server. Required version 2.7.0(Installer v2.8) or higher. Download at: https://github.com/elpusk/publish.framework.coffee.2nd', 'error');
+          // 버전이 낮으므로 연결 해제 처리
+          if (g_ctl) {
+            try { await g_ctl.close_with_promise(); } catch(e) {}
+            g_ctl = null;
+            g_lpu_device = null;
+          }
+          try { await g_coffee.disconnect(); } catch(e) {}
+          setState((prev) => ({
+            ...prev,
+            serverStatus: ConnectionStatus.DISCONNECTED,
+            status: ConnectionStatus.DISCONNECTED,
+            devicePaths: [],
+            logs: [...prev.logs, "Server link closed due to low version."],
+          }));
+          return;
+        }
 
         const dev_list = await g_coffee.get_device_list(
           "hid#vid_134b&pid_0206&mi_01",

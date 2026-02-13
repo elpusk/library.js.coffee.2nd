@@ -608,25 +608,25 @@ export class util extends elpusk {
     public static is_a_greater_than_equal_b(s_a: string, s_b: string): boolean {
         // input version format (x.y.z)
         if (!/^\d+\.\d+\.\d+$/.test(s_a)) {
-            throw new Error("Invalid s_a input version format. Expected format: x.y.z");
+            return false;
         }
         if (!/^\d+\.\d+\.\d+$/.test(s_b)) {
-            throw new Error("Invalid s_b input version format. Expected format: x.y.z");
+            return false;
         }
 
         // convert string version to integer version
-        const currentParts = s_b.split(".").map(Number);
-        const inputParts = s_a.split(".").map(Number);
+        const BParts = s_b.split(".").map(Number);
+        const AParts = s_a.split(".").map(Number);
 
         // compare version
-        for (let i = 0; i < Math.max(currentParts.length, inputParts.length); i++) {
-            const current = currentParts[i] || 0;
-            const input = inputParts[i] || 0;
+        for (let i = 0; i < Math.max(BParts.length, AParts.length); i++) {
+            const n_b = BParts[i] || 0;
+            const n_a = AParts[i] || 0;
 
-            if (current < input) {
-                return false;
-            } else if (current > input) {
+            if (n_b < n_a) {
                 return true;
+            } else if (n_b > n_a) {
+                return false;
             }
         }
 

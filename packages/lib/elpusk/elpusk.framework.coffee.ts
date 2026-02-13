@@ -22,8 +22,8 @@
  * SOFTWARE.
  * 
  * @author developer 00000006
- * @copyright Elpusk.Co.,Ltd 2025
- * @version 2.2.1
+ * @copyright Elpusk.Co.,Ltd 2026
+ * @version 2.3.0
  * @description elpusk framework coffee typescript library.
  */
 
@@ -60,6 +60,7 @@ enum _type_packet_owner {
 
 enum _type_action_code {
     UNKNOWN = "U",
+    VERSION = "V",
     ECHO = "E",
     DEVICE_LIST = "L",
     CONTROL_SHOW = "S",
@@ -352,6 +353,44 @@ export class coffee extends framework {
         return json_packet;
     }
 
+    private async _promise_get_version(): Promise<string> {
+        return new Promise((resolve, reject) => {
+            if (!coffee._b_connet) {
+                reject(this._get_error_object('en_e_server_connect'));
+                return;
+            }
+
+            this._websocket!.onerror = (evt) => {
+                this._on_def_error(0, evt);
+            };
+
+            this._websocket!.onmessage = (evt) => {
+                this._on_def_message_json_format(0, evt);
+            };
+
+            const parameter: PromiseParameter = {
+                n_device_index: 0,
+                method: "_promise_get_version",
+                resolve: resolve,
+                reject: reject
+            };
+            this._push_promise_parameter(0, parameter);
+
+            const json_packet = this._generate_request_packet(
+                _type_packet_owner.MANAGER,
+                this.const_n_undefined_device_index,
+                _type_action_code.VERSION,
+                0,
+                0,
+                _type_data_field_type.STRING_OR_STRING_ARRAY,
+                [String("")]
+            );
+
+            const s_json_packet = JSON.stringify(json_packet);
+            this._websocket!.send(s_json_packet);
+        });
+    }
+
     private async _promise_echo(s_data_type: string, s_data?: string): Promise<string> {
         return new Promise((resolve, reject) => {
             if (!coffee._b_connet) {
@@ -591,6 +630,13 @@ export class coffee extends framework {
                     coffee._b_connet = true;
                 }
                 parameter.resolve!(this._s_session);
+                break;
+            case "_promise_get_version":
+                if (json_obj.action_code === _type_action_code.VERSION) {
+                    parameter.resolve!(json_obj.data_field);
+                } else {
+                    parameter.reject!(this._get_error_object('en_e_server_mismatch_action'));
+                }
                 break;
             case "_promise_echo":
                 if (json_obj.action_code === _type_action_code.ECHO) {
@@ -1052,6 +1098,20 @@ export class coffee extends framework {
                 }
             }
         });
+    }
+
+    /** 
+     * @public 
+     * @async
+     * @function get_version
+     * 
+     * @returns {Promise} if success, resolve with version string from server.
+     * <br /> else reject with Error object.
+     * 
+     * @description run get version action to server by promise.
+    */                
+    public async get_version() : Promise<string> {
+        return this._promise_get_version();
     }
 
     /** 
