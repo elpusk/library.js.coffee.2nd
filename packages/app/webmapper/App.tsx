@@ -36,6 +36,7 @@ const App: React.FC = () => {
     selectedRomItemIndex: -1,
     pendingFirmwareFile: null,    
   });
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const stateRef = useRef(state);
 
   useEffect(() => {
@@ -418,9 +419,11 @@ const App: React.FC = () => {
           onTabChange={(tab) => setState(prev => ({ ...prev, activeTab: tab }))}
           deviceType={state.deviceType}
           isConnected={state.status === ConnectionStatus.CONNECTED}
+          isCollapsed={isSidebarCollapsed}
+          onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}          
         />
         
-        <main className="flex-1 p-6 overflow-y-auto bg-gray-50">
+        <main className="flex-1 p-6 overflow-y-auto bg-gray-50 transition-all duration-300">
           <div className="bg-white border border-gray-300 shadow-sm min-h-[600px] h-full rounded flex flex-col">
             {renderContent()}
           </div>
