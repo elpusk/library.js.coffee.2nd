@@ -10,8 +10,11 @@
   + `corepack enable`
   + `corepack prepare pnpm@latest --activate`
 
-+ installation dependecy: 
+- installation dependecy: 
   + `pnpm install`
+
+- more library
+  + react-simple-keyboard 3.8 : `pnpm add react-simple-keyboard --filter webmapper`
 
 
 # build

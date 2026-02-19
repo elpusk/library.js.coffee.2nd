@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { KeyMapEntry } from '../types';
 import VirtualKeyboard from './VirtualKeyboard';
-import { Trash2, Keyboard, Save } from 'lucide-react';
+import { Trash2, Keyboard, Save, AlertCircle, X } from 'lucide-react';
 import { getHidCodeByLabel } from '../handlers';
 
 interface KeyMapTabProps {
@@ -13,7 +13,8 @@ interface KeyMapTabProps {
 }
 
 const KeyMapTab: React.FC<KeyMapTabProps> = ({ title, maxKeys, keys, onKeysChange, onApply }) => {
-  
+  const [limitError, setLimitError] = useState(false);
+
   const handleClearAll = () => {
     // Only clear if there are keys to clear
     if (keys.length > 0) {
@@ -24,9 +25,10 @@ const KeyMapTab: React.FC<KeyMapTabProps> = ({ title, maxKeys, keys, onKeysChang
 
   const handleKeyPress = (key: string, modifiers: { shift: boolean, ctrl: boolean, alt: boolean }) => {
     if (keys.length >= maxKeys) {
-      alert(`Maximum limit of ${maxKeys} keys reached.`);
+      setLimitError(true);
       return;
     }
+    setLimitError(false);
 
     const newEntry: KeyMapEntry = {
       id: Date.now(),
@@ -61,8 +63,19 @@ const KeyMapTab: React.FC<KeyMapTabProps> = ({ title, maxKeys, keys, onKeysChang
             <Save size={14} /> Apply
           </button>
         </div>
-        <div className="text-xs font-mono bg-gray-200 px-2 py-1 rounded text-gray-600">
-          Keys: {keys.length} / {maxKeys}
+        <div className="flex items-center gap-3">
+          {limitError && (
+            <div className="flex items-center gap-1.5 px-3 py-1 bg-red-50 border border-red-200 rounded text-xs font-semibold text-red-600">
+              <AlertCircle size={13} />
+              Maximum {maxKeys} keys reached
+              <button onClick={() => setLimitError(false)} className="ml-1 hover:text-red-800">
+                <X size={12} />
+              </button>
+            </div>
+          )}
+          <div className="text-xs font-mono bg-gray-200 px-2 py-1 rounded text-gray-600">
+            Keys: {keys.length} / {maxKeys}
+          </div>
         </div>
       </div>
 

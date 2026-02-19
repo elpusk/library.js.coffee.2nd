@@ -9,7 +9,7 @@ const Footer: React.FC = () => {
 
   return (
     <footer className="bg-slate-800 text-slate-400 px-6 py-2 text-xs flex justify-between items-center border-t border-slate-700">
-      <span className="opacity-60 italic">coding with Gemini</span>
+      <span className="opacity-60 italic">coding with Gemini & Claude</span>
       <span>date : {formattedDate}</span>
     </footer>
   );
