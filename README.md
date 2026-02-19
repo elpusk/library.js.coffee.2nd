@@ -1,5 +1,7 @@
 # library.js.coffee.2nd
-javascript library for coffee manager 2nd
+
+- javascript library for coffee manager 2nd
+- Webmapper v1.2
 
 # tools
 - [node.js](https://nodejs.org/)
