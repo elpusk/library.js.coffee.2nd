@@ -385,11 +385,28 @@ export const createHandlers = (
       "ibutton-remove-suffix": parseHexToKeyMap(hw.get_language(), hw.get_postfix_ibutton_remove()),
     };
 
+    // 제품명 판별 로직 적용
+    const version = hw.get_system_version();
+    const internalName = (hw.get_name() || "").toLowerCase();
+    let productName = "Unknown Hardware";
+
+    if (version[0] >= 10) {
+      productName = `LPU-208D(${hw.get_name()})`;
+    } else {
+      if (["callisto", "ganymede", "himalia"].includes(internalName)) {
+        productName = `LPU237(${hw.get_name()})`;
+      } else if (["europa", "elara"].includes(internalName)) {
+        productName = `LPU238(${hw.get_name()})`;
+      } else {
+        productName = hw.get_name() || "Unknown Hardware";
+      }
+    }
+
     setState((prev) => ({
       ...prev,
       config: newConfig,
       keyMaps: keyMaps,
-      deviceName: hw.get_name() || "Unknown Hardware",
+      deviceName: productName || "Unknown Hardware",
       deviceFirmware: hw.get_system_version_by_string() || "Unknown",
       deviceUid: hw.get_uid() || "Unknown",
     }));
