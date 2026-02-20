@@ -10,9 +10,10 @@ interface KeyMapTabProps {
   keys: KeyMapEntry[];
   onKeysChange: (keys: KeyMapEntry[]) => void;
   onApply: () => void;
+  language?: string;
 }
 
-const KeyMapTab: React.FC<KeyMapTabProps> = ({ title, maxKeys, keys, onKeysChange, onApply }) => {
+const KeyMapTab: React.FC<KeyMapTabProps> = ({ title, maxKeys, keys, onKeysChange, onApply, language }) => {
   const [limitError, setLimitError] = useState(false);
 
   const handleClearAll = () => {
@@ -151,7 +152,7 @@ const KeyMapTab: React.FC<KeyMapTabProps> = ({ title, maxKeys, keys, onKeysChang
              <span className="text-xs font-bold text-gray-500 uppercase">Virtual Input</span>
              <span className="text-xs text-gray-400">Click keys to add to table</span>
            </div>
-           <VirtualKeyboard onKeyPress={handleKeyPress} />
+           <VirtualKeyboard onKeyPress={handleKeyPress} language={language} />
         </div>
 
       </div>

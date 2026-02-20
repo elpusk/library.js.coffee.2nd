@@ -200,6 +200,7 @@ const App: React.FC = () => {
           keys={currentKeys}
           onKeysChange={(keys) => handleKeyMapChange(state.activeTab, keys)}
           onApply={handlers.onApply}
+          language={state.config.language}
         />
       );
     }
