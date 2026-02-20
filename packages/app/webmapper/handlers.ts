@@ -20,6 +20,7 @@ let g_ctl: ctl_lpu237 | null = null;
 let g_plugout_cleanup: (() => void) | null = null;
 let g_refresh_device_list: (() => void) | null = null;
 let g_b_updating = false;//fw updating .......
+let g_initialized = false;//StrictMode 이중 초기화 방지 플래그
 
 /**
  * MAPPING HELPERS: HW <-> UI
@@ -655,6 +656,9 @@ export const createHandlers = (
 
   return {
     initializeSystem: () => {
+      if (g_initialized) return;
+      g_initialized = true;
+
       if (typeof (window as any).cf2_initialize === "function") {
         (window as any).cf2_initialize();
       }
@@ -707,6 +711,8 @@ export const createHandlers = (
     },
 
     uninitializeSystem: () => {
+      g_initialized = false;
+
       if (typeof (window as any).cf2_uninitialize === "function") {
         (window as any).cf2_uninitialize();
       }
