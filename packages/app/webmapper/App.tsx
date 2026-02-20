@@ -281,7 +281,7 @@ const App: React.FC = () => {
                                 <td className="px-4 py-3 font-bold text-slate-700">
                                   {item.model}
                                   {item.index === state.compatibleItemIndex && (
-                                    <span className="ml-2 text-[9px] bg-blue-600 text-white px-1.5 py-0.5 rounded font-black uppercase">Auto</span>
+                                    <span className="ml-2 text-[9px] bg-blue-600 text-white px-1.5 py-0.5 rounded font-black uppercase">Compatible</span>
                                   )}
                                 </td>
                                 <td className="px-4 py-3 font-mono text-xs text-slate-500">{item.version}</td>
