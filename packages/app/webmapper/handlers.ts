@@ -562,6 +562,93 @@ export const createHandlers = (
   };
 
   /**
+   * Internal: 서버 연결 완료 후 일반 장치 목록을 가져와 UI 를 업데이트한다.
+   * hidboot 복구가 없거나, 복구 완료/취소 후에 호출된다.
+   */
+  const _fetchNormalDeviceList = async () => {
+    try {
+      const dev_list = await g_coffee.get_device_list("hid#vid_134b&pid_0206&mi_01");
+      let filtered_list: string[] = [];
+      if (Array.isArray(dev_list) && dev_list.length > 0) {
+        filtered_list = dev_list.filter(
+          (str) => !/&(ibutton|msr|(scr|switch)\d+)$/.test(str)
+        );
+      }
+      setState(prev => ({
+        ...prev,
+        serverStatus: ConnectionStatus.CONNECTED,
+        devicePaths: filtered_list,
+        logs: [...prev.logs, 'Server link established.'],
+      }));
+    } catch (error: any) {
+      addLog(`Device list fetch failed: ${error.message}`);
+    }
+  };
+
+  /**
+   * Internal: 복구 실행 핵심 로직 (return 블록 밖에서 선언하여 콜백 내부에서도 호출 가능)
+   */
+  const _startRecovery = async (fwIndex?: number) => {
+    addLog('Configuring recovery parameters...');
+    setState(prev => ({
+      ...prev,
+      isFirmwareModalOpen: false,
+      isRecoveryMode: false,
+      loading: { current: 0, total: 100, message: 'Initializing recovery flash...' }
+    }));
+
+    const _cb_recover = (
+      b_result: boolean,
+      n_current: number,
+      n_total: number,
+      s_message: string
+    ) => {
+      if (!b_result) {
+        g_b_updating = false;
+        addLog(`Recovery error: ${s_message}`);
+        setState(prev => ({ ...prev, loading: null }));
+        showNotification('Device recovery failed', 'error');
+        return;
+      }
+      if (n_total <= 0) return;
+      if ((n_current + 1) >= n_total) {
+        g_b_updating = false;
+        addLog(`Device recovery successful: ${s_message}`);
+        setState(prev => ({ ...prev, loading: null, recoveryDevicePath: '' }));
+        showNotification('Device recovery complete. Please reconnect the device.', 'success');
+        _fetchNormalDeviceList();
+      } else {
+        setState(prev => ({
+          ...prev,
+          loading: { current: n_current + 1, total: n_total, message: `Recovering device firmware: ${s_message}` }
+        }));
+      }
+    };
+
+    try {
+      await g_coffee.device_recover_set_parameter('_cf_bl_progress_', 'true');
+      await g_coffee.device_recover_set_parameter('_cf_bl_window_', 'false');
+      if (typeof fwIndex === 'number') {
+        await g_coffee.device_recover_set_parameter('firmware_index', fwIndex.toString());
+      }
+      addLog('Starting device recovery...');
+      g_b_updating = true;
+      if (g_coffee.device_recover_start_with_callback(0, 0, _cb_recover)) {
+        addLog('Device recovery process started.');
+      } else {
+        g_b_updating = false;
+        addLog('Device recovery failed to start.');
+        setState(prev => ({ ...prev, loading: null }));
+        showNotification('Recovery failed to start', 'error');
+      }
+    } catch (err: any) {
+      addLog(`Recovery setup error: ${err.message}`);
+      setState(prev => ({ ...prev, loading: null }));
+      showNotification('Recovery initialization failed', 'error');
+    }
+  };
+
+  /**
    * Firmware file transfer progress callback.
    * After transfer is complete, it analyzes the file (if .rom) and prompts the user.
    */
@@ -840,26 +927,23 @@ export const createHandlers = (
           return;
         }
 
-        const dev_list = await g_coffee.get_device_list(
-          "hid#vid_134b&pid_0206&mi_01",
-        );
-
-        let filtered_list:string[] = [];
-
-        if(Array.isArray(dev_list) ){
-          if(dev_list.length > 0){
-            filtered_list = dev_list.filter(
-            (str) => !/&(ibutton|msr|(scr|switch)\d+)$/.test(str),
-          );
-          }
+        // HID Bootloader 검사: 복구가 필요한 장치가 있는지 확인
+        const hidboot_list = await g_coffee.get_device_list("hid#vid_134b&pid_0243");
+        if (Array.isArray(hidboot_list) && hidboot_list.length > 0) {
+          const recoveryPath = hidboot_list[0];
+          addLog(`HID Bootloader device found: ${recoveryPath}`);
+          // 복구 확인 모달 표시 후 이후 흐름(get_device_list pid_0206)은
+          // 복구 완료(_startRecovery 콜백) 또는 취소(onCancelRecovery) 시 _fetchNormalDeviceList() 로 진행
+          setState(prev => ({
+            ...prev,
+            isRecoveryConfirmOpen: true,
+            recoveryDevicePath: recoveryPath,
+          }));
+          return; // pid_0206 조회는 복구 결과 후 _fetchNormalDeviceList() 가 담당
         }
 
-        setState((prev) => ({
-          ...prev,
-          serverStatus: ConnectionStatus.CONNECTED,
-          devicePaths: filtered_list,
-          logs: [...prev.logs, `Server link established.`],
-        }));
+        // hidboot 없는 경우: 바로 일반 장치 목록 조회
+        await _fetchNormalDeviceList();
       } catch (error: any) {
         addLog(`Link failure: ${error.message}`);
         showNotification('Server connection failed(connects a device)', 'error');
@@ -1054,7 +1138,7 @@ export const createHandlers = (
     },
 
     onCancelFirmwareModal: () => {
-      setState(prev => ({ ...prev, isFirmwareModalOpen: false, pendingFirmwareFile: null }));
+      setState(prev => ({ ...prev, isFirmwareModalOpen: false, pendingFirmwareFile: null, isRecoveryMode: false }));
       addLog("Firmware update cancelled by user. Deleting temporary file...");
       
       // 사용자의 요청에 따라 취소 시 서버에 업로드된 파일을 삭제합니다.
@@ -1069,6 +1153,120 @@ export const createHandlers = (
         .catch((err) => {
           addLog(`File deletion error: ${err.message}`);
         });
-    }    
+    },
+
+    // ── HID Bootloader 복구 핸들러 ─────────────────────────────────────────
+
+    /** 복구 확인 모달에서 "Skip" 선택 → _fetchNormalDeviceList() 로 이어서 진행 */
+    onCancelRecovery: () => {
+      setState(prev => ({ ...prev, isRecoveryConfirmOpen: false, recoveryDevicePath: '' }));
+      addLog('HID Bootloader recovery skipped by user.');
+      _fetchNormalDeviceList();
+    },
+
+    /**
+     * 복구 확인 모달에서 파일 선택 후 서버로 전송.
+     * .rom → Firmware Selection 모달 → onStartRecovery
+     * .bin → _startRecovery() 직접 호출
+     */
+    onLoadRecoveryFirmware: (file: File) => {
+      if (!file) return;
+
+      addLog(`Initiating recovery firmware transfer: ${file.name}`);
+      setState(prev => ({
+        ...prev,
+        isRecoveryConfirmOpen: false,
+        pendingFirmwareFile: file,
+        isRecoveryMode: true,
+        loading: {
+          current: 0,
+          total: file.size,
+          message: 'Transferring recovery firmware to server...'
+        }
+      }));
+
+      const _cb_progress_recovery_copy = async (
+        b_result: boolean,
+        n_progress: number,
+        n_file_size: number,
+        s_message: string
+      ) => {
+        if (!b_result) {
+          addLog(`Recovery firmware transfer error: ${s_message}`);
+          setState(prev => ({ ...prev, loading: null, isRecoveryMode: false }));
+          showNotification('Recovery firmware transfer failed', 'error');
+          return;
+        }
+
+        if (n_progress > 0 && n_progress === n_file_size) {
+          addLog('Recovery firmware uploaded to server cache.');
+
+          const f = stateRef.current.pendingFirmwareFile;
+          if (!f) { setState(prev => ({ ...prev, loading: null })); return; }
+
+          const isRomFile = f.name.toLowerCase().endsWith('.rom');
+          if (isRomFile) {
+            // .rom: 항목 선택이 필요하므로 Firmware Selection 모달 표시
+            const tgRom = new TgRom();
+            const header: RomFileHead = {
+              dwHeaderSize: 0, sFormatVersion: [],
+              sRFU: new Uint8Array(0), dwItem: 0, Item: []
+            };
+            const loadResult = await tgRom.tg_rom_load_header(f, header);
+            if (loadResult === TypeResult.RESULT_SUCCESS) {
+              const items: RomItemInfo[] = [];
+              for (let i = 0; i < header.dwItem; i++) {
+                const it = header.Item[i];
+                items.push({
+                  index: i,
+                  model: it.sModel,
+                  version: it.sVersion.join('.'),
+                  condition: it.dwUpdateCondition
+                });
+              }//end for
+
+              setState(prev => ({
+                ...prev,
+                loading: null,
+                romItems: items,
+                compatibleItemIndex: -1, // 복구 모드: 연결된 장치 없으므로 자동 매칭 없음
+                selectedRomItemIndex: 0,
+                isFirmwareModalOpen: true,
+              }));
+            } else {
+              addLog('Failed to parse ROM header. Treating as binary.');
+              // 파싱 실패 시 bin 처럼 바로 복구
+              setState(prev => ({ ...prev, loading: null }));
+              _startRecovery(undefined);
+            }
+          } else {
+            // .bin: fw 선택 불필요, 바로 복구 실행
+            addLog('Binary file detected. Starting recovery immediately.');
+            setState(prev => ({ ...prev, loading: null }));
+            _startRecovery(undefined);
+          }
+        } else {
+          setState(prev => ({
+            ...prev,
+            loading: {
+              current: n_progress,
+              total: n_file_size,
+              message: `Transferring recovery firmware: ${Math.round((n_progress / n_file_size) * 100)}%`
+            }
+          }));
+        }
+      };
+
+      const n_packet_size = 10 * 1024;
+      g_coffee.file_Copy_firmware_callback(file, n_packet_size, _cb_progress_recovery_copy);
+    },
+
+    /**
+     * 복구 모드에서 Firmware Selection 모달의 "Update Firmware" 확인 후 호출.
+     * 내부 함수 _startRecovery 를 위임.
+     */
+    onStartRecovery: (fwIndex?: number) => {
+      _startRecovery(fwIndex);
+    },
   };
 };

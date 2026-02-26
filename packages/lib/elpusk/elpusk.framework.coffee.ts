@@ -69,6 +69,7 @@ enum _type_action_code {
     ADVANCE_OPERATION = "A",
     SERVER_CLOSE = "C",
     KERNEL_OPERATION = "K",
+    RECOVER_OPERATION = "R",
     DEVICE_INDEPENDENT_BOOTLOADER = "b",
     DEVICE_OPEN = "o",
     DEVICE_CLOSE = "c",
@@ -292,7 +293,7 @@ export class coffee extends framework {
     }
 
     private _is_valid_device_index = (device_index: string | number): boolean => {
-        let n_device_index = 0;
+        let n_device_index = this.const_n_undefined_device_index;
         if (typeof device_index === 'string') {
             n_device_index = parseInt(device_index);
             if (isNaN(n_device_index)) {
@@ -609,13 +610,17 @@ export class coffee extends framework {
         }
 
         if (this._is_empty_promise_parameter(n_device_index)) {
+            console.log(`_on_def_message_json_format- ${n_device_index}, empty.`);
             return;
         }
         
         const parameter = this._front_promise_parameter(n_device_index);
-        if (!parameter) return;
+        console.log(`_on_def_message_json_format- ${n_device_index}, ${parameter}`);
+        if (!parameter){
+            return;
+        }
 
-        if (n_device_index === 0) {
+        if (n_device_index === this.const_n_undefined_device_index) {
             this._handle_manager_response(parameter, json_obj);
         } else {
             this._handle_device_response(parameter, json_obj, n_device_index);
@@ -724,7 +729,65 @@ export class coffee extends framework {
                     parameter.reject!(this._get_error_object('en_e_server_mismatch_action'));
                 }
                 break;
-        }
+            case "device_recover_set_parameter":
+                if (json_obj.action_code === _type_action_code.RECOVER_OPERATION) {
+                    if (parameter.resolve === null) {
+                        if (parameter.b_device_index && parameter.cb_received) {
+                            parameter.cb_received(this.const_n_undefined_device_index, json_obj.data_field);
+                        } else if (parameter.cb_received) {
+                            parameter.cb_received(this.const_n_undefined_device_index,json_obj.data_field);
+                        }
+                    } else {
+                        parameter.resolve!(json_obj.data_field);
+                    }
+                } else {
+                    if (parameter.reject === null) {
+                        if (parameter.b_device_index && parameter.cb_error) {
+                            parameter.cb_error(this.const_n_undefined_device_index, this._get_error_object('en_e_server_mismatch_action'));
+                        } else if (parameter.cb_error) {
+                            parameter.cb_error(this.const_n_undefined_device_index,this._get_error_object('en_e_server_mismatch_action'));
+                        }
+                    } else {
+                        parameter.reject!(this._get_error_object('en_e_server_mismatch_action'));
+                    }
+                }
+                break;
+            case "device_recover_start":
+                if (json_obj.action_code === _type_action_code.RECOVER_OPERATION) {
+                    if (parameter.cb_progress) {
+                        if (!Array.isArray(json_obj.data_field)) {
+                            parameter.cb_progress(false, 0, 0, 'en_e_server_mismatch_data_field');
+                        } else {
+                            let n_cur = 0;
+                            let n_total = 0;
+                            let s_message = "";
+                            let b_result = false;
+
+                            if (json_obj.data_field[0] === 'success') {
+                                b_result = true;
+                            }
+                            if (json_obj.data_field.length === 4) {
+                                n_cur = Number(json_obj.data_field[1]);
+                                n_total = Number(json_obj.data_field[2]);
+                                s_message = json_obj.data_field[3];
+                            }
+                            if (b_result) {
+                                if (json_obj.data_field.length === 1) {
+                                    this._push_promise_parameter(this.const_n_undefined_device_index, parameter);
+                                } else if ((n_cur + 1) < n_total) {
+                                    this._push_promise_parameter(this.const_n_undefined_device_index, parameter);
+                                }
+                            }
+                            parameter.cb_progress(b_result, n_cur, n_total, s_message);
+                        }
+                    }
+                } else {
+                    if (parameter.cb_progress) {
+                        parameter.cb_progress(false, 0, 0, 'en_e_server_mismatch_action');
+                    }
+                }
+                break;                
+        }//end switch
     }
 
     private _handle_callback_response = (parameter: PromiseParameter, json_obj: any, n_device_index: number): void => {
@@ -973,6 +1036,11 @@ export class coffee extends framework {
             case "kernel_open":
             case "kernel_execute":
             case "device_update_set_parameter":
+                if( parameter.reject ){
+                    parameter.reject(evt);
+                }
+                break;
+            case "device_recover_set_parameter":
                 if( parameter.reject ){
                     parameter.reject(evt);
                 }
@@ -2866,12 +2934,144 @@ export class coffee extends framework {
     /**
      * @public
      * @async
+     * @function device_recover_set_parameter
+     * @param {string} s_key - 설정할 파라미터의 키 이름 (예: "baudrate", "path").
+     * @param {string} s_value - 설정할 파라미터의 값.
+     * @returns {Promise<string>} 성공 시 "success", 실패 시 "error" 또는 Error 객체 반환.
+     * @description hidboot loader 를 이용한 펌웨어 복구를 위한 부트로더 파라미터를 설정합니다.
+     * 
+     * 현재 사용중인 (key,value) 는 
+     * ("_cf_bl_progress_",boolean string), ("_cf_bl_window_",boolean string),
+     */
+    public async device_recover_set_parameter(
+        s_key: string, 
+        s_value: string
+    ): Promise<string> {
+        return new Promise((resolve, reject) => {
+            // 1. 서버 연결 확인
+            if (!coffee._b_connet) {
+                return reject(this._get_error_object('en_e_server_connect'));
+            }
+            if (this._websocket == null) {
+                return reject(this._get_error_object('en_e_server_connect'));
+            }
+
+            // action_code가 일반 전송이 아닌 BOOTLOADER 전용임을 유의
+            const action_code = _type_action_code.RECOVER_OPERATION;
+
+            //  웹소켓 핸들러 등록
+            this._websocket.onerror = (evt: Event) => {
+                this._on_def_error(this.const_n_undefined_device_index, evt);
+            };
+
+            this._websocket.onmessage = (evt: MessageEvent) => {
+                this._on_def_message_json_format(this.const_n_undefined_device_index, evt);
+            };
+
+            // 4. 비동기 응답 매칭 정보 저장
+            const parameter = {
+                n_device_index: this.const_n_undefined_device_index,
+                method: "device_recover_set_parameter",
+                resolve: resolve,
+                reject: reject
+            };
+            this._push_promise_parameter(this.const_n_undefined_device_index, parameter);
+
+            // 5. 요청 패킷 생성
+            // 데이터 필드 타입이 STRING_OR_STRING_ARRAY이며 배열 형태로 전달됩니다.
+            const json_packet = this._generate_request_packet(
+                _type_packet_owner.MANAGER,
+                this.const_n_undefined_device_index,
+                action_code,
+                0, // n_in_id (부트로더 설정 시에는 대개 0)
+                0, // n_out_id
+                _type_data_field_type.STRING_OR_STRING_ARRAY,
+                ["set", String(s_key), String(s_value)]
+            );
+
+            // 6. 서버 전송
+            this._websocket.send(JSON.stringify(json_packet));
+        });
+    }
+
+    /**
+     * @public
+     * @function device_recover_start_with_callback
+     * @param {number} n_in_id - 통신용 In ID (HID Report ID 등).
+     * @param {number} n_out_id - 통신용 Out ID.
+     * @param {Function} cb_progress - 업데이트 진행 상태를 수신할 콜백 함수.
+     * @returns {boolean} 업데이트 프로세스 시작 성공 시 true, 실패 시 false.
+     * @description 현재 인식된 hidbootloader 의 첫 장비의 펌웨어 복구 업데이트를 시작합니다. 이 작업은 취소할 수 없습니다.
+     */
+    public device_recover_start_with_callback = (
+        n_in_id: number,
+        n_out_id: number,
+        cb_progress: (b_result: boolean, n_current: number, n_total: number, s_msg: string) => void
+    ): boolean => {
+        let b_result = false;
+
+        // 1. 서버 연결 확인
+        if (!coffee._b_connet) return false;
+
+        const action_code = _type_action_code.RECOVER_OPERATION;
+        if (this._websocket == null) {
+            return false;
+        }
+
+        // 3. 웹소켓 핸들러 등록
+        this._websocket.onerror = (evt: Event) => {
+            this._on_def_error(this.const_n_undefined_device_index, evt);
+        };
+        this._websocket.onmessage = (evt: MessageEvent) => {
+            this._on_def_message_json_format(this.const_n_undefined_device_index, evt);
+        };
+
+        // 4. 진행 상태 관리를 위한 콜백 저장
+        // 내부적으로 "device_recover_start" 키를 사용하여 서버 응답을 라우팅합니다.
+        const parameter = {
+            n_device_index: this.const_n_undefined_device_index,
+            method: "device_recover_start",
+            resolve: null,
+            reject: null,
+            cb_received : undefined,
+            cb_error : undefined,
+            cb_progress: cb_progress,
+            b_device_index : undefined
+        };
+        this._push_promise_parameter(this.const_n_undefined_device_index, parameter);
+
+        // 5. 업데이트 시작 요청 패킷 전송
+        // 데이터 필드에 ["start"] 배열을 담아 보냅니다.
+        const json_packet = this._generate_request_packet(
+            _type_packet_owner.MANAGER,
+            this.const_n_undefined_device_index,
+            action_code,
+            n_in_id,
+            n_out_id,
+            _type_data_field_type.STRING_OR_STRING_ARRAY,
+            ["start"]
+        );
+
+        this._websocket.send(JSON.stringify(json_packet));
+        b_result = true;
+
+        return b_result;
+    }
+
+    /**
+     * @public
+     * @async
      * @function device_update_set_parameter
      * @param {number} n_device_index - 대상 장치의 인덱스 번호.
      * @param {string} s_key - 설정할 파라미터의 키 이름 (예: "baudrate", "path").
      * @param {string} s_value - 설정할 파라미터의 값.
      * @returns {Promise<string>} 성공 시 "success", 실패 시 "error" 또는 Error 객체 반환.
      * @description 펌웨어 업데이트를 위한 부트로더 파라미터를 설정합니다.
+     * 
+     * 현재 사용중인 (key,value) 는 
+     * ("model_name", string), ("system_version",version string),
+     * ("_cf_bl_progress_",boolean string), ("_cf_bl_window_",boolean string),
+     * ("firmware_index", int string )
      */
     public async device_update_set_parameter(
         n_device_index: number, 

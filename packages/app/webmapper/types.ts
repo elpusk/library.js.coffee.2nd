@@ -76,7 +76,12 @@ export interface AppState {
   romItems: RomItemInfo[];
   compatibleItemIndex: number;
   selectedRomItemIndex: number;
-  pendingFirmwareFile: File | null;  
+  pendingFirmwareFile: File | null;
+
+  // HID Bootloader Recovery state
+  isRecoveryConfirmOpen: boolean;  // 복구 여부 확인 모달
+  isRecoveryMode: boolean;         // 현재 Firmware Selection 모달이 복구 모드인지 여부
+  recoveryDevicePath: string;      // 복구 대상 hidboot path
 }
 
 export const KEYBOARD_LAYOUT = [

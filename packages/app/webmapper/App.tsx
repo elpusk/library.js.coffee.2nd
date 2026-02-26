@@ -8,7 +8,7 @@ import DeviceTab from './components/DeviceTab';
 import CommonTab from './components/CommonTab';
 import KeyMapTab from './components/KeyMapTab';
 import LoadingOverlay from './components/LoadingOverlay';
-import { CheckCircle2, AlertCircle, Info, X, Download, FileJson, Cpu, AlertTriangle, ShieldCheck } from 'lucide-react';
+import { CheckCircle2, AlertCircle, Info, X, Download, FileJson, Cpu, AlertTriangle, ShieldCheck, WrenchIcon } from 'lucide-react';
 
 const App: React.FC = () => {
   const [state, setState] = useState<AppState>({
@@ -34,7 +34,12 @@ const App: React.FC = () => {
     romItems: [],
     compatibleItemIndex: -1,
     selectedRomItemIndex: -1,
-    pendingFirmwareFile: null,    
+    pendingFirmwareFile: null,
+
+    // HID Bootloader Recovery state
+    isRecoveryConfirmOpen: false,
+    isRecoveryMode: false,
+    recoveryDevicePath: '',
   });
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const stateRef = useRef(state);
@@ -121,18 +126,23 @@ const App: React.FC = () => {
 
   const handleFirmwareConfirm = () => {
     const isRom = state.romItems.length > 0;
-    const isCompatible = !isRom || state.selectedRomItemIndex === state.compatibleItemIndex;
-    
-    if (!isCompatible) {
-      if (!window.confirm("The selected firmware is not compatible with this device. Do you really want to proceed?")) {
-        return;
+
+    if (state.isRecoveryMode) {
+      // 복구 모드: 호환성 체크 없이 바로 복구 실행
+      if (!isRom) {
+        if (!window.confirm("This file is not a standard ROM format. Proceed with raw binary recovery anyway?")) return;
       }
-    } else if (!isRom) {
-      if (!window.confirm("This file is not a standard ROM format. Proceeed with incompatible firmware update anyway?")) {
-        return;
-      }
+      handlers.onStartRecovery(isRom ? state.selectedRomItemIndex : undefined);
+      return;
     }
 
+    // 일반 fw 업데이트 모드
+    const isCompatible = !isRom || state.selectedRomItemIndex === state.compatibleItemIndex;
+    if (!isCompatible) {
+      if (!window.confirm("The selected firmware is not compatible with this device. Do you really want to proceed?")) return;
+    } else if (!isRom) {
+      if (!window.confirm("This file is not a standard ROM format. Proceeed with incompatible firmware update anyway?")) return;
+    }
     handlers.onFirmwareSelected(isRom ? state.selectedRomItemIndex : undefined);
   };
 
@@ -212,14 +222,64 @@ const App: React.FC = () => {
     <div className="min-h-screen bg-gray-100 flex flex-col font-sans text-gray-800">
       {state.loading && <LoadingOverlay loading={state.loading} />}
       
+      {/* HID Bootloader Recovery Confirm Modal */}
+      {state.isRecoveryConfirmOpen && (
+        <div className="fixed inset-0 z-[140] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md mx-4 overflow-hidden border border-slate-200 animate-in zoom-in-95 duration-200">
+            <div className="bg-amber-50 px-6 py-4 border-b border-amber-200 flex items-center gap-2">
+              <WrenchIcon size={20} className="text-amber-600" />
+              <h3 className="font-bold text-amber-800 text-lg">HID Bootloader Recovery</h3>
+            </div>
+            <div className="p-6 space-y-4">
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 flex items-start gap-3">
+                <AlertTriangle className="text-amber-600 shrink-0 mt-0.5" size={20} />
+                <div>
+                  <p className="text-sm font-bold text-amber-900">Device stuck in bootloader mode detected.</p>
+                  <p className="text-xs text-amber-700 mt-1 font-mono break-all">{state.recoveryDevicePath}</p>
+                  <p className="text-xs text-amber-700 mt-2">Would you like to recover this device now?</p>
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-black text-slate-500 uppercase tracking-widest">Select Recovery Firmware (.rom / .bin)</label>
+                <label className="flex items-center gap-3 px-4 py-3 border-2 border-dashed border-slate-300 rounded-lg cursor-pointer hover:border-amber-400 hover:bg-amber-50 transition-colors group">
+                  <Cpu size={20} className="text-slate-400 group-hover:text-amber-500 transition-colors" />
+                  <div>
+                    <p className="text-sm font-bold text-slate-600 group-hover:text-amber-700">Choose .rom or .bin file</p>
+                    <p className="text-xs text-slate-400">Upload firmware to recover the device</p>
+                  </div>
+                  <input
+                    type="file"
+                    accept=".rom,.bin"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handlers.onLoadRecoveryFirmware(file);
+                    }}
+                  />
+                </label>
+              </div>
+            </div>
+            <div className="bg-slate-50 px-6 py-4 flex justify-end border-t border-slate-100">
+              <button
+                onClick={handlers.onCancelRecovery}
+                className="px-5 py-2 text-sm font-bold text-slate-500 hover:bg-slate-200 rounded-lg transition-colors"
+              >
+                Skip Recovery
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Firmware Selection Modal */}
       {state.isFirmwareModalOpen && (
         <div className="fixed inset-0 z-[130] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl mx-4 overflow-hidden border border-slate-200 animate-in zoom-in-95 duration-200">
             <div className="bg-slate-50 px-6 py-4 border-b border-slate-200 flex justify-between items-center">
               <h3 className="font-bold text-slate-700 flex items-center gap-2 text-lg">
-                <Cpu size={20} className="text-blue-600" />
-                Firmware Selection
+                {state.isRecoveryMode
+                  ? <><WrenchIcon size={20} className="text-amber-600" /><span>Firmware Selection <span className="text-amber-600">— Recovery Mode</span></span></>
+                  : <><Cpu size={20} className="text-blue-600" />Firmware Selection</>}
               </h3>
               <button onClick={handlers.onCancelFirmwareModal} className="text-slate-400 hover:text-slate-600 transition-colors">
                 <X size={24} />
