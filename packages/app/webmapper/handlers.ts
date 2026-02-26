@@ -909,9 +909,9 @@ export const createHandlers = (
         else{
           sa = server_version;
         }
-        if (!util.is_a_greater_than_equal_b(sa, "2.7.0")) {
-          addLog(`Incompatible server version: ${server_version}. Required 2.7.0 or higher.`);
-          showNotification('Please update your server. Required version 2.7.0(Installer v2.8) or higher. Download at: https://github.com/elpusk/publish.framework.coffee.2nd', 'error');
+        if (!util.is_a_greater_than_equal_b(sa, "2.8.0")) {
+          addLog(`Incompatible server version: ${server_version}. Required 2.8.0 or higher.`);
+          showNotification('Please update your server. Required version 2.8.0(Installer v2.9) or higher. Download at: https://github.com/elpusk/publish.framework.coffee.2nd', 'error');
           // 버전이 낮으므로 연결 해제 처리
           if (g_ctl) {
             try { await g_ctl.close_with_promise(); } catch(e) {}
