@@ -301,8 +301,10 @@ function _cb_system_event(s_action_code: any, s_data_field: any) {
     if( s_action_code === "P"){
         //a device have been plugged in connected server status.
         ++g_n_system_event;
-        if (typeof g_refresh_device_list === 'function') {
-          g_refresh_device_list();
+        if(!g_b_updating){
+          if (typeof g_refresh_device_list === 'function') {
+            g_refresh_device_list();
+          }
         }
         continue;
     }//the end of "P" event

@@ -605,6 +605,7 @@ export class coffee extends framework {
         if (json_obj.request_type === _type_request_type.SYSTEM_EVENT) {
             if (typeof coffee._system_handler === 'function') {
                 coffee._system_handler(json_obj.action_code, json_obj.data_field);
+                console.log(`_on_def_message_json_format- ${n_device_index}, ${json_obj.action_code}, ${json_obj.data_field}.`);
             }
             return;
         }
@@ -615,10 +616,12 @@ export class coffee extends framework {
         }
         
         const parameter = this._front_promise_parameter(n_device_index);
-        console.log(`_on_def_message_json_format- ${n_device_index}, ${parameter}`);
+        
         if (!parameter){
+            console.log(`_on_def_message_json_format- ${n_device_index}, parameter is null`);
             return;
         }
+        console.log(`_on_def_message_json_format- ${n_device_index},${parameter.n_device_index},${parameter.method},${parameter.b_device_index}`);
 
         if (n_device_index === this.const_n_undefined_device_index) {
             this._handle_manager_response(parameter, json_obj);
