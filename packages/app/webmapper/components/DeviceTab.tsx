@@ -84,18 +84,18 @@ const DeviceTab: React.FC<DeviceTabProps> = ({
   const isConnectDisabled = !isConnected && (!isServerConnected || devicePaths.length === 0 || !selectedPath);
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="bg-gray-100 border-b border-gray-300 px-6 py-3">
-        <h2 className="text-lg font-bold text-gray-700 flex items-center gap-2">
-          <Power size={20} className="text-gray-500" />
+    <div className="flex flex-col h-full overflow-hidden">
+      <div className="bg-gray-100 border-b border-gray-300 px-4 py-2 shrink-0">
+        <h2 className="text-base font-bold text-gray-700 flex items-center gap-2">
+          <Power size={16} className="text-gray-500" />
           Device Connection
         </h2>
       </div>
 
-      <div className="p-8 grid grid-cols-1 lg:grid-cols-2 gap-8 h-full">
-        <div className="space-y-6">
-          <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm space-y-4">
-            <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wide mb-2 flex justify-between items-center">
+      <div className="p-4 grid grid-cols-1 lg:grid-cols-2 gap-4 flex-1 overflow-auto">
+        <div className="space-y-4">
+          <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm space-y-3">
+            <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wide flex justify-between items-center">
               Connection Settings
               {!isServerConnected && (
                 <span className="flex items-center gap-1 text-[10px] text-amber-600 normal-case font-medium bg-amber-50 px-2 py-0.5 rounded border border-amber-100">
@@ -105,10 +105,10 @@ const DeviceTab: React.FC<DeviceTabProps> = ({
             </h3>
             
             {!isConnected && (
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Connected device</label>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Connected device</label>
                 <select 
-                  className={`w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm py-2 px-3 border transition-opacity ${!isServerConnected ? 'opacity-50 cursor-not-allowed bg-gray-50' : ''}`}
+                  className={`w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm py-1.5 px-3 border transition-opacity ${!isServerConnected ? 'opacity-50 cursor-not-allowed bg-gray-50' : ''}`}
                   value={selectedPath}
                   onChange={(e) => setSelectedPath(e.target.value)}
                   disabled={!isServerConnected}
@@ -125,7 +125,7 @@ const DeviceTab: React.FC<DeviceTabProps> = ({
                 </select>              </div>
             )}
 
-            <div className="flex items-center gap-2 bg-gray-50 p-3 rounded border border-gray-200">
+            <div className="flex items-center gap-2 bg-gray-50 p-2 rounded border border-gray-200">
               <input 
                 type="text" 
                 value={isConnected ? selectedPath : ""}
@@ -135,11 +135,11 @@ const DeviceTab: React.FC<DeviceTabProps> = ({
               />
             </div>
             
-            <div className="flex gap-3">
+            <div className="flex gap-2">
               <button
                 disabled={isConnectDisabled}
                 onClick={() => !isConnected ? onConnect() : onDisconnect()}
-                className={`flex-1 py-2.5 px-4 rounded font-semibold text-sm shadow-sm transition-all flex justify-center items-center gap-2 ${
+                className={`flex-1 py-2 px-4 rounded font-semibold text-sm shadow-sm transition-all flex justify-center items-center gap-2 ${
                   isConnected 
                     ? 'bg-red-50 text-red-600 border border-red-200 hover:bg-red-100' 
                     : isConnectDisabled
@@ -152,58 +152,58 @@ const DeviceTab: React.FC<DeviceTabProps> = ({
             </div>
           </div>
 
-          <div className={`bg-white p-5 rounded-lg border border-gray-200 shadow-sm space-y-3 ${(!isConnected || !isServerConnected) ? 'opacity-60 pointer-events-none' : ''}`}>
-             <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wide">Configuration File</h3>
+          <div className={`bg-white p-4 rounded-lg border border-gray-200 shadow-sm space-y-2 ${(!isConnected || !isServerConnected) ? 'opacity-60 pointer-events-none' : ''}`}>
+             <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wide">Configuration File</h3>
              <div className="flex gap-2">
                 <input type="file" ref={configFileInputRef} className="hidden" accept=".json,.xml,.txt" onChange={handleConfigFileChange} />
                 <button 
                   onClick={() => configFileInputRef.current?.click()}
-                  className="flex items-center gap-2 px-4 py-2 bg-gray-100 border border-gray-300 rounded text-sm font-medium text-gray-700 hover:bg-gray-200 transition-colors"
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 border border-gray-300 rounded text-xs font-medium text-gray-700 hover:bg-gray-200 transition-colors whitespace-nowrap"
                 >
-                  <Upload size={16} /> Load File
+                  <Upload size={13} /> Load File
                 </button>
-                <div className={`flex-1 bg-gray-50 border border-gray-200 rounded px-3 py-2 text-sm truncate ${configFileName.startsWith('No setting') ? 'text-gray-400 italic' : 'text-gray-700'}`}>
+                <div className={`flex-1 bg-gray-50 border border-gray-200 rounded px-3 py-1.5 text-xs truncate ${configFileName.startsWith('No setting') ? 'text-gray-400 italic' : 'text-gray-700'}`}>
                   {configFileName}
                 </div>
              </div>
              
-             <div className="flex items-center justify-between pt-2 border-t border-gray-100 mt-2">
+             <div className="flex items-center justify-between pt-1 border-t border-gray-100">
                <button 
                  onClick={onDownloadSettings}
-                 className="flex items-center gap-1 text-blue-600 text-sm font-medium hover:underline"
+                 className="flex items-center gap-1 text-blue-600 text-xs font-medium hover:underline"
                >
-                 <Download size={14} /> Download current settings
+                 <Download size={12} /> Download current settings
                </button>
 
                {isConnected && (
                   <button 
                     onClick={onApply}
-                    className="px-6 py-2 bg-blue-600 text-white rounded shadow-sm hover:bg-blue-700 font-semibold text-sm flex items-center gap-2 transition-colors"
+                    className="px-4 py-1.5 bg-blue-600 text-white rounded shadow-sm hover:bg-blue-700 font-semibold text-xs flex items-center gap-1.5 transition-colors"
                   >
-                    <Save size={16} /> Apply Settings
+                    <Save size={13} /> Apply Settings
                   </button>
                 )}
              </div>
           </div>
 
-          <div className={`bg-white p-5 rounded-lg border border-gray-200 shadow-sm space-y-3 ${(!isConnected || !isServerConnected) ? 'opacity-60 pointer-events-none' : ''}`}>
-             <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wide">Firmware Update</h3>
+          <div className={`bg-white p-4 rounded-lg border border-gray-200 shadow-sm space-y-2 ${(!isConnected || !isServerConnected) ? 'opacity-60 pointer-events-none' : ''}`}>
+             <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wide">Firmware Update</h3>
              <div className="flex gap-2">
                 <input type="file" ref={firmwareFileInputRef} className="hidden" accept=".rom,.bin" onChange={handleFirmwareFileChange} />
                 <button 
                   onClick={handleRomButtonClick}
-                  className="flex items-center gap-2 px-4 py-2 bg-gray-100 border border-gray-300 rounded text-sm font-medium text-gray-700 hover:bg-gray-200 transition-colors"
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 border border-gray-300 rounded text-xs font-medium text-gray-700 hover:bg-gray-200 transition-colors whitespace-nowrap"
                 >
-                  <RefreshCw size={16} /> ROM File
+                  <RefreshCw size={13} /> ROM File
                 </button>
-                <div className={`flex-1 bg-gray-50 border border-gray-200 rounded px-3 py-2 text-sm truncate ${firmwareFileName.startsWith('Select firmware') ? 'text-gray-400 italic' : 'text-gray-700'}`}>
+                <div className={`flex-1 bg-gray-50 border border-gray-200 rounded px-3 py-1.5 text-xs truncate ${firmwareFileName.startsWith('Select firmware') ? 'text-gray-400 italic' : 'text-gray-700'}`}>
                   {firmwareFileName}
                 </div>
              </div>
           </div>
         </div>
 
-        <div className="flex flex-col h-full">
+        <div className="flex flex-col min-h-[200px]">
           <div className="bg-white border border-gray-300 rounded-lg shadow-inner flex-1 flex flex-col overflow-hidden">
             <div className="bg-gray-100 border-b border-gray-200 px-4 py-2 text-xs font-semibold text-gray-500 uppercase flex justify-between items-center">
               <span>Device Log & Information</span>
@@ -215,7 +215,7 @@ const DeviceTab: React.FC<DeviceTabProps> = ({
                 <Trash2 size={10} /> CLEAR
               </button>
             </div>
-            <div className="p-4 overflow-y-auto flex-1 font-mono text-xs space-y-1">
+            <div className="p-3 overflow-y-auto flex-1 font-mono text-xs space-y-1">
               {logs.length === 0 && <p className="text-gray-400 italic">No activity yet...</p>}
               {[...logs].reverse().map((log, index) => (
                 <div key={index} className="flex gap-2">
@@ -225,7 +225,7 @@ const DeviceTab: React.FC<DeviceTabProps> = ({
               ))}
             </div>
             {isConnected && (
-              <div className="p-4 border-t border-gray-100 bg-gray-50">
+              <div className="p-3 border-t border-gray-100 bg-gray-50 shrink-0">
                 <div className="text-[10px] text-gray-500 grid grid-cols-2 gap-x-4 gap-y-1">
                     <p><strong>Model:</strong> {deviceName || 'Unknown Hardware'}</p>
                     <p><strong>Firmware:</strong> {deviceFirmware || 'Unknown'}</p>

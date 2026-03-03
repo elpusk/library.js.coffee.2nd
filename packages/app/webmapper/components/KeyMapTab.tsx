@@ -51,17 +51,17 @@ const KeyMapTab: React.FC<KeyMapTabProps> = ({ title, maxKeys, keys, onKeysChang
 
   return (
     <div className="flex flex-col h-full">
-      <div className="bg-gray-100 border-b border-gray-300 px-6 py-3 flex justify-between items-center">
-        <div className="flex items-center gap-4">
-          <h2 className="text-lg font-bold text-gray-700 flex items-center gap-2">
-            <Keyboard size={20} className="text-gray-500" />
+      <div className="bg-gray-100 border-b border-gray-300 px-4 py-2 flex justify-between items-center shrink-0">
+        <div className="flex items-center gap-3">
+          <h2 className="text-base font-bold text-gray-700 flex items-center gap-2">
+            <Keyboard size={16} className="text-gray-500" />
             {displayTitle}
           </h2>
           <button 
             onClick={onApply}
             className="px-3 py-1 bg-blue-600 text-white rounded border border-blue-700 hover:bg-blue-700 font-semibold text-xs flex items-center gap-1 shadow-sm transition-colors"
           >
-            <Save size={14} /> Apply
+            <Save size={12} /> Apply
           </button>
         </div>
         <div className="flex items-center gap-3">
@@ -80,11 +80,11 @@ const KeyMapTab: React.FC<KeyMapTabProps> = ({ title, maxKeys, keys, onKeysChang
         </div>
       </div>
 
-      <div className="flex-1 flex flex-col p-6 gap-6 overflow-hidden">
+      <div className="flex-1 flex flex-col p-3 gap-3 overflow-hidden">
         
         {/* Table Section */}
-        <div className="flex-1 bg-white border border-gray-200 rounded-lg shadow-sm flex flex-col overflow-hidden">
-          <div className="p-3 bg-gray-50 border-b border-gray-200 flex justify-between items-center">
+        <div className="flex-1 bg-white border border-gray-200 rounded-lg shadow-sm flex flex-col overflow-hidden min-h-0">
+          <div className="p-2 bg-gray-50 border-b border-gray-200 flex justify-between items-center shrink-0">
             <h3 className="text-sm font-bold text-gray-600 uppercase">Configured Keys</h3>
             <button 
               type="button"
@@ -104,38 +104,38 @@ const KeyMapTab: React.FC<KeyMapTabProps> = ({ title, maxKeys, keys, onKeysChang
             <table className="w-full text-sm text-left">
               <thead className="bg-gray-100 text-gray-500 font-medium sticky top-0">
                 <tr>
-                  <th className="px-4 py-2 w-16 text-center">No.</th>
-                  <th className="px-4 py-2 w-16 text-center">Shift</th>
-                  <th className="px-4 py-2 w-16 text-center">Ctrl</th>
-                  <th className="px-4 py-2 w-16 text-center">Alt</th>
-                  <th className="px-4 py-2">Key Value</th>
-                  <th className="px-4 py-2 w-24 text-center">HID Code</th>
-                  <th className="px-4 py-2 w-16">Action</th>
+                  <th className="px-3 py-1.5 w-12 text-center text-xs">No.</th>
+                  <th className="px-3 py-1.5 w-14 text-center text-xs">Shift</th>
+                  <th className="px-3 py-1.5 w-12 text-center text-xs">Ctrl</th>
+                  <th className="px-3 py-1.5 w-12 text-center text-xs">Alt</th>
+                  <th className="px-3 py-1.5 text-xs">Key Value</th>
+                  <th className="px-3 py-1.5 w-20 text-center text-xs">HID Code</th>
+                  <th className="px-3 py-1.5 w-12 text-xs">Del</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {keys.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="px-4 py-8 text-center text-gray-400 italic">
+                    <td colSpan={7} className="px-4 py-6 text-center text-gray-400 italic text-xs">
                       No keys configured. Use the virtual keyboard below to add keys.
                     </td>
                   </tr>
                 ) : (
                   keys.map((key, index) => (
                     <tr key={key.id} className="hover:bg-blue-50 transition-colors group">
-                      <td className="px-4 py-2 text-center text-gray-400">{index + 1}</td>
-                      <td className="px-4 py-2 text-center text-gray-600">{key.shift ? '✓' : ''}</td>
-                      <td className="px-4 py-2 text-center text-gray-600">{key.ctrl ? '✓' : ''}</td>
-                      <td className="px-4 py-2 text-center text-gray-600">{key.alt ? '✓' : ''}</td>
-                      <td className="px-4 py-2 font-mono text-blue-700 font-medium">{key.keyValue}</td>
-                      <td className="px-4 py-2 text-center font-mono text-xs text-slate-500 bg-slate-50/50">0x{key.hidCode.toUpperCase()}</td>
-                      <td className="px-4 py-2 text-center">
+                      <td className="px-3 py-1.5 text-center text-gray-400 text-xs">{index + 1}</td>
+                      <td className="px-3 py-1.5 text-center text-gray-600 text-xs">{key.shift ? '✓' : ''}</td>
+                      <td className="px-3 py-1.5 text-center text-gray-600 text-xs">{key.ctrl ? '✓' : ''}</td>
+                      <td className="px-3 py-1.5 text-center text-gray-600 text-xs">{key.alt ? '✓' : ''}</td>
+                      <td className="px-3 py-1.5 font-mono text-blue-700 font-medium text-xs">{key.keyValue}</td>
+                      <td className="px-3 py-1.5 text-center font-mono text-xs text-slate-500 bg-slate-50/50">0x{key.hidCode.toUpperCase()}</td>
+                      <td className="px-3 py-1.5 text-center">
                         <button 
                           type="button"
                           onClick={() => handleRemoveKey(key.id)}
                           className="text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
                         >
-                          <Trash2 size={14} />
+                          <Trash2 size={13} />
                         </button>
                       </td>
                     </tr>
@@ -147,12 +147,14 @@ const KeyMapTab: React.FC<KeyMapTabProps> = ({ title, maxKeys, keys, onKeysChang
         </div>
 
         {/* Keyboard Section */}
-        <div className="h-1/2 min-h-[300px] bg-slate-100 rounded-lg border border-gray-300 p-4 flex flex-col shadow-inner">
-           <div className="mb-2 flex justify-between items-center">
+        <div className="bg-slate-100 rounded-lg border border-gray-300 p-3 flex flex-col shadow-inner" style={{flex: '0 0 42%', minHeight: '180px', maxHeight: '280px'}}>
+           <div className="mb-1 flex justify-between items-center shrink-0">
              <span className="text-xs font-bold text-gray-500 uppercase">Virtual Input</span>
              <span className="text-xs text-gray-400">Click keys to add to table</span>
            </div>
-           <VirtualKeyboard onKeyPress={handleKeyPress} language={language} />
+           <div className="flex-1 min-h-0 overflow-hidden">
+             <VirtualKeyboard onKeyPress={handleKeyPress} language={language} />
+           </div>
         </div>
 
       </div>

@@ -445,19 +445,21 @@ const VirtualKeyboard: React.FC<VirtualKeyboardProps> = ({ onKeyPress, language 
         .vkb-wrapper {
           display: flex;
           flex-direction: column;
-          gap: 6px;
+          gap: 4px;
           width: 100%;
+          height: 100%;
         }
         .vkb-status {
           display: flex;
-          gap: 8px;
-          padding: 2px 4px;
+          gap: 6px;
+          padding: 1px 4px;
           align-items: center;
+          flex-shrink: 0;
         }
         .vkb-badge {
           font-size: 10px;
           font-weight: 700;
-          padding: 2px 8px;
+          padding: 1px 7px;
           border-radius: 9999px;
           background: #e2e8f0;
           color: #94a3b8;
@@ -476,34 +478,45 @@ const VirtualKeyboard: React.FC<VirtualKeyboardProps> = ({ onKeyPress, language 
         .vkb-theme.hg-theme-default {
           background: #cbd5e1;
           border-radius: 8px;
-          padding: 8px;
+          padding: 5px 6px;
           font-family: inherit;
           width: 100%;
           box-sizing: border-box;
+          flex: 1;
         }
         .vkb-theme .hg-row {
           display: flex;
           width: 100%;
           box-sizing: border-box;
+          gap: 3px;
+          margin-bottom: 3px;
+        }
+        .vkb-theme .hg-row:last-child {
+          margin-bottom: 0;
         }
         .vkb-theme .hg-button {
           flex: 1;
           min-width: 0 !important;
-          height: 38px;
-          font-size: 12px;
+          height: 4.2vh;
+          min-height: 28px;
+          max-height: 38px;
+          font-size: 11px;
           font-weight: 600;
-          border-radius: 5px;
+          border-radius: 4px;
           box-shadow: 0 2px 0 #94a3b8;
           background: #fff;
           color: #334155;
           box-sizing: border-box;
+          padding: 0 2px;
         }
         .vkb-theme .hg-button:active {
           box-shadow: none;
           transform: translateY(2px);
         }
         .vkb-theme .hg-row:first-child .hg-button {
-          height: 30px;
+          height: 3.2vh;
+          min-height: 22px;
+          max-height: 28px;
           font-size: 10px;
         }
         .vkb-theme .hg-button.skb-active {

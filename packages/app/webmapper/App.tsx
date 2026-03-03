@@ -219,7 +219,7 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col font-sans text-gray-800">
+    <div className="h-screen bg-gray-100 flex flex-col font-sans text-gray-800 overflow-hidden">
       {state.loading && <LoadingOverlay loading={state.loading} />}
       
       {/* HID Bootloader Recovery Confirm Modal */}
@@ -484,8 +484,8 @@ const App: React.FC = () => {
           onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}          
         />
         
-        <main className="flex-1 p-6 overflow-y-auto bg-gray-50 transition-all duration-300">
-          <div className="bg-white border border-gray-300 shadow-sm min-h-[600px] h-full rounded flex flex-col">
+        <main className="flex-1 p-3 overflow-y-auto bg-gray-50 transition-all duration-300">
+          <div className="bg-white border border-gray-300 shadow-sm h-full rounded flex flex-col">
             {renderContent()}
           </div>
         </main>
