@@ -80,7 +80,7 @@ const KeyMapTab: React.FC<KeyMapTabProps> = ({ title, maxKeys, keys, onKeysChang
         </div>
       </div>
 
-      <div className="flex-1 flex flex-col p-3 gap-3 overflow-hidden">
+      <div className="flex-1 flex flex-col p-2 gap-2 overflow-y-auto">
         
         {/* Table Section */}
         <div className="flex-1 bg-white border border-gray-200 rounded-lg shadow-sm flex flex-col overflow-hidden min-h-0">
@@ -147,7 +147,7 @@ const KeyMapTab: React.FC<KeyMapTabProps> = ({ title, maxKeys, keys, onKeysChang
         </div>
 
         {/* Keyboard Section */}
-        <div className="bg-slate-100 rounded-lg border border-gray-300 p-3 flex flex-col shadow-inner" style={{flex: '0 0 48%', minHeight: '220px', maxHeight: '320px'}}>
+        <div className="bg-slate-100 rounded-lg border border-gray-300 p-2 flex flex-col shadow-inner shrink-0" style={{height: '290px'}}>
            <div className="mb-1 flex justify-between items-center shrink-0">
              <span className="text-xs font-bold text-gray-500 uppercase">Virtual Input</span>
              <span className="text-xs text-gray-400">Click keys to add to table</span>
