@@ -488,8 +488,8 @@ const VirtualKeyboard: React.FC<VirtualKeyboardProps> = ({ onKeyPress, language 
           display: flex;
           width: 100%;
           box-sizing: border-box;
-          gap: 3px;
-          margin-bottom: 3px;
+          gap: 2px;
+          margin-bottom: 2px;
         }
         .vkb-theme .hg-row:last-child {
           margin-bottom: 0;
@@ -497,9 +497,9 @@ const VirtualKeyboard: React.FC<VirtualKeyboardProps> = ({ onKeyPress, language 
         .vkb-theme .hg-button {
           flex: 1;
           min-width: 0 !important;
-          height: 4.2vh;
-          min-height: 28px;
-          max-height: 38px;
+          height: 3.6vh;
+          min-height: 24px;
+          max-height: 34px;
           font-size: 11px;
           font-weight: 600;
           border-radius: 4px;
@@ -514,9 +514,9 @@ const VirtualKeyboard: React.FC<VirtualKeyboardProps> = ({ onKeyPress, language 
           transform: translateY(2px);
         }
         .vkb-theme .hg-row:first-child .hg-button {
-          height: 3.2vh;
-          min-height: 22px;
-          max-height: 28px;
+          height: 2.8vh;
+          min-height: 20px;
+          max-height: 26px;
           font-size: 10px;
         }
         .vkb-theme .hg-button.skb-active {
