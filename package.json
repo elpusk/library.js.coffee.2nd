@@ -6,8 +6,10 @@
   "scripts": {
     "build:lib": "pnpm --filter @elpusk/lib build",
     "build:web": "pnpm --filter webmapper build",
-    "build": "pnpm build:lib && pnpm build:web",
+    "build:msr": "pnpm --filter webmsr-read build",
+    "build": "pnpm build:lib && pnpm build:web && pnpm build:msr",
     "dev": "pnpm --filter webmapper dev",
+    "dev:msr": "pnpm --filter webmsr-read dev",
     "preview": "pnpm --filter webmapper preview"
   },
   "devDependencies": {
