@@ -25,9 +25,10 @@
    1. `g_ctl_lpu237.read_card_from_device_with_callback(false,_cb_stop_msr_done,_cb_stop_msr_error)`
    2. _cb_stop_msr_done() 과 _cb_stop_msr_error() 의 예시는 "예시 코드"에 있음. _cb_read_msr_done() 가 호출되면, 장비는 자동적으로 카드 읽기 대기 상태로 재진입, _cb_msr_read_error() 가 호출되면, 장비는 자동적으로 카드 읽기 대기 종료됨
 10. 더 이상 카드를 읽을 필요가 없으면
-    1. `g_ctl_lpu237.close_with_promise()` 를 호출해서 장비 close 함.
-    2. g_ctl_lpu237, g_lpu237 를 소멸 시킴.
-    3. `g_coffee.disconnect()` 를 호출해 cf2 서버와 연결 종료.(session 도 자동 종료)
+    1. `g_ctl_lpu237.read_card_from_device_with_callback(false,_cb_stop_msr_done,_cb_stop_msr_error)` 를 호출하여, 대기 상태 취소.
+    2. `g_ctl_lpu237.close_with_promise()` 를 호출해서 장비 close 함.
+    3. g_ctl_lpu237, g_lpu237 를 소멸 시킴.
+    4. `g_coffee.disconnect()` 를 호출해 cf2 서버와 연결 종료.(session 도 자동 종료)
 
 ## 예시 코드
 
