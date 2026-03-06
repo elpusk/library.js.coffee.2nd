@@ -47,12 +47,19 @@ jobs:
         env:
           VITE_BASE_PATH: /library.js.coffee.2nd/app/webmsr-read/
 
+      - name: Build webibutton-read
+        run: pnpm build:ibutton
+        env:
+          VITE_BASE_PATH: /library.js.coffee.2nd/app/webibutton-read/
+
       - name: Merge dist folders
         run: |
           mkdir -p ./deploy/app/webmapper
           mkdir -p ./deploy/app/webmsr-read
+          mkdir -p ./deploy/app/webibutton-read
           cp -r ./packages/app/webmapper/dist/. ./deploy/app/webmapper/
           cp -r ./packages/app/webmsr-read/dist/. ./deploy/app/webmsr-read/
+          cp -r ./packages/app/webibutton-read/dist/. ./deploy/app/webibutton-read/
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
