@@ -6571,6 +6571,8 @@ export class lpu237 extends hid {
       } else {
         s_name = this._s_name;
       }
+      //끝의 공백 제거
+      s_name = s_name.trimEnd();
     }
 
     return s_name;
@@ -10829,6 +10831,27 @@ export class lpu237 extends hid {
       this._n_order = s.ContainerInfoMsrObj.nOrderObject;
       this._n_language_index = s.ContainerInfoMsrObj.KeyMap.nMappingTableIndex;
 
+      let s_name: string = "";
+      s_name = (this.get_name() || "").toLowerCase();
+
+      this._b_removed_key_map_table = false;
+      if( s_name === 'callisto'){
+        if (
+          lpu237._first_version_greater_then_second_version(
+            false,
+            this._version,
+            [3, 3, 0, 2],
+          )
+        ) {
+          // From FW version 3.4.0.1, Keymapping table was removed from firmware.
+          // therefor less then equal version 3.3.0.2, Don't call SetKeyMapToDevice() method of CMsrDevice class.
+          this._b_removed_key_map_table = true;
+        }
+      }
+      else{//ganymede 4.2.2.4 이상, himalia, europa, elara 의 경우 모두 fw 에 필요한 keymap 만 있음.
+        this._b_removed_key_map_table = true;
+      }
+
       this._s_global_prefix = lpu237._get_tag_hex_string_from_c_format(s.ContainerInfoMsrObj.GlobalPrefix.cSize,s.ContainerInfoMsrObj.GlobalPrefix.sTag);
       this._s_global_postfix = lpu237._get_tag_hex_string_from_c_format(s.ContainerInfoMsrObj.GlobalPostfix.cSize,s.ContainerInfoMsrObj.GlobalPostfix.sTag);
 
@@ -10893,6 +10916,7 @@ export class lpu237 extends hid {
         continue;
       }
       
+      let s_name: string = "";
       let b_value: boolean | null = null;
       let s_value: string | null = null;
       let n_value: number = 0;
@@ -10942,17 +10966,6 @@ export class lpu237 extends hid {
               )
             ) {
               this._b_is_hid_boot = true;
-              if (
-                lpu237._first_version_greater_then_second_version(
-                  false,
-                  version,
-                  [3, 3, 0, 2],
-                )
-              ) {
-                // From FW version 3.4.0.1, Keymapping table was removed from firmware.
-                // therefor less then equal version 3.3.0.2, Don't call SetKeyMapToDevice() method of CMsrDevice class.
-                this._b_removed_key_map_table = true;
-              }
             }
           } else {
             this._s_last_error = "version is less then 1.1.";
@@ -11106,6 +11119,25 @@ export class lpu237 extends hid {
           if (n_value >= 0) {
             this._n_language_index = n_value;
             b_result = true;
+
+            this._b_removed_key_map_table = false;
+            s_name = (this.get_name() || "").toLowerCase();
+            if( s_name === 'callisto'){
+              if (
+                lpu237._first_version_greater_then_second_version(
+                  false,
+                  this._version,
+                  [3, 3, 0, 2],
+                )
+              ) {
+                // From FW version 3.4.0.1, Keymapping table was removed from firmware.
+                // therefor less then equal version 3.3.0.2, Don't call SetKeyMapToDevice() method of CMsrDevice class.
+                this._b_removed_key_map_table = true;
+              }
+            }
+            else{//ganymede 4.2.2.4 이상, himalia, europa, elara 의 경우 모두 fw 에 필요한 keymap 만 있음.
+              this._b_removed_key_map_table = true;
+            }
           }
           else{
             this._s_last_error = "language === null";
