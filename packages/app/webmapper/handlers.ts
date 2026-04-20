@@ -409,7 +409,7 @@ export const createHandlers = (
       ...prev,
       config: newConfig,
       keyMaps: keyMaps,
-      deviceName: productName || "Unknown Hardware",
+      deviceName: internalName || "Unknown Hardware",
       deviceFirmware: hw.get_system_version_by_string() || "Unknown",
       deviceUid: hw.get_uid() || "Unknown",
     }));

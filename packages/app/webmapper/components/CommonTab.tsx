@@ -5,6 +5,7 @@ import { lpu237 } from '@lib/elpusk.device.usb.hid.lpu237';
 
 interface CommonTabProps {
   deviceType: DeviceType;
+  deviceName: string;
   config: DeviceConfig;
   onApply: () => void;
   handlers: {
@@ -28,10 +29,44 @@ interface CommonTabProps {
 const SEL = "w-full border-gray-300 rounded text-sm p-2 bg-white border focus:ring-1 focus:ring-blue-100 focus:border-blue-500 outline-none";
 const LBL = "text-xs font-bold text-slate-500 uppercase tracking-wider block mb-1.5";
 
-const CommonTab: React.FC<CommonTabProps> = ({ deviceType, config, handlers, onApply }) => {
+// callisto, ganymede, himalia: USB keyboard, USB HID Vendor, RS232
+// europa, elara: USB HID Vendor, USB Virtual COM, RS232
+const INTERFACE_ALLOW: Record<string, string[]> = {
+  callisto: ['USB keyboard', 'USB HID Vendor', 'RS232'],
+  ganymede: ['USB keyboard', 'USB HID Vendor', 'RS232'],
+  himalia:  ['USB keyboard', 'USB HID Vendor', 'RS232'],
+  europa:   ['USB HID Vendor', 'USB Virtual COM', 'RS232'],
+  elara:    ['USB HID Vendor', 'USB Virtual COM', 'RS232'],
+};
+
+function getInterfaceList(deviceName: string,isMSR: boolean,isIButton: boolean): string[] {
+  if(isMSR){
+    const key = deviceName.trim().toLowerCase();
+    if (INTERFACE_ALLOW[key]) {
+      return INTERFACE_ALLOW[key];
+    }
+  }
+  else{
+    if(isIButton){
+        // !isMSR & isIButton
+        // i-button 전용 장비는 usb & TTL uart 를 가진 lpu237-f00n 과
+        // usb 만 가진 lpu237-f00nu 가 있으나 프로그램으로는 구별 할 수가 없어서 동일하게 처리.
+        const key = deviceName.trim().toLowerCase();
+        if (INTERFACE_ALLOW[key]) {
+          return INTERFACE_ALLOW[key];
+        }
+      }
+  }
+  // 알 수 없는 장치: 전체 목록 반환
+  return lpu237.GetInterfaceStringList();
+}
+
+const CommonTab: React.FC<CommonTabProps> = ({ deviceType, deviceName, config, handlers, onApply }) => {
   const isMSR     = deviceType === DeviceType.MSR      || deviceType === DeviceType.MSR_IBUTTON;
   const isIButton = deviceType === DeviceType.IBUTTON  || deviceType === DeviceType.MSR_IBUTTON;
   const isUserDef = config.ibuttonMode === "User definition";
+
+  const interfaceList = getInterfaceList(deviceName,isMSR,isIButton);
 
   // 표시되는 섹션 수에 따라 각 섹션 내부 패딩을 동적으로 조정
   // MSR+iButton 모두 표시 시 3개 섹션 → py-4
@@ -70,7 +105,7 @@ const CommonTab: React.FC<CommonTabProps> = ({ deviceType, config, handlers, onA
               <div>
                 <label className={LBL}><Keyboard size={11} className="inline mr-1.5 text-slate-400" />Interface Mode</label>
                 <select className={SEL} value={config.interface} onChange={(e) => handlers.onInterfaceChange(e.target.value)}>
-                  {lpu237.GetInterfaceStringList().map((key) => <option key={key}>{key}</option>)}
+                  {interfaceList.map((key) => <option key={key}>{key}</option>)}
                 </select>
               </div>
               {/* Language */}

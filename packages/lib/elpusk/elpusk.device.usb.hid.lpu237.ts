@@ -1117,7 +1117,7 @@ export class lpu237 extends hid {
     "USB keyboard": type_system_interface.system_interface_usb_keyboard,
     "USB HID Vendor": type_system_interface.system_interface_usb_msr,
     "USB Virtual COM": type_system_interface.system_interface_usb_vcom,
-    RS232: type_system_interface.system_interface_uart,
+    "RS232": type_system_interface.system_interface_uart,
     "Standalone PS2": type_system_interface.system_interface_ps2_stand_alone,
     "Bypass PS2": type_system_interface.system_interface_ps2_bypass,
     "By HW setting": type_system_interface.system_interface_by_hw_setting,
@@ -1132,6 +1132,8 @@ export class lpu237 extends hid {
 
   /**
    * @description 화면 표시를 위해 사용되는 interface를 나타내는 문장열의 배열 반환.
+   *    
+   * 현재 장비의 지원 여부와 관계없이 정의된 모든 interface 문장열의 배열 반환.
    * @returns {string[]}
    */
   public static GetInterfaceStringList(): string[] {

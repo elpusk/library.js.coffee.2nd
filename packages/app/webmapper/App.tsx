@@ -188,6 +188,7 @@ const App: React.FC = () => {
       return (
         <CommonTab 
           deviceType={state.deviceType} 
+          deviceName={state.deviceName}
           config={state.config} 
           handlers={handlers.config}
           onApply={handlers.onApply}
