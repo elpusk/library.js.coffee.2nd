@@ -2,7 +2,7 @@
 
 ## Items
 
-- javascript library for coffee manager 2nd
+- javascript library for coffee manager 2nd.
 - Webmapper v1.9 : setting device & update firmware.
 - Webmsr-read v1.0 : magnetic card reading tester.
 - Webibutton-read v1.0 : i-button reading tester.
