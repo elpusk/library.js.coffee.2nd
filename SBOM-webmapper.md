@@ -5,7 +5,7 @@
 | Field | Value |
 |-------|-------|
 | **Package Name** | webmapper |
-| **Version** | 1.8 |
+| **Version** | 1.9 |
 | **Description** | lpu237 장비 설정 webapp |
 | **Source Path** | packages/app/webmapper |
 | **Package Manager** | pnpm 10.27.0 |

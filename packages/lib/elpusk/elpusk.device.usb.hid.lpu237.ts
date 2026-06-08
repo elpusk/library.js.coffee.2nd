@@ -946,8 +946,10 @@ export class lpu237 extends hid {
   private static readonly _const_address_system_ps2_key_map_offset: number = 0x800; //size 1K
   private static readonly _const_default_buzzer_count_old: number = 25000; //at less then callisto 3.15, ganymede 5.7.
   private static readonly _const_default_buzzer_count: number = 26000; // default buzzer count of plus generator.
+  private static readonly _const_default_buzzer_count_of_MH1902T: number = 45000; // default buzzer count of plus generator.
   private static readonly _const_default_buzzer_count_for_wiznova_board: number = 16000; // default buzzer count. ganymede.
   private static readonly _const_default_buzzer_count_for_off: number = 5000; // default buzzer count of plus generator for buzzer off status.
+  private static readonly _const_default_buzzer_count_for_off_of_MH1902T: number = 50; // default buzzer count of plus generator for buzzer off status.
 
   // 내부 큐 및 모드 상태
   // set_from_rx 에서 _deque_generated_tx 에서 마지막으로 확인된 생성된 tx.
@@ -1344,6 +1346,10 @@ export class lpu237 extends hid {
     if(dw_buzzer_count == lpu237._const_default_buzzer_count_for_off ){
       b_on = false;
     }
+    if(dw_buzzer_count == lpu237._const_default_buzzer_count_for_off_of_MH1902T ){
+      b_on = false;
+    }
+
     return b_on;
 
   }
@@ -1365,9 +1371,13 @@ export class lpu237 extends hid {
         );
 
         if(b_on){
+          //MH1902T 의 경우, 이 값은 firmware 에서 _const_default_buzzer_count_for_on_of_MH1902T(45000) 으로 자동 변경된다.
+          // 따라서 설정 할대는 마이컴이 MH1902T 인지 LPC1343 인지 신경꺼!
           this._dw_buzzer_count = lpu237._const_default_buzzer_count;
         }
         else{
+          //MH1902T 의 경우, 이 값은 firmware 에서 _const_default_buzzer_count_for_off_of_MH1902T(50) 으로 자동 변경된다.
+          // 따라서 설정 할대는 마이컴이 MH1902T 인지 LPC1343 인지 신경꺼!
           this._dw_buzzer_count = lpu237._const_default_buzzer_count_for_off;
         }
       }
@@ -7380,7 +7390,7 @@ export class lpu237 extends hid {
    * @public
    * @description 장치의 시스템 정보를 가져오기 위한 일련의 요청 패킷들을 생성합니다
    * 
-   * enter_config, gt_read_uid, gt_support_mmd1000, gt_type_ibutton, gt_type_device, leave_config 명령 패킷 생성.
+   * enter_config, gt_read_uid, gt_support_mmd1000, gt_type_ibutton, gt_type_device, gt_get_name, leave_config 명령 패킷 생성.
    * 
    * gt_get_ 이나 gt_set_ 이 아닌 독립 요청을 모드 읽음. 
    * @returns {number} 생성된 요청의 개수 (실패 시 0)
@@ -7404,6 +7414,9 @@ export class lpu237 extends hid {
       //
       if (!this._generate_get_device_ibutton_type(this._dequeu_s_tx)) break;
       this._deque_generated_tx.push(_type_generated_tx_type.gt_type_ibutton);
+      //
+      if (!this._generate_get_name(this._dequeu_s_tx)) break;
+      this._deque_generated_tx.push(_type_generated_tx_type.gt_get_name);
 
       if (!this._generate_leave_config_mode(this._dequeu_s_tx)) break;
       this._deque_generated_tx.push(_type_generated_tx_type.gt_leave_config);
@@ -7555,13 +7568,26 @@ export class lpu237 extends hid {
         [3, 6, 0, 4],
       );
 
-      if (this._b_device_is_standard && isV3604OrHigher) {
+      let b_new_device: boolean = false; //callisto or ganymede
+      let s_name: string = "";
+      s_name = (this.get_name() || "").toLowerCase();
+       if( s_name === 'himalia'){
+          b_new_device = true;
+       }
+       else if( s_name === 'europa'){
+          b_new_device = true;
+       }
+       else if( s_name === 'elara'){
+          b_new_device = true;
+       }
+
+      if (this._b_device_is_standard && (isV3604OrHigher || b_new_device)) {
         if (!this._generate_get_device_ibutton_type(this._dequeu_s_tx))
           continue;
         this._deque_generated_tx.push(_type_generated_tx_type.gt_type_ibutton);
       }
 
-      if (isV3604OrHigher) {
+      if (isV3604OrHigher || b_new_device) {
         if (!this._generate_get_uid(this._dequeu_s_tx)) continue;
         this._deque_generated_tx.push(_type_generated_tx_type.gt_read_uid);
       }
@@ -7607,7 +7633,7 @@ export class lpu237 extends hid {
           false,
           this._version,
           [3, 0, 0, 0],
-        )
+        ) || b_new_device
       ) {
         if (!this._generate_get_ibutton_prefix(this._dequeu_s_tx)) continue;
         this._deque_generated_tx.push(
@@ -7707,6 +7733,9 @@ export class lpu237 extends hid {
           )
         )
           b_run_combination = true;
+      }
+      if(b_new_device){
+        b_run_combination = true;
       }
 
       let n_max_combi = lpu237._const_the_number_of_combination;
@@ -9881,14 +9910,37 @@ export class lpu237 extends hid {
         );
       }
 
+      let b_ibutton_fun:boolean = false;
+      let b_run_combination: boolean = false;
+      let s_name: string = "";
+      s_name = (this.get_name() || "").toLowerCase();
+       if( s_name === 'himalia'){
+          b_ibutton_fun = true;
+          b_run_combination = true;
+       }
+       else if( s_name === 'europa'){
+          b_ibutton_fun = true;
+          b_run_combination = true;
+       }
+       else if( s_name === 'elara'){
+          b_ibutton_fun = true;
+          b_run_combination = true;
+       }
+       else{// callisto or ganymede
+          // callisto or ganymede 이 경우, 아래에서 b_run_combination 값 설정함
+          if (
+            lpu237._first_version_greater_then_second_version(
+              false,
+              this._version,
+              [3, 0, 0, 0],
+            )
+          ) {
+            b_ibutton_fun = true;
+          }
+       }
+
       //
-      if (
-        lpu237._first_version_greater_then_second_version(
-          false,
-          this._version,
-          [3, 0, 0, 0],
-        )
-      ) {
+      if ( b_ibutton_fun ) {
         // . set iButton Pretag
         if (
           util.find_from_set(
@@ -10403,7 +10455,6 @@ export class lpu237 extends hid {
         );
       }
 
-      let b_run_combination: boolean = false;
       if (
         lpu237._first_version_greater_then_second_version(
           false,
