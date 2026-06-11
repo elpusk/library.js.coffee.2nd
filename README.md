@@ -3,9 +3,9 @@
 ## Items
 
 - javascript library for coffee manager 2nd.
-- Webmapper v1.9 : setting device & update firmware.
-- Webmsr-read v1.0 : magnetic card reading tester.
-- Webibutton-read v1.0 : i-button reading tester.
+- Webmapper v1.10 : setting device & update firmware.
+- Webmsr-read v1.1 : magnetic card reading tester.
+- Webibutton-read v1.1 : i-button reading tester.
 - [Programming Guide for MSR](./doc/programming-guide-msr-read-app.md) - How to read a magnetic card.
 - [Programming Guide for i-Button](./doc/programming-guide-ibutton-read-app.md) - How to read a i-Button key.
 

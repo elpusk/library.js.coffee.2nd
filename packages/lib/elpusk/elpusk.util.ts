@@ -1,6 +1,6 @@
 /**
  * @license MIT
- * Copyright (c) 2020 Elpusk.Co.,Ltd.
+ * Copyright (c) 2026 Elpusk.Co.,Ltd.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -403,6 +403,39 @@ export class util extends elpusk {
                 q.push(value);
             }
         } while (false);
+    }
+
+    /** 
+     * @public 
+     * @function elpusk.util.map_of_queue_length
+     * @param target_map The Map instance.
+     * @param key The key of the map.
+     * @returns The length of the queue, if queue dosen't exist, return 0
+     * @description get queue length from the queue associated with the given key.
+     */                
+    public static map_of_queue_length<K, V>(
+        target_map: Map<K, V[]> | undefined,
+        key: K
+    ): number {
+        let n_len: number = 0;
+
+        do {
+            if (!(target_map instanceof Map)) {
+                continue;
+            }
+            if (!target_map.has(key)) {
+                continue;
+            }
+            const q = target_map.get(key);
+            if (!q || q.length <= 0) {
+                continue;
+            }
+
+            n_len = q.length;
+
+        } while (false);
+
+        return n_len;
     }
 
     /** 

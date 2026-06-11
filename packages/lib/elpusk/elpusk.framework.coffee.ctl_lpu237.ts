@@ -1,7 +1,7 @@
 /**
- * 2020.10.8
+ * 2026.06.11
  * @license MIT
- * Copyright (c) 2020 Elpusk.Co.,Ltd.
+ * Copyright (c) 2026 Elpusk.Co.,Ltd.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,8 +22,8 @@
  * SOFTWARE.
  * 
  * @author developer 00000006
- * @copyright Elpusk.Co.,Ltd 2025
- * @version 1.7.0
+ * @copyright Elpusk.Co.,Ltd 2026
+ * @version 1.8.0
  * @description lpu237 controller of elpusk framework coffee typescript library.
  */
 
@@ -710,6 +710,86 @@ export class ctl_lpu237{
     }
 
     /**
+     * Process response event in wait card
+     */
+    private _process_rsp_event_in_wait_ibutton = (n_device_index: number, s_rx: Array<string> | string): void => {
+        do {
+            if (this._is_event_rsp_cancel(s_rx)) {
+                let n_q_len = util.map_of_queue_length(this._map_q_para, n_device_index);
+                if(n_q_len === 1){
+                    // cancel request 가 없는데, cancel 되었다는 것은 다른 프로세스에 의한 cancel 이므로 다시 기다린다.
+                    //re-waiting ibutton data for callback type
+                    const para = util.map_of_queue_get(this._map_q_para, n_device_index);
+                    if (para) {
+                        const b_result = para.server.device_receive_with_callback(
+                            n_device_index, 0,
+                            this._cb_complete_rsp_for_ibutton,
+                            this._cb_error_frame,
+                            true
+                        );
+                        if (b_result) {
+                            return;
+                        }
+                    }
+                }
+                //event e_rsp_cancel
+                this._notify_error(util.map_of_queue_front(this._map_q_para, n_device_index)!);
+                this._set_status(n_device_index, _type_status.ST_WAIT_CANCEL);
+                return;
+            }
+
+            const para = util.map_of_queue_get(this._map_q_para, n_device_index);
+            if (!para) {
+                continue;
+            }
+            if (para.device.get_type_string() == "compositive_msr") {
+                // 구조상 여기 올일 없음.
+                if( typeof s_rx !== 'string'){
+                    continue;
+                }
+                if (!para.device.set_msr_data_from_rx(s_rx)) {
+                    continue;
+                }
+            } else if (para.device.get_type_string() == "compositive_ibutton") {
+                if( typeof s_rx !== 'string'){
+                    continue;
+                }
+                if (!para.device.set_ibutton_data_from_rx(s_rx)) {
+                    continue;
+                }
+            } else {
+                // error. not supported device type
+                continue;
+            }
+
+            //event e_rsp_card
+            if (para.resolve) {
+                //the end of waiting for promise type
+                const removed_para = util.map_of_queue_front(this._map_q_para, n_device_index)!;
+                this._set_status(n_device_index, _type_status.ST_IDLE);
+                this._notify_received(removed_para);
+                return;
+            }
+            this._notify_received(para);
+            //re-waiting ibutton data for callback type
+            const b_result = para.server.device_receive_with_callback(
+                n_device_index, 0,
+                this._cb_complete_rsp_for_ibutton,
+                this._cb_error_frame,
+                true
+            );
+            if (!b_result) {
+                continue;
+            }
+            return;
+        } while (false);
+
+        this._notify_error_all(n_device_index);
+        util.map_of_queue_delete(this._map_q_para, n_device_index);
+        this._set_status(n_device_index, _type_status.ST_IDLE);
+    }
+
+    /**
      * Process response event in wait cancel
      */
     private _process_rsp_event_in_wait_cancel = (n_device_index: number, s_rx: Array<string> | string): void => {
@@ -736,7 +816,7 @@ export class ctl_lpu237{
             }
             if (para.device.get_type_string() == "compositive_ibutton") {
                 if (para.b_read) {
-                    b_result = this._gen_ibutton_start_io(para.server, para.device, this._cb_complete_rsp, this._cb_error_frame);
+                    b_result = this._gen_ibutton_start_io(para.server, para.device, this._cb_complete_rsp_for_ibutton, this._cb_error_frame);
                     if (!b_result) {
                         continue;
                     }
@@ -777,6 +857,36 @@ export class ctl_lpu237{
                     continue;
                 case _type_status.ST_WAIT_READ_DATA:
                     this._process_rsp_event_in_wait_card(n_device_index, s_rx);
+                    continue;
+                case _type_status.ST_WAIT_CANCEL:
+                    this._process_rsp_event_in_wait_cancel(n_device_index, s_rx);
+                    continue;
+                default:
+                    break;
+            }
+        } while (false);
+    }
+
+/**
+     * Callback complete response
+     */
+    private _cb_complete_rsp_for_ibutton = (n_device_index: number, s_rx: Array<string> | string) => {
+        do {
+            const para = util.map_of_queue_get(this._map_q_para, n_device_index);
+            if (!para) {
+                continue;
+            }
+            
+            const st = this._get_status(n_device_index);
+            switch (st) {
+                case _type_status.ST_IDLE:
+                    this._process_rsp_event_in_idle(n_device_index);
+                    continue;
+                case _type_status.ST_WAIT_RSP:
+                    this._process_rsp_event_in_wait_rsp(n_device_index, s_rx);
+                    continue;
+                case _type_status.ST_WAIT_READ_DATA:
+                    this._process_rsp_event_in_wait_ibutton(n_device_index, s_rx);
                     continue;
                 case _type_status.ST_WAIT_CANCEL:
                     this._process_rsp_event_in_wait_cancel(n_device_index, s_rx);

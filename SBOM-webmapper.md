@@ -5,11 +5,11 @@
 | Field | Value |
 |-------|-------|
 | **Package Name** | webmapper |
-| **Version** | 1.9 |
+| **Version** | 1.10 |
 | **Description** | lpu237 장비 설정 webapp |
 | **Source Path** | packages/app/webmapper |
 | **Package Manager** | pnpm 10.27.0 |
-| **Generated** | 2026-04-20 |
+| **Generated** | 2026-06-11 |
 
 ---
 
