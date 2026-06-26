@@ -6,10 +6,10 @@
 |-------|-------|
 | **Package Name** | webmsr-read |
 | **Version** | 1.1 |
-| **Description** | lpu237 장비 magnetic card reading webapp |
+| **Description** | lpu237 device magnetic card reading webapp |
 | **Source Path** | packages/app/webmsr-read |
 | **Package Manager** | pnpm 10.27.0 |
-| **Generated** | 2026-06-11 |
+| **Generated** | 2026-06-26 |
 
 ---
 

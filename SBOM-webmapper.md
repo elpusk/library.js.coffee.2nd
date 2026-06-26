@@ -6,10 +6,10 @@
 |-------|-------|
 | **Package Name** | webmapper |
 | **Version** | 1.10 |
-| **Description** | lpu237 장비 설정 webapp |
+| **Description** | lpu237 device mapper webapp |
 | **Source Path** | packages/app/webmapper |
 | **Package Manager** | pnpm 10.27.0 |
-| **Generated** | 2026-06-11 |
+| **Generated** | 2026-06-26 |
 
 ---
 

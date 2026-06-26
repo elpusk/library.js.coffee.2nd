@@ -6,10 +6,10 @@
 |-------|-------|
 | **Package Name** | webibutton-read |
 | **Version** | 1.1 |
-| **Description** | lpu237 장비 i-button reading webapp |
+| **Description** | lpu237 device i-button reading webapp |
 | **Source Path** | packages/app/webibutton-read |
 | **Package Manager** | pnpm 10.27.0 |
-| **Generated** | 2026-06-11 |
+| **Generated** | 2026-06-26 |
 
 ---
 
