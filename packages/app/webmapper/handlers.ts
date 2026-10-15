@@ -569,12 +569,22 @@ export const createHandlers = (
    */
   const _fetchNormalDeviceList = async () => {
     try {
-      const dev_list = await g_coffee.get_device_list("hid#vid_134b&pid_0206&mi_01");
+      const dev_list = await g_coffee.get_device_list("hid#vid_134b");
       let filtered_list: string[] = [];
+
       if (Array.isArray(dev_list) && dev_list.length > 0) {
-        filtered_list = dev_list.filter(
-          (str) => !/&(ibutton|msr|(scr|switch)\d+)$/.test(str)
-        );
+        filtered_list = dev_list.filter((str) => {
+          // 대소문자 무시하고 필수 조건 확인
+          const lowerStr = str.toLowerCase();
+          // 필수 포함 조건 만족 여부 확인. lpu237 & lpu238
+          const hasValidPidAndMi = lowerStr.includes("pid_0206&mi_01") || lowerStr.includes("pid_0214&mi_00");
+          
+          // 제외 대상 장치 패턴 검사
+          const isExcluded = /&(ibutton|msr|(scr|switch)\d+)$/.test(str);
+
+          // 필수 조건은 만족하고, 제외 대상은 아닐 때만 true
+          return hasValidPidAndMi && !isExcluded;
+        });
       }
       setState(prev => ({
         ...prev,
@@ -777,19 +787,25 @@ export const createHandlers = (
       g_refresh_device_list = async () => {
         try {
           if (g_coffee.get_session_number()) {
-            const dev_list = await g_coffee.get_device_list(
-              "hid#vid_134b&pid_0206&mi_01",
-            );
+            const dev_list = await g_coffee.get_device_list("hid#vid_134b");
 
             let filtered_list:string[] = [];
 
-            if(Array.isArray(dev_list) ){
-              if(dev_list.length > 0){
-                filtered_list = dev_list.filter(
-                (str) => !/&(ibutton|msr|(scr|switch)\d+)$/.test(str),
-              );
-              }
+            if (Array.isArray(dev_list) && dev_list.length > 0) {
+              filtered_list = dev_list.filter((str) => {
+                // 대소문자 무시하고 필수 조건 확인
+                const lowerStr = str.toLowerCase();
+                // 필수 포함 조건 만족 여부 확인. lpu237 & lpu238
+                const hasValidPidAndMi = lowerStr.includes("pid_0206&mi_01") || lowerStr.includes("pid_0214&mi_00");
+                
+                // 제외 대상 장치 패턴 검사
+                const isExcluded = /&(ibutton|msr|(scr|switch)\d+)$/.test(str);
+
+                // 필수 조건은 만족하고, 제외 대상은 아닐 때만 true
+                return hasValidPidAndMi && !isExcluded;
+              });
             }
+
             setState(prev => ({ ...prev, devicePaths: filtered_list }));
           }
         } catch (e) {
@@ -934,14 +950,14 @@ export const createHandlers = (
         if (Array.isArray(hidboot_list) && hidboot_list.length > 0) {
           const recoveryPath = hidboot_list[0];
           addLog(`HID Bootloader device found: ${recoveryPath}`);
-          // 복구 확인 모달 표시 후 이후 흐름(get_device_list pid_0206)은
+          // 복구 확인 모달 표시 후 이후 흐름(get_device_list pid_0206, pid_0214)은
           // 복구 완료(_startRecovery 콜백) 또는 취소(onCancelRecovery) 시 _fetchNormalDeviceList() 로 진행
           setState(prev => ({
             ...prev,
             isRecoveryConfirmOpen: true,
             recoveryDevicePath: recoveryPath,
           }));
-          return; // pid_0206 조회는 복구 결과 후 _fetchNormalDeviceList() 가 담당
+          return; // pid_0206, pid_0214 조회는 복구 결과 후 _fetchNormalDeviceList() 가 담당
         }
 
         // hidboot 없는 경우: 바로 일반 장치 목록 조회

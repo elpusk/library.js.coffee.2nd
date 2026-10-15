@@ -5,11 +5,11 @@
 | Field | Value |
 |-------|-------|
 | **Package Name** | webibutton-read |
-| **Version** | 1.1 |
-| **Description** | lpu237 device i-button reading webapp |
+| **Version** | 1.2 |
+| **Description** | lpu23X device i-button reading webapp |
 | **Source Path** | packages/app/webibutton-read |
 | **Package Manager** | pnpm 10.27.0 |
-| **Generated** | 2026-06-26 |
+| **Generated** | 2026-10-15 |
 
 ---
 

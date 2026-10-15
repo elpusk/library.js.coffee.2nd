@@ -5,11 +5,11 @@
 | Field | Value |
 |-------|-------|
 | **Package Name** | webmapper |
-| **Version** | 1.10 |
-| **Description** | lpu237 device mapper webapp |
+| **Version** | 1.11 |
+| **Description** | lpu23X device mapper webapp |
 | **Source Path** | packages/app/webmapper |
 | **Package Manager** | pnpm 10.27.0 |
-| **Generated** | 2026-06-26 |
+| **Generated** | 2026-10-15 |
 
 ---
 

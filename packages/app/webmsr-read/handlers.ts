@@ -13,7 +13,6 @@ let g_ctl_lpu237: ctl_lpu237 | null = null;
 let g_initialized = false; // StrictMode 이중 초기화 방지
 let g_refresh_device_list: (() => void) | null = null;
 
-const MSR_DEVICE_FILTER = 'hid#vid_134b&pid_0206&mi_01';
 const MSR_PATH_SUFFIX   = '&msr';
 
 // ────────────────────────────────────────────────────────────
@@ -173,10 +172,27 @@ export function createHandlers(
     g_refresh_device_list = async () => {
       try {
         if (g_coffee.get_session_number()) {
-          const dev_list = await g_coffee.get_device_list(MSR_DEVICE_FILTER,);
-          const msrPaths = dev_list.filter(p => p.endsWith(MSR_PATH_SUFFIX));
-          setState(prev => ({ ...prev, devicePaths: msrPaths }));
-          addLog(`[Info] MSR device paths: ${msrPaths.length > 0 ? msrPaths.join(', ') : '(none)'}`);
+          const dev_list = await g_coffee.get_device_list('hid#vid_134b');
+
+          let filtered_list: string[] = [];
+
+          if (Array.isArray(dev_list) && dev_list.length > 0) {
+            filtered_list = dev_list.filter((str) => {
+              // 대소문자 무시하고 필수 조건 확인
+              const lowerStr = str.toLowerCase();
+              // 필수 포함 조건 만족 여부 확인. lpu237 & lpu238
+              const hasValidPidAndMi = lowerStr.includes("pid_0206&mi_01") || lowerStr.includes("pid_0214&mi_00");
+              
+              // 대상 장치 sub 패턴 검사
+              const isSubcluded = str.endsWith(MSR_PATH_SUFFIX);
+
+              // 필수 조건은 만족하고, sub device 대상 일 때만  true
+              return hasValidPidAndMi && isSubcluded;
+            });
+          }
+
+          setState(prev => ({ ...prev, devicePaths: filtered_list }));
+          addLog(`[Info] MSR device paths: ${filtered_list.length > 0 ? filtered_list.join(', ') : '(none)'}`);
 
         }
       } catch (e) {

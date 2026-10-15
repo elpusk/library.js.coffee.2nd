@@ -23,7 +23,7 @@ const Header: React.FC<HeaderProps> = ({ serverStatus, deviceStatus, devicePath,
           <h1 className="text-sm font-bold text-slate-800 leading-tight whitespace-nowrap">
             Elpusk i-BUtton Reader <span className="text-slate-500 font-medium">{APP_VERSION}</span>
           </h1>
-          <p className="text-[10px] text-slate-400 font-medium leading-tight">LPU237 iButton Reader</p>
+          <p className="text-[10px] text-slate-400 font-medium leading-tight">LPU23X iButton Reader</p>
         </div>
       </div>
 
