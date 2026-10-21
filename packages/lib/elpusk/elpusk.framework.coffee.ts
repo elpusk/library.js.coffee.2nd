@@ -1,5 +1,5 @@
 /**
- * 2025.08.04
+ * 2026.10.21
  * @license MIT
  * Copyright (c) 2026 Elpusk.Co.,Ltd.
  *
@@ -23,7 +23,7 @@
  * 
  * @author developer 00000006
  * @copyright Elpusk.Co.,Ltd 2026
- * @version 2.3.0
+ * @version 2.4.0
  * @description elpusk framework coffee typescript library.
  */
 
@@ -2186,12 +2186,12 @@ export class coffee extends framework {
      * @public
      * @async
      * @function get_device_list
-     * @param {string} [s_filter] - 대상 USB 장치를 찾기 위한 필터 문자열.
-     * <br />형식: "class#vid_xxxx&pid_yyyy&mi_zz" (예: "hid#vid_134b")
+     * @param {string | string[]}  [s_filter] - 대상 USB 장치를 찾기 위한 필터 문자열.
+     * <br />형식: "class#vid_xxxx&pid_yyyy&mi_zz" (예: "hid#vid_134b") 또는 이런 문자열의 array
      * @returns {Promise<string[]>} 성공 시 장치 경로(Device Path) 배열을 반환.
      * @description 서버에서 관리 중인 연결된 장치 리스트를 가져옵니다.
      */
-    public async get_device_list(s_filter : string | undefined): Promise<string[]> {
+    public async get_device_list(s_filter : string | string[] | undefined): Promise<string[]> {
         return new Promise((resolve, reject) => {
             // 1. 서버 연결 상태 확인
             if (!coffee._b_connet) {
@@ -2202,11 +2202,17 @@ export class coffee extends framework {
             }
 
             // 기본값은 "hid" 클래스로 설정
-            let s_used_filter = "hid";
+            let s_used_filter: string[] = [];
             const action_code = _type_action_code.DEVICE_LIST;
 
-            if (typeof s_filter == 'string') {
-                s_used_filter = s_filter;
+            if (Array.isArray(s_filter)) {
+                s_used_filter = s_filter.slice();
+            }
+            else if (typeof s_filter == 'string') {
+                s_used_filter.push(s_filter);
+            }
+            else{
+                s_used_filter.push("hid"); // 기본 filter 는 hid
             }
 
             // 2. 이벤트 핸들러 등록
@@ -2236,7 +2242,7 @@ export class coffee extends framework {
                 0,
                 0,
                 _type_data_field_type.STRING_OR_STRING_ARRAY,
-                [String(s_used_filter)]
+                s_used_filter
             );
 
             this._websocket.send(JSON.stringify(json_packet));

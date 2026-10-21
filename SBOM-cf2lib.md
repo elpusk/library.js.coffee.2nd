@@ -5,12 +5,12 @@
 | Field | Value |
 |-------|-------|
 | **Package Name** | @elpusk/lib |
-| **Version** | 2.0.0 |
+| **Version** | 2.1.0 |
 | **Description** | coffee framework second edition client js library |
 | **License** | MIT |
 | **Source Path** | packages/lib (source: packages/lib/elpusk) |
 | **Package Manager** | pnpm 10.27.0 |
-| **Generated** | 2026-06-26 |
+| **Generated** | 2026-10-21 |
 
 ---
 

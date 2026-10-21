@@ -5,7 +5,7 @@
 | Field | Value |
 |-------|-------|
 | **Package Name** | webmapper |
-| **Version** | 1.11 |
+| **Version** | 1.12 |
 | **Description** | lpu23X device mapper webapp |
 | **Source Path** | packages/app/webmapper |
 | **Package Manager** | pnpm 10.27.0 |
@@ -17,7 +17,7 @@
 
 | Package | Specified Version | Resolved Version | License | Type |
 |---------|------------------|-----------------|---------|------|
-| @elpusk/lib | workspace:* | 2.0.0 (local) | MIT | dependency |
+| @elpusk/lib | workspace:* | 2.1.0 (local) | MIT | dependency |
 | lucide-react | ^0.561.0 | 0.561.0 | ISC | dependency |
 | react | ^19.2.3 | 19.2.3 | MIT | dependency |
 | react-dom | ^19.2.3 | 19.2.3 | MIT | dependency |

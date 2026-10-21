@@ -5,7 +5,7 @@
 | Field | Value |
 |-------|-------|
 | **Package Name** | webmsr-read |
-| **Version** | 1.2 |
+| **Version** | 1.3 |
 | **Description** | lpu23X device magnetic card reading webapp |
 | **Source Path** | packages/app/webmsr-read |
 | **Package Manager** | pnpm 10.27.0 |
@@ -17,7 +17,7 @@
 
 | Package | Specified Version | Resolved Version | License | Type |
 |---------|------------------|-----------------|---------|------|
-| @elpusk/lib | workspace:* | 2.0.0 (local) | MIT | dependency |
+| @elpusk/lib | workspace:* | 2.1.0 (local) | MIT | dependency |
 | lucide-react | ^0.561.0 | 0.561.0 | ISC | dependency |
 | react | ^19.2.3 | 19.2.3 | MIT | dependency |
 | react-dom | ^19.2.3 | 19.2.3 | MIT | dependency |

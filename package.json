@@ -1,7 +1,7 @@
 {
   "name": "library.js.coffee.2nd",
   "private": true,
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "coffee framework second edition client js library & webmapper",
   "scripts": {
     "build:lib": "pnpm --filter @elpusk/lib build",

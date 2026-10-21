@@ -569,22 +569,12 @@ export const createHandlers = (
    */
   const _fetchNormalDeviceList = async () => {
     try {
-      const dev_list = await g_coffee.get_device_list("hid#vid_134b");
+      const dev_list = await g_coffee.get_device_list(["hid#vid_134b&pid_0206&mi_01","hid#vid_134b&pid_0214&mi_00"]);
       let filtered_list: string[] = [];
-
       if (Array.isArray(dev_list) && dev_list.length > 0) {
-        filtered_list = dev_list.filter((str) => {
-          // 대소문자 무시하고 필수 조건 확인
-          const lowerStr = str.toLowerCase();
-          // 필수 포함 조건 만족 여부 확인. lpu237 & lpu238
-          const hasValidPidAndMi = lowerStr.includes("pid_0206&mi_01") || lowerStr.includes("pid_0214&mi_00");
-          
-          // 제외 대상 장치 패턴 검사
-          const isExcluded = /&(ibutton|msr|(scr|switch)\d+)$/.test(str);
-
-          // 필수 조건은 만족하고, 제외 대상은 아닐 때만 true
-          return hasValidPidAndMi && !isExcluded;
-        });
+        filtered_list = dev_list.filter(
+          (str) => !/&(ibutton|msr|(scr|switch)\d+)$/.test(str)
+        );
       }
       setState(prev => ({
         ...prev,
@@ -787,25 +777,19 @@ export const createHandlers = (
       g_refresh_device_list = async () => {
         try {
           if (g_coffee.get_session_number()) {
-            const dev_list = await g_coffee.get_device_list("hid#vid_134b");
+            const dev_list = await g_coffee.get_device_list(
+              ["hid#vid_134b&pid_0206&mi_01","hid#vid_134b&pid_0214&mi_00"]
+            );
 
             let filtered_list:string[] = [];
 
-            if (Array.isArray(dev_list) && dev_list.length > 0) {
-              filtered_list = dev_list.filter((str) => {
-                // 대소문자 무시하고 필수 조건 확인
-                const lowerStr = str.toLowerCase();
-                // 필수 포함 조건 만족 여부 확인. lpu237 & lpu238
-                const hasValidPidAndMi = lowerStr.includes("pid_0206&mi_01") || lowerStr.includes("pid_0214&mi_00");
-                
-                // 제외 대상 장치 패턴 검사
-                const isExcluded = /&(ibutton|msr|(scr|switch)\d+)$/.test(str);
-
-                // 필수 조건은 만족하고, 제외 대상은 아닐 때만 true
-                return hasValidPidAndMi && !isExcluded;
-              });
+            if(Array.isArray(dev_list) ){
+              if(dev_list.length > 0){
+                filtered_list = dev_list.filter(
+                (str) => !/&(ibutton|msr|(scr|switch)\d+)$/.test(str),
+              );
+              }
             }
-
             setState(prev => ({ ...prev, devicePaths: filtered_list }));
           }
         } catch (e) {
